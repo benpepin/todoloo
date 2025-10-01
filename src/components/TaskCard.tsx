@@ -52,8 +52,8 @@ export default function TaskCard() {
 
 
   const commonTimes = [
-    { label: '15 mins', value: 15 },
-    { label: '30 mins', value: 30 },
+    { label: '15 minutes', value: 15 },
+    { label: '30 minutes', value: 30 },
     { label: '1 hour', value: 60 },
     { label: '2 hours', value: 120 },
   ]
@@ -172,31 +172,16 @@ export default function TaskCard() {
                    <div className="absolute left-0 pointer-events-none text-[#989999]">
                      <RotatingPlaceholder 
                        texts={[
-                         "Email Sarah about the project that was due last Tuesday",
-                         "Figure out what that green thing in the back of the fridge is",
-                         "Walk the dog before he starts chewing my favorite shoes again",
-                         "Call mom back about the family reunion in July",
-                         "Clean out the Tupperware container that's been there since Christmas",
-                         "Find the other half of my favorite striped sock",
-                         "Actually read the 23 unread emails from my boss",
-                         "Water the cactus before it starts looking like a raisin",
-                         "Organize the 47 pens in my desk drawer by color",
-                         "Remember where I put my car keys this morning",
+                         "Walk the dog",
+                         "Call mom back",
+                         "Buy socks",
+                         "inbox zero",
+                         "Water the monsterra",
                          "Do laundry before I have to wear the same underwear tomorrow",
-                         "Reply to Jessica's text about the coffee meetup",
-                         "Take out the trash before the neighbors start complaining",
-                         "Fix the bathroom door that's been squeaking since February",
-                         "Plan dinner that doesn't involve ordering pizza again",
-                         "Sort through the stack of mail from the last three months",
-                         "Update my LinkedIn with skills I actually have",
-                         "Call the dentist about the appointment I cancelled twice",
-                         "Clean the bathroom before my in-laws visit this weekend",
-                         "Figure out why my laptop takes 15 minutes to start up",
-                         "Return the library book that's been overdue for 6 weeks",
-                         "Fix the leaky faucet that's been dripping since last month",
-                         "Organize the photos on my phone before it runs out of space",
-                         "Call the cable company about the internet that keeps cutting out",
-                         "Clean out my inbox before it hits 10,000 unread emails"
+                         "Cancel whatever I have planned for tonight",
+                         "Take out the trash",
+                         "Figure out dinner",
+                         "Update my LinkedIn",
                        ]}
                        interval={4000}
                        className="text-base font-inter"
@@ -218,7 +203,7 @@ export default function TaskCard() {
             >
               <Timer className="w-3.5 h-3.5 text-[#696969]" />
               <span className="text-xs text-[#696969] font-inter" style={{ transform: 'translateY(1px)' }}>
-                {estimatedMinutes < 60 ? `${estimatedMinutes} mins` : `${Math.floor(estimatedMinutes / 60)}h ${estimatedMinutes % 60}m`}
+                {estimatedMinutes < 60 ? `${estimatedMinutes} minutes` : `${Math.floor(estimatedMinutes / 60)}h ${estimatedMinutes % 60}m`}
               </span>
               <ChevronDown className={`w-3 h-3 text-[#696969] transition-transform translate-y-px ${isDropdownOpen ? 'rotate-180' : ''}`} />
             </button>
@@ -254,7 +239,7 @@ export default function TaskCard() {
                         max="999"
                         className="flex-1 text-xs text-[#2D1B1B] font-inter bg-transparent border-none outline-none placeholder:text-[#989999]"
                       />
-                      <span className="text-xs text-[#696969] font-inter">mins</span>
+                      <span className="text-xs text-[#696969] font-inter">minutes</span>
                     </div>
                   </form>
                 </div>

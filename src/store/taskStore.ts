@@ -39,10 +39,13 @@ export const useTaskStore = create<TaskStore>()(
           isCompleted: false,
           isActive: false,
           createdAt: new Date(),
-          order: get().tasks.length,
+          order: 0,
         }
         set((state) => ({
-          tasks: [...state.tasks, newTask],
+          tasks: [newTask, ...state.tasks.map(task => ({
+            ...task,
+            order: task.order + 1
+          }))],
         }))
       },
 

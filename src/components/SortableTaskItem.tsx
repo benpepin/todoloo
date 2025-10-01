@@ -34,8 +34,8 @@ export default function SortableTaskItem({
   const taskCardRef = useRef<HTMLDivElement>(null)
   
   const commonTimes = [
-    { label: '15 mins', value: 15 },
-    { label: '30 mins', value: 30 },
+    { label: '15 minutes', value: 15 },
+    { label: '30 minutes', value: 30 },
     { label: '1 hour', value: 60 },
     { label: '2 hours', value: 120 },
   ]
@@ -220,11 +220,11 @@ export default function SortableTaskItem({
 
   const formatEstimatedTime = (minutes: number) => {
     if (minutes < 60) {
-      return `${minutes}m`
+      return `${minutes} minutes`
     }
     const hours = Math.floor(minutes / 60)
     const remainingMinutes = minutes % 60
-    return remainingMinutes > 0 ? `${hours}h ${remainingMinutes}m` : `${hours}h`
+    return remainingMinutes > 0 ? `${hours} hours ${remainingMinutes}m` : `${hours} hours`
   }
 
   return (
@@ -255,7 +255,7 @@ export default function SortableTaskItem({
               value={editDescription}
               onChange={(e) => setEditDescription(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Describe your task"
+              placeholder="Write something that will disappoint your future self"
               className="flex-1 text-base text-[#2D1B1B] font-inter placeholder:text-[#989999] bg-transparent border-none outline-none"
             />
           </div>
@@ -273,7 +273,7 @@ export default function SortableTaskItem({
               >
                 <Timer className="w-3.5 h-3.5 text-[#696969]" />
                 <span className="text-xs text-[#696969] font-inter" style={{ transform: 'translateY(1px)' }}>
-                  {editEstimatedMinutes < 60 ? `${editEstimatedMinutes} mins` : `${Math.floor(editEstimatedMinutes / 60)}h ${editEstimatedMinutes % 60}m`}
+                  {editEstimatedMinutes < 60 ? `${editEstimatedMinutes} minutes` : `${Math.floor(editEstimatedMinutes / 60)} hours ${editEstimatedMinutes % 60}m`}
                 </span>
                 <ChevronDown className={`w-3 h-3 text-[#696969] transition-transform translate-y-px ${isDropdownOpen ? 'rotate-180' : ''}`} />
               </button>
@@ -309,7 +309,7 @@ export default function SortableTaskItem({
                           max="999"
                           className="flex-1 text-xs text-[#2D1B1B] font-inter bg-transparent border-none outline-none placeholder:text-[#989999]"
                         />
-                        <span className="text-xs text-[#696969] font-inter">mins</span>
+                        <span className="text-xs text-[#696969] font-inter">minutes</span>
                       </div>
                     </form>
                   </div>
@@ -352,7 +352,7 @@ export default function SortableTaskItem({
                 </p>
                 <div className="flex items-center gap-2 mt-1">
                   <p className="text-sm text-[#696969] font-inter">
-                    Est {formatEstimatedTime(task.estimatedMinutes)}
+                    {formatEstimatedTime(task.estimatedMinutes)}
                   </p>
                   {hasStarted && (
                     <p className={`text-sm font-inter font-medium ${
