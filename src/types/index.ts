@@ -16,4 +16,5 @@ export interface AppState {
   tasks: Task[]
   activeTaskId: string | null
   isTrackingMode: boolean
+  editingTaskId: string | null
 }

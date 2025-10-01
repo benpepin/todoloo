@@ -13,6 +13,11 @@ interface TaskStore extends AppState {
   updateTaskOrder: (tasks: Task[]) => void
   updateTaskActualTime: (id: string, actualMinutes: number) => void
   setTaskElapsedTime: (id: string, elapsedSeconds: number) => void
+  updateTaskDescription: (id: string, description: string) => void
+  updateTaskEstimatedTime: (id: string, estimatedMinutes: number) => void
+  setEditingTask: (id: string | null) => void
+  clearEditingTask: () => void
+  saveCurrentEditingTask: (description: string, estimatedMinutes: number) => void
 }
 
 export const useTaskStore = create<TaskStore>()(
@@ -21,6 +26,7 @@ export const useTaskStore = create<TaskStore>()(
       tasks: [],
       activeTaskId: null,
       isTrackingMode: false,
+      editingTaskId: null,
 
       addTask: (description: string, estimatedMinutes: number) => {
         const newTask: Task = {
@@ -116,6 +122,38 @@ export const useTaskStore = create<TaskStore>()(
             task.id === id ? { ...task, elapsedSeconds } : task
           ),
         }))
+      },
+
+      updateTaskDescription: (id: string, description: string) => {
+        set((state) => ({
+          tasks: state.tasks.map((task) =>
+            task.id === id ? { ...task, description } : task
+          ),
+        }))
+      },
+
+      updateTaskEstimatedTime: (id: string, estimatedMinutes: number) => {
+        set((state) => ({
+          tasks: state.tasks.map((task) =>
+            task.id === id ? { ...task, estimatedMinutes } : task
+          ),
+        }))
+      },
+
+      setEditingTask: (id: string | null) => {
+        set({ editingTaskId: id })
+      },
+
+      clearEditingTask: () => {
+        set({ editingTaskId: null })
+      },
+
+      saveCurrentEditingTask: (description: string, estimatedMinutes: number) => {
+        const { editingTaskId } = get()
+        if (editingTaskId) {
+          updateTaskDescription(editingTaskId, description)
+          updateTaskEstimatedTime(editingTaskId, estimatedMinutes)
+        }
       },
     }),
     {
