@@ -51,7 +51,7 @@ export default function SortableTaskItem({
   
   const isEditing = editingTaskId === task.id
   const isActive = activeTaskId === task.id
-  const { seconds, isRunning, start, stop, formatTime } = useSimpleTimer()
+  const { seconds, isRunning, hasStarted, start, pause, stop, formatTime } = useSimpleTimer()
   
   const {
     attributes,
@@ -134,14 +134,14 @@ export default function SortableTaskItem({
     }
   }, [editingTaskId, task.id, isEditing, editDescription, editEstimatedMinutes, updateTaskDescription, updateTaskEstimatedTime])
 
-  // Handle timer start/stop when task becomes active/inactive
+  // Handle timer start/pause when task becomes active/inactive
   useEffect(() => {
     if (isActive) {
       start()
-    } else {
-      stop()
+    } else if (hasStarted) {
+      pause()
     }
-  }, [isActive, start, stop])
+  }, [isActive, start, pause, hasStarted])
 
   const handleStartTask = () => {
     startTask(task.id)
@@ -149,6 +149,7 @@ export default function SortableTaskItem({
 
   const handleStopTask = () => {
     stopTask()
+    stop() // Reset the timer
   }
 
 
@@ -353,8 +354,10 @@ export default function SortableTaskItem({
                   <p className="text-xs text-[#696969] font-inter">
                     Est: {formatEstimatedTime(task.estimatedMinutes)}
                   </p>
-                  {isActive && (
-                    <p className="text-xs text-[#9F8685] font-inter font-medium">
+                  {hasStarted && (
+                    <p className={`text-xs font-inter font-medium ${
+                      isActive ? 'text-[#9F8685]' : 'text-[#696969]'
+                    }`}>
                       • {formatTime(seconds)}
                     </p>
                   )}
@@ -367,7 +370,7 @@ export default function SortableTaskItem({
             {!task.isCompleted && (
               <button
                 onClick={isActive ? handleStopTask : handleStartTask}
-                className={`p-2 rounded-lg transition-colors ${
+                className={`p-2 rounded-lg transition-all duration-200 opacity-0 group-hover:opacity-100 ${
                   isActive 
                     ? 'bg-red-100 hover:bg-red-200 text-red-600' 
                     : 'bg-green-100 hover:bg-green-200 text-green-600'
@@ -379,17 +382,17 @@ export default function SortableTaskItem({
             
             <button
               onClick={() => onDelete(task.id)}
-              className="p-2 hover:bg-[#F5F5F5] rounded-lg transition-colors text-[#696969] hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+              className="p-2 hover:bg-[#F5F5F5] rounded-lg transition-all duration-200 text-[#696969] hover:text-red-500 opacity-0 group-hover:opacity-100"
             >
               <Trash2 className="w-4 h-4" />
             </button>
             
             <button
-              className="p-2 hover:bg-[#F5F5F5] rounded-lg transition-colors cursor-grab active:cursor-grabbing"
+              className="p-2 hover:bg-[#F5F5F5] rounded-lg transition-all duration-200 cursor-grab active:cursor-grabbing text-[#696969] opacity-0 group-hover:opacity-100"
               {...attributes}
               {...listeners}
             >
-              <GripVertical className="w-4 h-4 text-[#696969]" />
+              <GripVertical className="w-4 h-4" />
             </button>
           </div>
         </div>

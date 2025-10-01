@@ -5,6 +5,7 @@ import { useState, useEffect, useRef } from 'react'
 export function useSimpleTimer() {
   const [seconds, setSeconds] = useState(0)
   const [isRunning, setIsRunning] = useState(false)
+  const [hasStarted, setHasStarted] = useState(false)
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
 
   useEffect(() => {
@@ -28,6 +29,11 @@ export function useSimpleTimer() {
 
   const start = () => {
     setIsRunning(true)
+    setHasStarted(true)
+  }
+
+  const pause = () => {
+    setIsRunning(false)
   }
 
   const stop = () => {
@@ -36,6 +42,7 @@ export function useSimpleTimer() {
 
   const reset = () => {
     setIsRunning(false)
+    setHasStarted(false)
     setSeconds(0)
   }
 
@@ -53,7 +60,9 @@ export function useSimpleTimer() {
   return {
     seconds,
     isRunning,
+    hasStarted,
     start,
+    pause,
     stop,
     reset,
     formatTime
