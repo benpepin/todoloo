@@ -4,6 +4,40 @@ import { useState, useRef, useEffect } from 'react'
 import { Plus, Timer, ChevronDown } from 'lucide-react'
 import { useTaskStore } from '@/store/taskStore'
 
+// Rotating placeholder text component
+function RotatingPlaceholder({ 
+  texts, 
+  interval = 2000, 
+  className = "" 
+}: { 
+  texts: string[], 
+  interval?: number, 
+  className?: string 
+}) {
+  const [currentIndex, setCurrentIndex] = useState(0)
+  const [isVisible, setIsVisible] = useState(true)
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setIsVisible(false)
+      setTimeout(() => {
+        setCurrentIndex((prev) => (prev + 1) % texts.length)
+        setIsVisible(true)
+      }, 300) // Half of the transition duration
+    }, interval)
+
+    return () => clearInterval(timer)
+  }, [texts.length, interval])
+
+  return (
+    <span 
+      className={`transition-opacity duration-300 ${isVisible ? 'opacity-100' : 'opacity-0'} ${className}`}
+    >
+      {texts[currentIndex]}
+    </span>
+  )
+}
+
 export default function TaskCard() {
   const [description, setDescription] = useState('')
   const [estimatedMinutes, setEstimatedMinutes] = useState(30)
@@ -124,15 +158,29 @@ export default function TaskCard() {
   return (
     <div className="w-[600px] bg-[#FEFFFF] rounded-[20px] border border-[#D9D9D9] shadow-[0px_4px_54px_rgba(0,0,0,0.05)] p-3 animate-in fade-in-0 zoom-in-95 duration-200">
       <form onSubmit={handleSubmit} className="flex flex-col gap-8">
-        <div className="flex items-center">
+        <div className="flex items-center relative">
           <input
             ref={inputRef}
             type="text"
             value={description}
             onChange={handleDescriptionChange}
-            placeholder="Describe your task"
-            className="flex-1 text-base text-[#2D1B1B] font-inter placeholder:text-[#989999] bg-transparent border-none outline-none"
+            className="flex-1 text-base text-[#2D1B1B] font-inter bg-transparent border-none outline-none"
           />
+          {!description && (
+            <div className="absolute left-0 pointer-events-none text-[#989999]">
+              <RotatingPlaceholder 
+                texts={[
+                  "Describe your task",
+                  "What needs to be done?",
+                  "Add a new todo",
+                  "What's on your mind?",
+                  "Plan something new"
+                ]}
+                interval={2500}
+                className="text-base font-inter"
+              />
+            </div>
+          )}
         </div>
         
         <div className="flex justify-between items-end">
