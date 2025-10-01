@@ -28,6 +28,7 @@ export default function SortableTaskItem({
   
   const descriptionInputRef = useRef<HTMLInputElement>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
+  const taskCardRef = useRef<HTMLDivElement>(null)
   
   const commonTimes = [
     { label: '15 mins', value: 15 },
@@ -81,6 +82,29 @@ export default function SortableTaskItem({
       document.removeEventListener('mousedown', handleClickOutside)
     }
   }, [])
+
+  // Handle click outside task card to save edits
+  useEffect(() => {
+    function handleClickOutsideTaskCard(event: MouseEvent) {
+      if (isEditing && taskCardRef.current && !taskCardRef.current.contains(event.target as Node)) {
+        // Save the current edits when clicking outside
+        if (editDescription.trim()) {
+          updateTaskDescription(task.id, editDescription.trim())
+          updateTaskEstimatedTime(task.id, editEstimatedMinutes)
+        }
+        clearEditingTask()
+        setShowEditButtons(false)
+      }
+    }
+
+    if (isEditing) {
+      document.addEventListener('mousedown', handleClickOutsideTaskCard)
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutsideTaskCard)
+    }
+  }, [isEditing, editDescription, editEstimatedMinutes, task.id, updateTaskDescription, updateTaskEstimatedTime, clearEditingTask])
 
   // Handle when editing task changes - auto-save if we were editing
   useEffect(() => {
@@ -163,7 +187,10 @@ export default function SortableTaskItem({
 
   return (
     <div
-      ref={setNodeRef}
+      ref={(node) => {
+        setNodeRef(node)
+        taskCardRef.current = node
+      }}
       style={style}
       className={`w-[480px] mx-auto bg-[#FEFFFF] rounded-[20px] border border-[#D9D9D9] shadow-[0px_4px_54px_rgba(0,0,0,0.05)] ${
         isDragging ? 'opacity-60 shadow-lg scale-105' : 'transition-all duration-200'
