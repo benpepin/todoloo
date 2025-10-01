@@ -235,9 +235,9 @@ export default function SortableTaskItem({
           taskCardRef.current = node
         }}
         style={style}
-        className={`w-[480px] mx-auto bg-[#FEFFFF] rounded-[20px] border border-[#D9D9D9] shadow-[0px_4px_54px_rgba(0,0,0,0.05)] group ${
+        className={`w-[600px] bg-[#FEFFFF] rounded-[20px] border border-[#D9D9D9] group ${
           isDragging ? 'opacity-60 shadow-lg scale-105' : 'transition-all duration-200'
-        } ${isActive ? 'ring-2 ring-[#9F8685]' : ''} ${isEditing ? 'p-3' : 'p-4'}`}
+        } ${isActive ? 'ring-2 ring-[#9F8685]' : ''} ${isEditing ? 'pt-4 pb-4 pl-4 pr-6' : 'pt-4 pb-4 pl-4 pr-6'}`}
         onMouseEnter={() => setShowEditButtons(true)}
         onMouseLeave={() => !isEditing && setShowEditButtons(false)}
       >
@@ -272,10 +272,10 @@ export default function SortableTaskItem({
                 }`}
               >
                 <Timer className="w-3.5 h-3.5 text-[#696969]" />
-                <span className="text-xs text-[#696969] font-inter">
+                <span className="text-xs text-[#696969] font-inter" style={{ transform: 'translateY(1px)' }}>
                   {editEstimatedMinutes < 60 ? `${editEstimatedMinutes} mins` : `${Math.floor(editEstimatedMinutes / 60)}h ${editEstimatedMinutes % 60}m`}
                 </span>
-                <ChevronDown className={`w-3 h-3 text-[#696969] transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
+                <ChevronDown className={`w-3 h-3 text-[#696969] transition-transform translate-y-px ${isDropdownOpen ? 'rotate-180' : ''}`} />
               </button>
               
               {isDropdownOpen && (
@@ -319,19 +319,19 @@ export default function SortableTaskItem({
             
             <button
               onClick={handleSave}
-              className="p-1.5 bg-gradient-to-r from-[#9F8685] to-[#583636] rounded-[10px] hover:opacity-90 transition-opacity"
+              className="p-1.5 bg-gradient-to-r from-[#9F8685] to-[#583636] rounded-[10px] hover:opacity-90 transition-opacity cursor-pointer"
             >
               <Plus className="w-5 h-5 text-white" />
             </button>
           </div>
         </div>
       ) : (
-        // Normal display mode
+        // Normal display mode - simplified design with hover states
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3 flex-1">
             <button
               onClick={() => onToggleCompletion(task.id)}
-              className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${
+              className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors cursor-pointer ${
                 task.isCompleted
                   ? 'bg-[#9F8685] border-[#9F8685] text-white'
                   : 'border-[#D9D9D9] hover:border-[#9F8685]'
@@ -351,11 +351,11 @@ export default function SortableTaskItem({
                   {task.description}
                 </p>
                 <div className="flex items-center gap-2 mt-1">
-                  <p className="text-xs text-[#696969] font-inter">
-                    Est: {formatEstimatedTime(task.estimatedMinutes)}
+                  <p className="text-sm text-[#696969] font-inter">
+                    Est {formatEstimatedTime(task.estimatedMinutes)}
                   </p>
                   {hasStarted && (
-                    <p className={`text-xs font-inter font-medium ${
+                    <p className={`text-sm font-inter font-medium ${
                       isActive ? 'text-[#9F8685]' : 'text-[#696969]'
                     }`}>
                       • {formatTime(seconds)}
@@ -366,11 +366,12 @@ export default function SortableTaskItem({
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          {/* Hover action buttons */}
+          <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
             {!task.isCompleted && (
               <button
                 onClick={isActive ? handleStopTask : handleStartTask}
-                className={`p-2 rounded-lg transition-all duration-200 opacity-0 group-hover:opacity-100 ${
+                className={`p-2 rounded-lg transition-all duration-200 cursor-pointer ${
                   isActive 
                     ? 'bg-red-100 hover:bg-red-200 text-red-600' 
                     : 'bg-green-100 hover:bg-green-200 text-green-600'
@@ -382,13 +383,13 @@ export default function SortableTaskItem({
             
             <button
               onClick={() => onDelete(task.id)}
-              className="p-2 hover:bg-[#F5F5F5] rounded-lg transition-all duration-200 text-[#696969] hover:text-red-500 opacity-0 group-hover:opacity-100"
+              className="p-2 hover:bg-[#F5F5F5] rounded-lg transition-all duration-200 text-[#696969] hover:text-red-500 cursor-pointer"
             >
               <Trash2 className="w-4 h-4" />
             </button>
             
             <button
-              className="p-2 hover:bg-[#F5F5F5] rounded-lg transition-all duration-200 cursor-grab active:cursor-grabbing text-[#696969] opacity-0 group-hover:opacity-100"
+              className="p-2 hover:bg-[#F5F5F5] rounded-lg transition-all duration-200 cursor-grab active:cursor-grabbing text-[#696969]"
               {...attributes}
               {...listeners}
             >

@@ -14,6 +14,7 @@ export default function TaskCard() {
   const addTask = useTaskStore((state) => state.addTask)
   const setShowCreateTask = useTaskStore((state) => state.setShowCreateTask)
 
+
   const commonTimes = [
     { label: '15 mins', value: 15 },
     { label: '30 mins', value: 30 },
@@ -121,7 +122,7 @@ export default function TaskCard() {
   }
 
   return (
-    <div className="w-[480px] mx-auto bg-[#FEFFFF] rounded-[20px] border border-[#D9D9D9] shadow-[0px_4px_54px_rgba(0,0,0,0.05)] p-3 animate-in fade-in-0 zoom-in-95 duration-200">
+    <div className="w-[600px] bg-[#FEFFFF] rounded-[20px] border border-[#D9D9D9] shadow-[0px_4px_54px_rgba(0,0,0,0.05)] p-3 animate-in fade-in-0 zoom-in-95 duration-200">
       <form onSubmit={handleSubmit} className="flex flex-col gap-8">
         <div className="flex items-center">
           <input
@@ -146,10 +147,10 @@ export default function TaskCard() {
               }`}
             >
               <Timer className="w-3.5 h-3.5 text-[#696969]" />
-              <span className="text-xs text-[#696969] font-inter">
+              <span className="text-xs text-[#696969] font-inter" style={{ transform: 'translateY(1px)' }}>
                 {estimatedMinutes < 60 ? `${estimatedMinutes} mins` : `${Math.floor(estimatedMinutes / 60)}h ${estimatedMinutes % 60}m`}
               </span>
-              <ChevronDown className={`w-3 h-3 text-[#696969] transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
+              <ChevronDown className={`w-3 h-3 text-[#696969] transition-transform translate-y-px ${isDropdownOpen ? 'rotate-180' : ''}`} />
             </button>
             
             {isDropdownOpen && (
@@ -194,6 +195,7 @@ export default function TaskCard() {
           <button
             type="submit"
             className="p-1.5 bg-gradient-to-r from-[#9F8685] to-[#583636] rounded-[10px] hover:opacity-90 transition-opacity"
+            style={{ cursor: 'pointer' }}
           >
             <Plus className="w-5 h-5 text-white" />
           </button>
