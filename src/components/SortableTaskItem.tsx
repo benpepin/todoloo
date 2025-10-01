@@ -208,7 +208,7 @@ export default function SortableTaskItem({
         taskCardRef.current = node
       }}
       style={style}
-      className={`w-[480px] mx-auto bg-[#FEFFFF] rounded-[20px] border border-[#D9D9D9] shadow-[0px_4px_54px_rgba(0,0,0,0.05)] ${
+      className={`w-[480px] mx-auto bg-[#FEFFFF] rounded-[20px] border border-[#D9D9D9] shadow-[0px_4px_54px_rgba(0,0,0,0.05)] group ${
         isDragging ? 'opacity-60 shadow-lg scale-105' : 'transition-all duration-200'
       } ${isActive ? 'ring-2 ring-[#9F8685]' : ''} ${isEditing ? 'p-3' : 'p-4'}`}
       onMouseEnter={() => setShowEditButtons(true)}
@@ -330,7 +330,7 @@ export default function SortableTaskItem({
             </div>
           </div>
 
-          <div className="flex items-center gap-2 group">
+          <div className="flex items-center gap-2">
             <button
               onClick={() => onDelete(task.id)}
               className="p-2 hover:bg-[#F5F5F5] rounded-lg transition-colors text-[#696969] hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
