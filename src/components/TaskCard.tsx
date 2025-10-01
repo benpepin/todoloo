@@ -31,10 +31,8 @@ function RotatingPlaceholder({
 
   return (
     <span 
-      className={`transition-all duration-300 ease-in-out ${
-        isVisible 
-          ? 'opacity-100 translate-y-0' 
-          : 'opacity-0 translate-y-2'
+      className={`transition-opacity duration-500 ease-in-out ${
+        isVisible ? 'opacity-100' : 'opacity-0'
       } ${className}`}
     >
       {texts[currentIndex]}
@@ -170,21 +168,41 @@ export default function TaskCard() {
             onChange={handleDescriptionChange}
             className="flex-1 text-base text-[#2D1B1B] font-inter bg-transparent border-none outline-none"
           />
-          {!description && (
-            <div className="absolute left-0 pointer-events-none text-[#989999]">
-              <RotatingPlaceholder 
-                texts={[
-                  "Describe your task",
-                  "What needs to be done?",
-                  "Add a new todo",
-                  "What's on your mind?",
-                  "Plan something new"
-                ]}
-                interval={2500}
-                className="text-base font-inter"
-              />
-            </div>
-          )}
+                 {!description && (
+                   <div className="absolute left-0 pointer-events-none text-[#989999]">
+                     <RotatingPlaceholder 
+                       texts={[
+                         "Email Sarah about the project that was due last Tuesday",
+                         "Figure out what that green thing in the back of the fridge is",
+                         "Walk the dog before he starts chewing my favorite shoes again",
+                         "Call mom back about the family reunion in July",
+                         "Clean out the Tupperware container that's been there since Christmas",
+                         "Find the other half of my favorite striped sock",
+                         "Actually read the 23 unread emails from my boss",
+                         "Water the cactus before it starts looking like a raisin",
+                         "Organize the 47 pens in my desk drawer by color",
+                         "Remember where I put my car keys this morning",
+                         "Do laundry before I have to wear the same underwear tomorrow",
+                         "Reply to Jessica's text about the coffee meetup",
+                         "Take out the trash before the neighbors start complaining",
+                         "Fix the bathroom door that's been squeaking since February",
+                         "Plan dinner that doesn't involve ordering pizza again",
+                         "Sort through the stack of mail from the last three months",
+                         "Update my LinkedIn with skills I actually have",
+                         "Call the dentist about the appointment I cancelled twice",
+                         "Clean the bathroom before my in-laws visit this weekend",
+                         "Figure out why my laptop takes 15 minutes to start up",
+                         "Return the library book that's been overdue for 6 weeks",
+                         "Fix the leaky faucet that's been dripping since last month",
+                         "Organize the photos on my phone before it runs out of space",
+                         "Call the cable company about the internet that keeps cutting out",
+                         "Clean out my inbox before it hits 10,000 unread emails"
+                       ]}
+                       interval={4000}
+                       className="text-base font-inter"
+                     />
+                   </div>
+                 )}
         </div>
         
         <div className="flex justify-between items-end">
