@@ -151,8 +151,13 @@ export const useTaskStore = create<TaskStore>()(
       saveCurrentEditingTask: (description: string, estimatedMinutes: number) => {
         const { editingTaskId } = get()
         if (editingTaskId) {
-          updateTaskDescription(editingTaskId, description)
-          updateTaskEstimatedTime(editingTaskId, estimatedMinutes)
+          set((state) => ({
+            tasks: state.tasks.map((task) =>
+              task.id === editingTaskId 
+                ? { ...task, description, estimatedMinutes }
+                : task
+            ),
+          }))
         }
       },
     }),

@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { Trash2, Check, GripVertical, Edit2, Save, X, Timer, ChevronDown, Plus } from 'lucide-react'
+import { Trash2, Check, GripVertical, Timer, ChevronDown, Plus } from 'lucide-react'
 import { Task } from '@/types'
 import { useTaskStore } from '@/store/taskStore'
 
@@ -24,7 +24,7 @@ export default function SortableTaskItem({
   const [editEstimatedMinutes, setEditEstimatedMinutes] = useState(task.estimatedMinutes)
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [customMinutes, setCustomMinutes] = useState('')
-  const [showEditButtons, setShowEditButtons] = useState(false)
+  const [, setShowEditButtons] = useState(false)
   
   const descriptionInputRef = useRef<HTMLInputElement>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
@@ -42,7 +42,6 @@ export default function SortableTaskItem({
   const editingTaskId = useTaskStore((state) => state.editingTaskId)
   const setEditingTask = useTaskStore((state) => state.setEditingTask)
   const clearEditingTask = useTaskStore((state) => state.clearEditingTask)
-  const saveCurrentEditingTask = useTaskStore((state) => state.saveCurrentEditingTask)
   
   const isEditing = editingTaskId === task.id
   
