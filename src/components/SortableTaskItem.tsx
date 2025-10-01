@@ -236,7 +236,7 @@ export default function SortableTaskItem({
         }}
         style={style}
         className={`w-[600px] bg-[#FEFFFF] rounded-[20px] border border-[#D9D9D9] group ${
-          isDragging ? 'opacity-60 shadow-lg scale-105' : 'transition-all duration-200'
+          isDragging ? 'opacity-50 shadow-xl z-50' : 'transition-opacity duration-200'
         } ${isActive ? 'ring-2 ring-[#9F8685]' : ''} ${isEditing ? 'pt-4 pb-4 pl-4 pr-6' : 'pt-4 pb-4 pl-4 pr-6'}`}
         onMouseEnter={() => setShowEditButtons(true)}
         onMouseLeave={() => !isEditing && setShowEditButtons(false)}
