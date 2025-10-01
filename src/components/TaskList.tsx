@@ -1,7 +1,6 @@
 'use client'
 
-import { useState } from 'react'
-import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core'
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core'
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { useTaskStore } from '@/store/taskStore'
 import SortableTaskItem from './SortableTaskItem'
@@ -21,10 +20,10 @@ export default function TaskList() {
     })
   )
 
-  const handleDragEnd = (event: any) => {
+  const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event
 
-    if (active.id !== over?.id) {
+    if (active.id !== over?.id && over) {
       const oldIndex = tasks.findIndex((task) => task.id === active.id)
       const newIndex = tasks.findIndex((task) => task.id === over.id)
       

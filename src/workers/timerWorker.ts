@@ -1,10 +1,10 @@
 // Web Worker for accurate time tracking
-let intervalId: number | null = null
+let intervalId: ReturnType<typeof setInterval> | null = null
 let startTime: number = 0
 let pausedTime: number = 0
 
 self.onmessage = function(e) {
-  const { type, data } = e.data
+  const { type } = e.data
 
   switch (type) {
     case 'START':

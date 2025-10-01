@@ -2,7 +2,7 @@
 
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { Trash2, Play, Pause, Check } from 'lucide-react'
+import { Trash2, Check } from 'lucide-react'
 import { Task } from '@/types'
 
 interface SortableTaskItemProps {
