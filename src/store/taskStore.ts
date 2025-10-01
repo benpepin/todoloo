@@ -12,7 +12,6 @@ interface TaskStore extends AppState {
   resumeTask: () => void
   updateTaskOrder: (tasks: Task[]) => void
   updateTaskActualTime: (id: string, actualMinutes: number) => void
-  setTaskElapsedTime: (id: string, elapsedSeconds: number) => void
   updateTaskDescription: (id: string, description: string) => void
   updateTaskEstimatedTime: (id: string, estimatedMinutes: number) => void
   setEditingTask: (id: string | null) => void
@@ -73,6 +72,7 @@ export const useTaskStore = create<TaskStore>()(
           tasks: state.tasks.map((task) => ({
             ...task,
             isActive: task.id === id,
+            isPaused: task.id === id ? false : task.isPaused,
           })),
           activeTaskId: id,
           isTrackingMode: true,
@@ -84,6 +84,7 @@ export const useTaskStore = create<TaskStore>()(
           tasks: state.tasks.map((task) => ({
             ...task,
             isActive: false,
+            isPaused: false,
           })),
           activeTaskId: null,
           isTrackingMode: false,
@@ -120,13 +121,6 @@ export const useTaskStore = create<TaskStore>()(
         }))
       },
 
-      setTaskElapsedTime: (id: string, elapsedSeconds: number) => {
-        set((state) => ({
-          tasks: state.tasks.map((task) =>
-            task.id === id ? { ...task, elapsedSeconds } : task
-          ),
-        }))
-      },
 
       updateTaskDescription: (id: string, description: string) => {
         set((state) => ({

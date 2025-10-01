@@ -3,22 +3,24 @@
 import { useState, useRef, useEffect } from 'react'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { Trash2, Check, GripVertical, Timer, ChevronDown, Plus } from 'lucide-react'
+import { Trash2, Check, GripVertical, Timer, ChevronDown, Plus, Play, Square } from 'lucide-react'
 import { Task } from '@/types'
 import { useTaskStore } from '@/store/taskStore'
+import { useSimpleTimer } from '@/hooks/useSimpleTimer'
+import AnimatedBorder from './AnimatedBorder'
 
 interface SortableTaskItemProps {
   task: Task
   onDelete: (id: string) => void
   onToggleCompletion: (id: string) => void
-  isActive: boolean
+  isTaskActive: boolean
 }
 
 export default function SortableTaskItem({ 
   task, 
   onDelete, 
   onToggleCompletion, 
-  isActive 
+  isTaskActive 
 }: SortableTaskItemProps) {
   const [editDescription, setEditDescription] = useState(task.description)
   const [editEstimatedMinutes, setEditEstimatedMinutes] = useState(task.estimatedMinutes)
@@ -43,8 +45,13 @@ export default function SortableTaskItem({
   const editingTaskId = useTaskStore((state) => state.editingTaskId)
   const setEditingTask = useTaskStore((state) => state.setEditingTask)
   const clearEditingTask = useTaskStore((state) => state.clearEditingTask)
+  const startTask = useTaskStore((state) => state.startTask)
+  const stopTask = useTaskStore((state) => state.stopTask)
+  const activeTaskId = useTaskStore((state) => state.activeTaskId)
   
   const isEditing = editingTaskId === task.id
+  const isActive = activeTaskId === task.id
+  const { seconds, isRunning, start, stop, formatTime } = useSimpleTimer()
   
   const {
     attributes,
@@ -127,6 +134,24 @@ export default function SortableTaskItem({
     }
   }, [editingTaskId, task.id, isEditing, editDescription, editEstimatedMinutes, updateTaskDescription, updateTaskEstimatedTime])
 
+  // Handle timer start/stop when task becomes active/inactive
+  useEffect(() => {
+    if (isActive) {
+      start()
+    } else {
+      stop()
+    }
+  }, [isActive, start, stop])
+
+  const handleStartTask = () => {
+    startTask(task.id)
+  }
+
+  const handleStopTask = () => {
+    stopTask()
+  }
+
+
   const handleEdit = () => {
     if (task.isCompleted) return
     
@@ -192,7 +217,7 @@ export default function SortableTaskItem({
     transition: isDragging ? 'none' : transition,
   }
 
-  const formatTime = (minutes: number) => {
+  const formatEstimatedTime = (minutes: number) => {
     if (minutes < 60) {
       return `${minutes}m`
     }
@@ -202,18 +227,19 @@ export default function SortableTaskItem({
   }
 
   return (
-    <div
-      ref={(node) => {
-        setNodeRef(node)
-        taskCardRef.current = node
-      }}
-      style={style}
-      className={`w-[480px] mx-auto bg-[#FEFFFF] rounded-[20px] border border-[#D9D9D9] shadow-[0px_4px_54px_rgba(0,0,0,0.05)] group ${
-        isDragging ? 'opacity-60 shadow-lg scale-105' : 'transition-all duration-200'
-      } ${isActive ? 'ring-2 ring-[#9F8685]' : ''} ${isEditing ? 'p-3' : 'p-4'}`}
-      onMouseEnter={() => setShowEditButtons(true)}
-      onMouseLeave={() => !isEditing && setShowEditButtons(false)}
-    >
+    <AnimatedBorder isActive={isActive}>
+      <div
+        ref={(node) => {
+          setNodeRef(node)
+          taskCardRef.current = node
+        }}
+        style={style}
+        className={`w-[480px] mx-auto bg-[#FEFFFF] rounded-[20px] border border-[#D9D9D9] shadow-[0px_4px_54px_rgba(0,0,0,0.05)] group ${
+          isDragging ? 'opacity-60 shadow-lg scale-105' : 'transition-all duration-200'
+        } ${isActive ? 'ring-2 ring-[#9F8685]' : ''} ${isEditing ? 'p-3' : 'p-4'}`}
+        onMouseEnter={() => setShowEditButtons(true)}
+        onMouseLeave={() => !isEditing && setShowEditButtons(false)}
+      >
       {isEditing ? (
         // Edit mode - looks like TaskCard
         <div className={`flex flex-col gap-8 transition-all duration-150 ${
@@ -323,14 +349,34 @@ export default function SortableTaskItem({
                 }`}>
                   {task.description}
                 </p>
-                <p className="text-xs text-[#696969] font-inter mt-1">
-                  {formatTime(task.estimatedMinutes)}
-                </p>
+                <div className="flex items-center gap-2 mt-1">
+                  <p className="text-xs text-[#696969] font-inter">
+                    Est: {formatEstimatedTime(task.estimatedMinutes)}
+                  </p>
+                  {isActive && (
+                    <p className="text-xs text-[#9F8685] font-inter font-medium">
+                      • {formatTime(seconds)}
+                    </p>
+                  )}
+                </div>
               </div>
             </div>
           </div>
 
           <div className="flex items-center gap-2">
+            {!task.isCompleted && (
+              <button
+                onClick={isActive ? handleStopTask : handleStartTask}
+                className={`p-2 rounded-lg transition-colors ${
+                  isActive 
+                    ? 'bg-red-100 hover:bg-red-200 text-red-600' 
+                    : 'bg-green-100 hover:bg-green-200 text-green-600'
+                }`}
+              >
+                {isActive ? <Square className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+              </button>
+            )}
+            
             <button
               onClick={() => onDelete(task.id)}
               className="p-2 hover:bg-[#F5F5F5] rounded-lg transition-colors text-[#696969] hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
@@ -348,6 +394,7 @@ export default function SortableTaskItem({
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </AnimatedBorder>
   )
 }

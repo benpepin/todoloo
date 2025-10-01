@@ -3,7 +3,6 @@ export interface Task {
   description: string
   estimatedMinutes: number
   actualMinutes?: number
-  elapsedSeconds?: number
   isCompleted: boolean
   isActive: boolean
   isPaused?: boolean

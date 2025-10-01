@@ -75,7 +75,7 @@ export default function TaskList() {
               task={task}
               onDelete={deleteTask}
               onToggleCompletion={toggleTaskCompletion}
-              isActive={activeTaskId === task.id}
+              isTaskActive={activeTaskId === task.id}
             />
           ))}
         </div>

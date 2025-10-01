@@ -5,6 +5,11 @@ const nextConfig: NextConfig = {
   trailingSlash: true,
   images: {
     unoptimized: true
+  },
+  experimental: {
+    turbo: {
+      root: '/Users/benpepin/TODOLOOS'
+    }
   }
 };
 
