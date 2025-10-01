@@ -25,6 +25,7 @@ export default function SortableTaskItem({
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [customMinutes, setCustomMinutes] = useState('')
   const [, setShowEditButtons] = useState(false)
+  const [isAnimatingOut, setIsAnimatingOut] = useState(false)
   
   const descriptionInputRef = useRef<HTMLInputElement>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
@@ -91,8 +92,12 @@ export default function SortableTaskItem({
           updateTaskDescription(task.id, editDescription.trim())
           updateTaskEstimatedTime(task.id, editEstimatedMinutes)
         }
-        clearEditingTask()
-        setShowEditButtons(false)
+        setIsAnimatingOut(true)
+        setTimeout(() => {
+          clearEditingTask()
+          setShowEditButtons(false)
+          setIsAnimatingOut(false)
+        }, 150)
       }
     }
 
@@ -114,7 +119,11 @@ export default function SortableTaskItem({
         updateTaskDescription(task.id, editDescription.trim())
         updateTaskEstimatedTime(task.id, editEstimatedMinutes)
       }
-      setShowEditButtons(false)
+      setIsAnimatingOut(true)
+      setTimeout(() => {
+        setShowEditButtons(false)
+        setIsAnimatingOut(false)
+      }, 150)
     }
   }, [editingTaskId, task.id, isEditing, editDescription, editEstimatedMinutes, updateTaskDescription, updateTaskEstimatedTime])
 
@@ -134,15 +143,23 @@ export default function SortableTaskItem({
       updateTaskDescription(task.id, editDescription.trim())
       updateTaskEstimatedTime(task.id, editEstimatedMinutes)
     }
-    clearEditingTask()
-    setShowEditButtons(false)
+    setIsAnimatingOut(true)
+    setTimeout(() => {
+      clearEditingTask()
+      setShowEditButtons(false)
+      setIsAnimatingOut(false)
+    }, 150)
   }
 
   const handleCancel = () => {
     setEditDescription(task.description)
     setEditEstimatedMinutes(task.estimatedMinutes)
-    clearEditingTask()
-    setShowEditButtons(false)
+    setIsAnimatingOut(true)
+    setTimeout(() => {
+      clearEditingTask()
+      setShowEditButtons(false)
+      setIsAnimatingOut(false)
+    }, 150)
   }
 
   const handleTimeSelect = (minutes: number) => {
@@ -199,7 +216,11 @@ export default function SortableTaskItem({
     >
       {isEditing ? (
         // Edit mode - looks like TaskCard
-        <div className="flex flex-col gap-8">
+        <div className={`flex flex-col gap-8 transition-all duration-150 ${
+          isAnimatingOut 
+            ? 'animate-out fade-out-0' 
+            : 'animate-in fade-in-0'
+        }`}>
           <div className="flex items-center">
             <input
               ref={descriptionInputRef}

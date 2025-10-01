@@ -18,6 +18,9 @@ interface TaskStore extends AppState {
   setEditingTask: (id: string | null) => void
   clearEditingTask: () => void
   saveCurrentEditingTask: (description: string, estimatedMinutes: number) => void
+  showCreateTask: boolean
+  setShowCreateTask: (show: boolean) => void
+  toggleCreateTask: () => void
 }
 
 export const useTaskStore = create<TaskStore>()(
@@ -27,6 +30,7 @@ export const useTaskStore = create<TaskStore>()(
       activeTaskId: null,
       isTrackingMode: false,
       editingTaskId: null,
+      showCreateTask: false,
 
       addTask: (description: string, estimatedMinutes: number) => {
         const newTask: Task = {
@@ -159,6 +163,14 @@ export const useTaskStore = create<TaskStore>()(
             ),
           }))
         }
+      },
+
+      setShowCreateTask: (show: boolean) => {
+        set({ showCreateTask: show })
+      },
+
+      toggleCreateTask: () => {
+        set((state) => ({ showCreateTask: !state.showCreateTask }))
       },
     }),
     {

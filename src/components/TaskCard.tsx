@@ -10,7 +10,9 @@ export default function TaskCard() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [customMinutes, setCustomMinutes] = useState('')
   const dropdownRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
   const addTask = useTaskStore((state) => state.addTask)
+  const setShowCreateTask = useTaskStore((state) => state.setShowCreateTask)
 
   const commonTimes = [
     { label: '15 mins', value: 15 },
@@ -66,6 +68,13 @@ export default function TaskCard() {
     }
   }, [])
 
+  // Auto-focus the input when the component mounts
+  useEffect(() => {
+    if (inputRef.current) {
+      inputRef.current.focus()
+    }
+  }, [])
+
   const handleDescriptionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newDescription = e.target.value
     setDescription(newDescription)
@@ -73,6 +82,7 @@ export default function TaskCard() {
     // Auto-estimate time based on description
     if (newDescription.trim()) {
       const estimatedTime = estimateTimeFromDescription(newDescription)
+      console.log('Smart estimation:', newDescription, '->', estimatedTime, 'minutes')
       setEstimatedMinutes(estimatedTime)
     }
   }
@@ -83,6 +93,7 @@ export default function TaskCard() {
       addTask(description.trim(), estimatedMinutes)
       setDescription('')
       setEstimatedMinutes(30)
+      setShowCreateTask(false) // Close the create task card after adding
     }
   }
 
@@ -104,15 +115,17 @@ export default function TaskCard() {
         addTask(description.trim(), minutes)
         setDescription('')
         setEstimatedMinutes(30)
+        setShowCreateTask(false) // Close the create task card after adding
       }
     }
   }
 
   return (
-    <div className="w-[480px] mx-auto bg-[#FEFFFF] rounded-[20px] border border-[#D9D9D9] shadow-[0px_4px_54px_rgba(0,0,0,0.05)] p-3">
+    <div className="w-[480px] mx-auto bg-[#FEFFFF] rounded-[20px] border border-[#D9D9D9] shadow-[0px_4px_54px_rgba(0,0,0,0.05)] p-3 animate-in fade-in-0 zoom-in-95 duration-200">
       <form onSubmit={handleSubmit} className="flex flex-col gap-8">
         <div className="flex items-center">
           <input
+            ref={inputRef}
             type="text"
             value={description}
             onChange={handleDescriptionChange}
