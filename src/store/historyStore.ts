@@ -38,6 +38,14 @@ export const useHistoryStore = create<HistoryStore>()(
     {
       name: 'todoloo-history-storage',
       storage: indexedDbStorage,
+      partialize: (state) => ({
+        entries: state.entries,
+      }),
+      onRehydrateStorage: () => (state) => {
+        if (state) {
+          console.log('History store rehydrated successfully')
+        }
+      },
     }
   )
 )

@@ -190,6 +190,18 @@ export const useTaskStore = create<TaskStore>()(
     {
       name: 'todoloo-storage',
       storage: indexedDbStorage,
+      partialize: (state) => ({
+        tasks: state.tasks,
+        activeTaskId: state.activeTaskId,
+        isTrackingMode: state.isTrackingMode,
+        editingTaskId: state.editingTaskId,
+        showCreateTask: state.showCreateTask,
+      }),
+      onRehydrateStorage: () => (state) => {
+        if (state) {
+          console.log('Task store rehydrated successfully')
+        }
+      },
     }
   )
 )

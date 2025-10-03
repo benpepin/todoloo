@@ -7,6 +7,7 @@ import { useTaskStore } from '@/store/taskStore'
 import SortableTaskItem from './SortableTaskItem'
 import TaskCard from './TaskCard'
 import { useClientOnly } from '@/hooks/useClientOnly'
+import { useHydration } from '@/hooks/useHydration'
 
 function TaskListContent() {
   const { tasks, activeTaskId, deleteTask, toggleTaskCompletion, updateTaskOrder, showCreateTask, toggleCreateTask } = useTaskStore()
@@ -161,8 +162,9 @@ function TaskListContent() {
 
 export default function TaskList() {
   const isClient = useClientOnly()
+  const isHydrated = useHydration()
 
-  if (!isClient) {
+  if (!isClient || !isHydrated) {
     return (
       <div className="w-[600px] inline-flex flex-col justify-start items-start gap-16">
         <div className="w-full flex flex-col justify-start items-start gap-4">
