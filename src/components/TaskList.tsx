@@ -6,8 +6,9 @@ import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSo
 import { useTaskStore } from '@/store/taskStore'
 import SortableTaskItem from './SortableTaskItem'
 import TaskCard from './TaskCard'
+import { useClientOnly } from '@/hooks/useClientOnly'
 
-export default function TaskList() {
+function TaskListContent() {
   const { tasks, activeTaskId, deleteTask, toggleTaskCompletion, updateTaskOrder, showCreateTask, toggleCreateTask } = useTaskStore()
 
   useEffect(() => {
@@ -156,4 +157,36 @@ export default function TaskList() {
       </div>
     </DndContext>
   )
+}
+
+export default function TaskList() {
+  const isClient = useClientOnly()
+
+  if (!isClient) {
+    return (
+      <div className="w-[600px] inline-flex flex-col justify-start items-start gap-16">
+        <div className="w-full flex flex-col justify-start items-start gap-4">
+          <div className="w-full inline-flex justify-start items-center gap-1.5">
+            <div className="text-[#5F5F5F] text-base font-normal font-['Inter']">Todo</div>
+            <div className="flex-1 h-px bg-[#D9D9D9] transform translate-y-0.5" />
+          </div>
+          <div className="w-full">
+            <div className="flex flex-col items-center justify-center py-16">
+              <div className="w-20 h-28 bg-gray-200 rounded-lg transform -rotate-8 mb-8"></div>
+              <div className="text-center">
+                <h3 className="text-lg font-semibold text-[#363636] font-inter mb-2">
+                  Loading...
+                </h3>
+                <p className="text-[#717171] font-inter">
+                  Initializing your tasks
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  return <TaskListContent />
 }

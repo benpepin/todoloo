@@ -1,9 +1,10 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { Plus, Timer, ChevronDown, Clock, TrendingUp } from 'lucide-react'
+import { Plus, Timer, ChevronDown, TrendingUp } from 'lucide-react'
 import { useTaskStore } from '@/store/taskStore'
 import { useHistoryStore } from '@/store/historyStore'
+import { useClientOnly } from '@/hooks/useClientOnly'
 
 // Rotating placeholder text component
 function RotatingPlaceholder({ 
@@ -48,7 +49,7 @@ function RotatingPlaceholder({
   )
 }
 
-export default function TaskCard() {
+function TaskCardContent() {
   const [description, setDescription] = useState('')
   const [estimatedMinutes, setEstimatedMinutes] = useState(30)
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
@@ -441,4 +442,14 @@ export default function TaskCard() {
       </form>
     </div>
   )
+}
+
+export default function TaskCard() {
+  const isClient = useClientOnly()
+  
+  if (!isClient) {
+    return null
+  }
+  
+  return <TaskCardContent />
 }

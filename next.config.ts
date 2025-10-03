@@ -6,11 +6,8 @@ const nextConfig: NextConfig = {
   images: {
     unoptimized: true
   },
-  experimental: {
-    turbo: {
-      root: '/Users/benpepin/TODOLOOS'
-    }
-  }
+  // Remove experimental turbo config for static export
+  distDir: 'out'
 };
 
 export default nextConfig;

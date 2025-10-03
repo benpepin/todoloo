@@ -4,15 +4,16 @@ import { useState } from 'react'
 import { Download, Upload, AlertTriangle, CheckCircle, X } from 'lucide-react'
 import { useTaskStore } from '@/store/taskStore'
 import { useHistoryStore } from '@/store/historyStore'
+import { useClientOnly } from '@/hooks/useClientOnly'
 
 interface BackupData {
   version: number
   exportedAt: string
-  tasks: any[]
-  history: any[]
+  tasks: unknown[]
+  history: unknown[]
 }
 
-export default function SettingsBackup() {
+function SettingsBackupContent() {
   const [isOpen, setIsOpen] = useState(false)
   const [message, setMessage] = useState<{ type: 'success' | 'error' | 'info', text: string } | null>(null)
   const tasks = useTaskStore((state) => state.tasks)
@@ -176,4 +177,14 @@ export default function SettingsBackup() {
       </div>
     </div>
   )
+}
+
+export default function SettingsBackup() {
+  const isClient = useClientOnly()
+
+  if (!isClient) {
+    return null
+  }
+
+  return <SettingsBackupContent />
 }

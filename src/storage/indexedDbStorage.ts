@@ -14,7 +14,7 @@ export const indexedDbStorage = {
       return null
     }
   },
-  setItem: async (name: string, value: any): Promise<void> => {
+  setItem: async (name: string, value: unknown): Promise<void> => {
     if (!isBrowser) return
     try {
       await set(name, value)
