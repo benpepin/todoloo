@@ -1,6 +1,8 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { Task, AppState } from '@/types'
+import { useHistoryStore } from './historyStore'
+import { indexedDbStorage } from '@/storage/indexedDbStorage'
 
 interface TaskStore extends AppState {
   addTask: (description: string, estimatedMinutes: number) => void
@@ -57,8 +59,8 @@ export const useTaskStore = create<TaskStore>()(
       },
 
       toggleTaskCompletion: (id: string) => {
-        set((state) => ({
-          tasks: state.tasks.map((task) =>
+        set((state) => {
+          const updatedTasks = state.tasks.map((task) =>
             task.id === id
               ? {
                   ...task,
@@ -66,8 +68,23 @@ export const useTaskStore = create<TaskStore>()(
                   completedAt: !task.isCompleted ? new Date() : undefined,
                 }
               : task
-          ),
-        }))
+          )
+          
+          // If task is being completed, add to history
+          const task = state.tasks.find(t => t.id === id)
+          if (task && !task.isCompleted && task.actualMinutes) {
+            const historyStore = useHistoryStore.getState()
+            historyStore.addEntry({
+              normalizedDescription: task.description.toLowerCase().replace(/[^\w\s]/g, ' ').replace(/\s+/g, ' ').trim(),
+              originalDescription: task.description,
+              estimatedMinutes: task.estimatedMinutes,
+              actualMinutes: task.actualMinutes,
+              completedAt: new Date(),
+            })
+          }
+          
+          return { tasks: updatedTasks }
+        })
       },
 
       startTask: (id: string) => {
@@ -172,6 +189,7 @@ export const useTaskStore = create<TaskStore>()(
     }),
     {
       name: 'todoloo-storage',
+      storage: indexedDbStorage,
     }
   )
 )

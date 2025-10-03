@@ -24,7 +24,7 @@ export default function Header() {
               onClick={handleClick}
               className="inline-flex justify-center items-center gap-2.5 cursor-pointer"
             >
-              <div className="justify-start text-neutral-800 text-sm font-medium font-['Inter']">New Todo (N)</div>
+              <div className="justify-start text-neutral-800 text-sm font-medium font-['Inter']">New Todo (n)</div>
             </button>
           </div>
         </div>

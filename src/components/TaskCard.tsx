@@ -1,18 +1,21 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { Plus, Timer, ChevronDown } from 'lucide-react'
+import { Plus, Timer, ChevronDown, Clock, TrendingUp } from 'lucide-react'
 import { useTaskStore } from '@/store/taskStore'
+import { useHistoryStore } from '@/store/historyStore'
 
 // Rotating placeholder text component
 function RotatingPlaceholder({ 
   texts, 
   interval = 2000, 
-  className = "" 
+  className = "",
+  onTextChange
 }: { 
   texts: string[], 
   interval?: number, 
-  className?: string 
+  className?: string,
+  onTextChange?: (text: string) => void
 }) {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [isVisible, setIsVisible] = useState(true)
@@ -21,13 +24,18 @@ function RotatingPlaceholder({
     const timer = setInterval(() => {
       setIsVisible(false)
       setTimeout(() => {
-        setCurrentIndex((prev) => (prev + 1) % texts.length)
+        const newIndex = (currentIndex + 1) % texts.length
+        setCurrentIndex(newIndex)
         setIsVisible(true)
+        // Trigger time estimation when placeholder text changes
+        if (onTextChange) {
+          onTextChange(texts[newIndex])
+        }
       }, 300) // Half of the transition duration
     }, interval)
 
     return () => clearInterval(timer)
-  }, [texts.length, interval])
+  }, [texts.length, interval, currentIndex, texts, onTextChange])
 
   return (
     <span 
@@ -45,10 +53,13 @@ export default function TaskCard() {
   const [estimatedMinutes, setEstimatedMinutes] = useState(30)
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [customMinutes, setCustomMinutes] = useState('')
+  const [showSuggestion, setShowSuggestion] = useState(false)
+  const [multiplicationPreview, setMultiplicationPreview] = useState<{baseDescription: string, count: number} | null>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const addTask = useTaskStore((state) => state.addTask)
   const setShowCreateTask = useTaskStore((state) => state.setShowCreateTask)
+  const getSimilarStats = useHistoryStore((state) => state.getSimilarStats)
 
 
   const commonTimes = [
@@ -62,12 +73,35 @@ export default function TaskCard() {
   const estimateTimeFromDescription = (description: string): number => {
     const text = description.toLowerCase()
     
-    // Quick tasks (5-15 mins)
+    // Specific placeholder task matches
+    if (text.includes('walk the dog')) return 15
+    if (text.includes('call mom back')) return 120  // 2 hours - family calls can be long!
+    if (text.includes('buy socks')) return 7
+    if (text.includes('inbox zero')) return 25
+    if (text.includes('water the monsterra')) return 2  // Quick plant watering
+    if (text.includes('do laundry before i have to wear the same underwear tomorrow')) return 45
+    if (text.includes('cancel whatever i have planned for tonight')) return 8
+    if (text.includes('take out the trash')) return 3
+    if (text.includes('figure out dinner')) return 12
+    if (text.includes('update my linkedin')) return 18
+    
+    // General keyword patterns
+    // Quick tasks (2-20 mins)
     if (text.includes('shower') || text.includes('bath')) return 20
     if (text.includes('email') || text.includes('reply')) return 10
     if (text.includes('call') || text.includes('phone')) return 15
     if (text.includes('quick') || text.includes('fast')) return 10
     if (text.includes('check') || text.includes('review')) return 15
+    if (text.includes('list') || text.includes('write')) return 10
+    if (text.includes('water') || text.includes('plant')) return 3
+    if (text.includes('trash') || text.includes('garbage')) return 3
+    if (text.includes('cancel') || text.includes('reschedule')) return 8
+    if (text.includes('inbox') || text.includes('email')) return 25
+    if (text.includes('walk') || text.includes('dog')) return 15
+    if (text.includes('buy') || text.includes('purchase') || text.includes('shop')) return 7
+    if (text.includes('laundry') || text.includes('wash')) return 45
+    if (text.includes('dinner') || text.includes('meal') || text.includes('food')) return 12
+    if (text.includes('linkedin') || text.includes('social media')) return 18
     
     // Medium tasks (30-60 mins)
     if (text.includes('cook') || text.includes('meal') || text.includes('dinner')) return 45
@@ -112,22 +146,90 @@ export default function TaskCard() {
     }
   }, [])
 
+  // Handle Escape key to close the new todo form
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setShowCreateTask(false)
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [setShowCreateTask])
+
   const handleDescriptionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newDescription = e.target.value
     setDescription(newDescription)
     
-    // Auto-estimate time based on description
-    if (newDescription.trim()) {
-      const estimatedTime = estimateTimeFromDescription(newDescription)
-      console.log('Smart estimation:', newDescription, '->', estimatedTime, 'minutes')
-      setEstimatedMinutes(estimatedTime)
+    // Check for multiplication pattern
+    const multiplicationMatch = newDescription.trim().match(/^(.+?)\s+x\s+(\d+)$/i)
+    if (multiplicationMatch) {
+      const [, baseDescription, count] = multiplicationMatch
+      const taskCount = parseInt(count, 10)
+      if (taskCount > 1 && taskCount <= 10) { // Limit to reasonable number
+        setMultiplicationPreview({ baseDescription: baseDescription.trim(), count: taskCount })
+        setShowSuggestion(false)
+        // Use base description for time estimation
+        const estimatedTime = estimateTimeFromDescription(baseDescription.trim())
+        setEstimatedMinutes(estimatedTime)
+      } else if (taskCount > 10) {
+        setMultiplicationPreview({ baseDescription: baseDescription.trim(), count: taskCount })
+        setShowSuggestion(false)
+        // Still estimate time but show warning
+        const estimatedTime = estimateTimeFromDescription(baseDescription.trim())
+        setEstimatedMinutes(estimatedTime)
+      } else {
+        setMultiplicationPreview(null)
+      }
+    } else {
+      setMultiplicationPreview(null)
+      
+      // Check for historical suggestions
+      if (newDescription.trim()) {
+        const stats = getSimilarStats(newDescription.trim())
+        if (stats.count > 0) {
+          setShowSuggestion(true)
+          // Auto-set to historical average if available
+          setEstimatedMinutes(stats.averageMinutes)
+        } else {
+          setShowSuggestion(false)
+          // Fallback to keyword-based estimation
+          const estimatedTime = estimateTimeFromDescription(newDescription)
+          setEstimatedMinutes(estimatedTime)
+        }
+      } else {
+        setShowSuggestion(false)
+      }
     }
   }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (description.trim()) {
-      addTask(description.trim(), estimatedMinutes)
+      // Check for multiplication pattern like "walk dog x 3"
+      const multiplicationMatch = description.trim().match(/^(.+?)\s+x\s+(\d+)$/i)
+      
+      if (multiplicationMatch) {
+        const [, baseDescription, count] = multiplicationMatch
+        const taskCount = parseInt(count, 10)
+        
+        // Limit to reasonable number of tasks
+        if (taskCount > 10) {
+          alert('Maximum 10 tasks can be created at once. Please use a smaller number.')
+          return
+        }
+        
+        // Create multiple tasks
+        for (let i = 0; i < taskCount; i++) {
+          const taskDescription = taskCount > 1 ? `${baseDescription.trim()} (${i + 1})` : baseDescription.trim()
+          addTask(taskDescription, estimatedMinutes)
+        }
+      } else {
+        // Single task
+        addTask(description.trim(), estimatedMinutes)
+      }
+      
       setDescription('')
       setEstimatedMinutes(30)
       setShowCreateTask(false) // Close the create task card after adding
@@ -153,6 +255,15 @@ export default function TaskCard() {
         setDescription('')
         setEstimatedMinutes(30)
         setShowCreateTask(false) // Close the create task card after adding
+      }
+    }
+  }
+
+  const handleUseSuggestion = () => {
+    if (description.trim()) {
+      const stats = getSimilarStats(description.trim())
+      if (stats.count > 0) {
+        setEstimatedMinutes(stats.averageMinutes)
       }
     }
   }
@@ -185,10 +296,78 @@ export default function TaskCard() {
                        ]}
                        interval={4000}
                        className="text-base font-inter"
+                       onTextChange={(text) => {
+                         const estimatedTime = estimateTimeFromDescription(text)
+                         setEstimatedMinutes(estimatedTime)
+                       }}
                      />
                    </div>
                  )}
         </div>
+        
+        {/* Multiplication Preview */}
+        {multiplicationPreview && (
+          <div className={`border rounded-[12px] p-3 animate-in fade-in-0 slide-in-from-top-2 duration-200 ${
+            multiplicationPreview.count > 10 
+              ? 'bg-[#FFEBEE] border-[#FFCDD2]' 
+              : 'bg-[#E3F2FD] border-[#BBDEFB]'
+          }`}>
+            <div className="flex items-center gap-2 mb-2">
+              <Plus className={`w-4 h-4 ${multiplicationPreview.count > 10 ? 'text-[#D32F2F]' : 'text-[#1976D2]'}`} />
+              <span className={`text-sm font-inter font-medium ${
+                multiplicationPreview.count > 10 ? 'text-[#D32F2F]' : 'text-[#1565C0]'
+              }`}>
+                {multiplicationPreview.count > 10 
+                  ? `⚠️ Too many tasks (${multiplicationPreview.count}). Maximum 10 allowed.`
+                  : `Will create ${multiplicationPreview.count} tasks:`
+                }
+              </span>
+            </div>
+            {multiplicationPreview.count <= 10 && (
+              <div className="space-y-1">
+                {Array.from({ length: Math.min(multiplicationPreview.count, 5) }, (_, i) => (
+                  <div key={i} className="text-sm text-[#1565C0] font-inter">
+                    • {multiplicationPreview.baseDescription} ({i + 1})
+                  </div>
+                ))}
+                {multiplicationPreview.count > 5 && (
+                  <div className="text-sm text-[#1565C0] font-inter text-opacity-70">
+                    ... and {multiplicationPreview.count - 5} more
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Historical Suggestion */}
+        {showSuggestion && description.trim() && !multiplicationPreview && (() => {
+          const stats = getSimilarStats(description.trim())
+          return stats.count > 0 ? (
+            <div className="bg-[#F8F9FA] border border-[#E9ECEF] rounded-[12px] p-3 animate-in fade-in-0 slide-in-from-top-2 duration-200">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <TrendingUp className="w-4 h-4 text-[#6C757D]" />
+                  <span className="text-sm text-[#495057] font-inter">
+                    Based on {stats.count} similar task{stats.count !== 1 ? 's' : ''}: avg {stats.averageMinutes}m
+                    {stats.count > 1 && (
+                      <span className="text-xs text-[#6C757D] ml-1">
+                        (p50: {stats.medianMinutes}m, p90: {stats.p90Minutes}m)
+                      </span>
+                    )}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleUseSuggestion}
+                  className="text-xs text-[#007BFF] hover:text-[#0056B3] font-inter font-medium transition-colors"
+                >
+                  Use suggestion
+                </button>
+              </div>
+            </div>
+          ) : null
+        })()}
         
         <div className="flex justify-between items-end">
           <div className="relative" ref={dropdownRef}>
@@ -203,7 +382,7 @@ export default function TaskCard() {
             >
               <Timer className="w-3.5 h-3.5 text-[#696969]" />
               <span className="text-xs text-[#696969] font-inter" style={{ transform: 'translateY(1px)' }}>
-                {estimatedMinutes < 60 ? `${estimatedMinutes} minutes` : `${Math.floor(estimatedMinutes / 60)}h ${estimatedMinutes % 60}m`}
+                {estimatedMinutes < 60 ? `${estimatedMinutes} minutes` : `${Math.floor(estimatedMinutes / 60)} hours`}
               </span>
               <ChevronDown className={`w-3 h-3 text-[#696969] transition-transform translate-y-px ${isDropdownOpen ? 'rotate-180' : ''}`} />
             </button>
@@ -249,10 +428,14 @@ export default function TaskCard() {
           
           <button
             type="submit"
-            className="p-1.5 bg-gradient-to-r from-[#9F8685] to-[#583636] rounded-[10px] hover:opacity-90 transition-opacity"
-            style={{ cursor: 'pointer' }}
+            disabled={!description.trim()}
+            className={`p-1.5 rounded-[10px] transition-all ${
+              description.trim() 
+                ? 'bg-gradient-to-r from-[#9F8685] to-[#583636] hover:opacity-90 cursor-pointer' 
+                : 'bg-[#E6E6E6] cursor-not-allowed'
+            }`}
           >
-            <Plus className="w-5 h-5 text-white" />
+            <Plus className={`w-5 h-5 ${description.trim() ? 'text-white' : 'text-[#989999]'}`} />
           </button>
         </div>
       </form>

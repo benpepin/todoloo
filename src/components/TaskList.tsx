@@ -65,7 +65,7 @@ export default function TaskList() {
         <div className="w-full flex flex-col justify-start items-start gap-4">
           <div className="w-full inline-flex justify-start items-center gap-1.5">
             <div className="text-[#5F5F5F] text-base font-normal font-['Inter']">Todo</div>
-            <div className="flex-1 h-px bg-[#D9D9D9]" />
+            <div className="flex-1 h-px bg-[#D9D9D9] transform translate-y-0.5" />
           </div>
           
           {/* Task Creation Card */}
@@ -106,7 +106,7 @@ export default function TaskList() {
         <div className="w-full flex flex-col justify-start items-start gap-4">
           <div className="w-full inline-flex justify-start items-center gap-1.5">
             <div className="text-[#5F5F5F] text-base font-normal font-['Inter']">Todo</div>
-            <div className="flex-1 h-px bg-[#D9D9D9]" />
+            <div className="flex-1 h-px bg-[#D9D9D9] transform translate-y-0.5" />
           </div>
           
           {/* Task Creation Card */}

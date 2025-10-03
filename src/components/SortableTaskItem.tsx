@@ -42,6 +42,7 @@ export default function SortableTaskItem({
   
   const updateTaskDescription = useTaskStore((state) => state.updateTaskDescription)
   const updateTaskEstimatedTime = useTaskStore((state) => state.updateTaskEstimatedTime)
+  const updateTaskActualTime = useTaskStore((state) => state.updateTaskActualTime)
   const editingTaskId = useTaskStore((state) => state.editingTaskId)
   const setEditingTask = useTaskStore((state) => state.setEditingTask)
   const clearEditingTask = useTaskStore((state) => state.clearEditingTask)
@@ -152,6 +153,15 @@ export default function SortableTaskItem({
     stop() // Reset the timer
   }
 
+  const handleToggleCompletion = () => {
+    // If completing the task and we have timer data, save the actual time
+    if (!task.isCompleted && hasStarted && seconds > 0) {
+      const actualMinutes = Math.round(seconds / 60) || 1 // At least 1 minute
+      updateTaskActualTime(task.id, actualMinutes)
+    }
+    onToggleCompletion(task.id)
+  }
+
 
   const handleEdit = () => {
     if (task.isCompleted) return
@@ -220,11 +230,11 @@ export default function SortableTaskItem({
 
   const formatEstimatedTime = (minutes: number) => {
     if (minutes < 60) {
-      return `${minutes} minutes`
+      return `${minutes} minute${minutes !== 1 ? 's' : ''}`
     }
     const hours = Math.floor(minutes / 60)
     const remainingMinutes = minutes % 60
-    return remainingMinutes > 0 ? `${hours} hours ${remainingMinutes}m` : `${hours} hours`
+    return remainingMinutes > 0 ? `${hours} hour${hours !== 1 ? 's' : ''} ${remainingMinutes}m` : `${hours} hour${hours !== 1 ? 's' : ''}`
   }
 
   return (
@@ -330,7 +340,7 @@ export default function SortableTaskItem({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3 flex-1">
             <button
-              onClick={() => onToggleCompletion(task.id)}
+              onClick={handleToggleCompletion}
               className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors cursor-pointer ${
                 task.isCompleted
                   ? 'bg-[#9F8685] border-[#9F8685] text-white'
@@ -352,7 +362,10 @@ export default function SortableTaskItem({
                 </p>
                 <div className="flex items-center gap-2 mt-1">
                   <p className="text-sm text-[#696969] font-inter">
-                    {formatEstimatedTime(task.estimatedMinutes)}
+                    {task.isCompleted && task.actualMinutes 
+                      ? formatEstimatedTime(task.actualMinutes)
+                      : formatEstimatedTime(task.estimatedMinutes)
+                    }
                   </p>
                   {hasStarted && (
                     <p className={`text-sm font-inter font-medium ${
@@ -368,19 +381,6 @@ export default function SortableTaskItem({
 
           {/* Hover action buttons */}
           <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-            {!task.isCompleted && (
-              <button
-                onClick={isActive ? handleStopTask : handleStartTask}
-                className={`p-2 rounded-lg transition-all duration-200 cursor-pointer ${
-                  isActive 
-                    ? 'bg-red-100 hover:bg-red-200 text-red-600' 
-                    : 'bg-green-100 hover:bg-green-200 text-green-600'
-                }`}
-              >
-                {isActive ? <Square className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-              </button>
-            )}
-            
             <button
               onClick={() => onDelete(task.id)}
               className="p-2 hover:bg-[#F5F5F5] rounded-lg transition-all duration-200 text-[#696969] hover:text-red-500 cursor-pointer"
@@ -395,6 +395,19 @@ export default function SortableTaskItem({
             >
               <GripVertical className="w-4 h-4" />
             </button>
+            
+            {!task.isCompleted && (
+              <button
+                onClick={isActive ? handleStopTask : handleStartTask}
+                className={`p-2 rounded-lg transition-all duration-200 cursor-pointer ${
+                  isActive 
+                    ? 'bg-red-100 hover:bg-red-200 text-red-600' 
+                    : 'bg-green-100 hover:bg-green-200 text-green-600'
+                }`}
+              >
+                {isActive ? <Square className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+              </button>
+            )}
           </div>
         </div>
       )}

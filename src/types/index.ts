@@ -17,3 +17,20 @@ export interface AppState {
   isTrackingMode: boolean
   editingTaskId: string | null
 }
+
+export interface TaskHistoryEntry {
+  id: string
+  normalizedDescription: string
+  originalDescription: string
+  estimatedMinutes: number
+  actualMinutes: number
+  completedAt: Date
+}
+
+export interface SimilarTaskStats {
+  count: number
+  averageMinutes: number
+  medianMinutes: number
+  p90Minutes: number
+  similarEntries: TaskHistoryEntry[]
+}
