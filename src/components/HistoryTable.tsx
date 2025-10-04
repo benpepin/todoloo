@@ -119,7 +119,7 @@ export default function HistoryTable({ className = '' }: HistoryTableProps) {
   }
 
   const exportToCSV = () => {
-    const headers = ['To Do', 'Actual Time', 'Date', 'Time']
+    const headers = ['To Do', 'Length', 'Date', 'Time']
     const csvContent = [
       headers.join(','),
       ...filteredAndSortedEntries.map(entry => [
@@ -182,7 +182,8 @@ export default function HistoryTable({ className = '' }: HistoryTableProps) {
           />
         </div>
 
-        {/* Filter */}
+        {/* Filter - Hidden for now, will move to settings later */}
+        {/* 
         <div className="relative">
           <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4" style={{ color: 'var(--color-todoloo-text-muted)' }} />
           <select
@@ -204,6 +205,7 @@ export default function HistoryTable({ className = '' }: HistoryTableProps) {
             <option value="thisMonth">This month</option>
           </select>
         </div>
+        */}
 
         {/* Export */}
         <button
@@ -243,7 +245,7 @@ export default function HistoryTable({ className = '' }: HistoryTableProps) {
                 onClick={() => handleSort('actualMinutes')}
               >
                 <div className="flex items-center gap-2">
-                  Actual
+                  Length
                   <SortIcon field="actualMinutes" />
                 </div>
               </th>

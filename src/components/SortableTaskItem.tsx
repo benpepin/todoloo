@@ -344,7 +344,7 @@ export default function SortableTaskItem({
                   <button
                     type="button"
                     onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                    className="h-8 px-3 rounded-[20px] border flex items-center gap-1 transition-colors"
+                    className="h-8 px-3 rounded-[20px] border flex items-center gap-1 transition-colors cursor-pointer"
                     style={{
                       borderColor: 'var(--color-todoloo-border)',
                       backgroundColor: isDropdownOpen ? 'var(--color-todoloo-muted)' : 'var(--color-todoloo-card)'
@@ -362,7 +362,7 @@ export default function SortableTaskItem({
                   >
                     <Timer className="w-3.5 h-3.5" style={{ color: 'var(--color-todoloo-text-secondary)' }} />
                     <span className="text-xs font-inter" style={{ color: 'var(--color-todoloo-text-secondary)', transform: 'translateY(1px)' }}>
-                      {editEstimatedMinutes < 60 ? `${editEstimatedMinutes} minutes` : `${Math.floor(editEstimatedMinutes / 60)} hours ${editEstimatedMinutes % 60}m`}
+                      {formatEstimatedTime(editEstimatedMinutes)}
                     </span>
                     <ChevronDown className={`w-3 h-3 transition-transform translate-y-px ${isDropdownOpen ? 'rotate-180' : ''}`} 
                                  style={{ color: 'var(--color-todoloo-text-secondary)' }} />

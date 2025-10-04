@@ -130,6 +130,21 @@ export default function SettingsPage() {
                 </div>
               </div>
 
+              {/* History Filtering */}
+              <div className="w-full rounded-[10px] shadow-[2px_2px_4px_rgba(0,0,0,0.15)] p-6"
+                   style={{ backgroundColor: 'var(--color-todoloo-card)' }}>
+                <div className="flex items-center gap-3 mb-4">
+                  <History className="w-5 h-5" style={{ color: 'var(--color-todoloo-text-secondary)' }} />
+                  <h2 className="text-lg font-['Geist'] font-medium" style={{ color: 'var(--color-todoloo-text-secondary)' }}>History Filtering</h2>
+                </div>
+                <div className="space-y-4">
+                  <div>
+                    <p className="text-sm font-['Geist'] font-medium mb-2" style={{ color: 'var(--color-todoloo-text-primary)' }}>Search & Filter Options</p>
+                    <p className="text-xs font-['Geist']" style={{ color: 'var(--color-todoloo-text-muted)' }}>Filtering controls have been moved here from the history table for a cleaner interface. These features will be available in a future update.</p>
+                  </div>
+                </div>
+              </div>
+
               {/* To Do History */}
               <div className="w-full rounded-[10px] shadow-[2px_2px_4px_rgba(0,0,0,0.15)] p-6"
                    style={{ backgroundColor: 'var(--color-todoloo-card)' }}>

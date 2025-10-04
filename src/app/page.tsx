@@ -6,20 +6,12 @@ import Header from '@/components/Header'
 import ToDoList from '@/components/ToDoList'
 import SettingsBackup from '@/components/SettingsBackup'
 import { useToDoStore } from '@/store/toDoStore'
-import { getCurrentDate, getCompletionTime } from '@/utils/timeUtils'
+import { getCurrentDate } from '@/utils/timeUtils'
 
 export default function Home() {
   const toggleCreateTask = useToDoStore((state) => state.toggleCreateTask)
   const tasks = useToDoStore((state) => state.tasks)
   const addTask = useToDoStore((state) => state.addTask)
-  
-  
-  // Calculate total time for incomplete to dos
-  const totalMinutes = tasks
-    .filter(task => !task.isCompleted)
-    .reduce((total, task) => total + task.estimatedMinutes, 0)
-  
-  const completionTime = totalMinutes > 0 ? getCompletionTime(totalMinutes) : "4:00 PM"
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -62,10 +54,6 @@ export default function Home() {
              borderColor: 'var(--color-todoloo-border)'
            }}>
         <div className="w-full flex flex-col justify-start items-start gap-1.5">
-          <div className="w-full text-[42px] font-['Geist'] font-light" 
-               style={{ color: 'var(--color-todoloo-text-secondary)' }}>
-            Done at {completionTime}
-          </div>
           <div className="w-full text-base font-['Geist'] font-normal" 
                style={{ color: 'var(--color-todoloo-text-secondary)' }}>
             {getCurrentDate()}
@@ -75,20 +63,20 @@ export default function Home() {
           <Link href="/settings" 
                 className="text-xs font-['Geist'] font-normal transition-colors cursor-pointer"
                 style={{ 
-                  color: 'var(--color-todoloo-text-muted)'
+                  color: 'var(--color-todoloo-text-secondary)'
                 } as React.CSSProperties}
-                onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-todoloo-text-secondary)'}
-                onMouseLeave={(e) => e.currentTarget.style.color = 'var(--color-todoloo-text-muted)'}>
+                onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-todoloo-text-primary)'}
+                onMouseLeave={(e) => e.currentTarget.style.color = 'var(--color-todoloo-text-secondary)'}>
             Settings
           </Link>
           <div className="text-xs font-['Geist'] font-normal" 
-               style={{ color: 'var(--color-todoloo-text-muted)' }}>•</div>
+               style={{ color: 'var(--color-todoloo-text-secondary)' }}>•</div>
           <div className="text-xs font-['Geist'] font-normal" 
-               style={{ color: 'var(--color-todoloo-text-muted)' }}>Terms</div>
+               style={{ color: 'var(--color-todoloo-text-secondary)' }}>Terms</div>
           <div className="text-xs font-['Geist'] font-normal" 
-               style={{ color: 'var(--color-todoloo-text-muted)' }}>•</div>
+               style={{ color: 'var(--color-todoloo-text-secondary)' }}>•</div>
           <div className="text-xs font-['Geist'] font-normal" 
-               style={{ color: 'var(--color-todoloo-text-muted)' }}>Give Feedback</div>
+               style={{ color: 'var(--color-todoloo-text-secondary)' }}>Give Feedback</div>
         </div>
       </div>
       
