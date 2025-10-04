@@ -5,7 +5,7 @@ import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { Trash2, Check, GripVertical, Timer, ChevronDown, Plus, Play, Square } from 'lucide-react'
 import { Task } from '@/types'
-import { useTaskStore } from '@/store/taskStore'
+import { useToDoStore } from '@/store/toDoStore'
 import { useSimpleTimer } from '@/hooks/useSimpleTimer'
 import AnimatedBorder from './AnimatedBorder'
 
@@ -26,6 +26,7 @@ export default function SortableTaskItem({
   const [editEstimatedMinutes, setEditEstimatedMinutes] = useState(task.estimatedMinutes)
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [customMinutes, setCustomMinutes] = useState('')
+  const customTimeTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const [, setShowEditButtons] = useState(false)
   const [isAnimatingOut, setIsAnimatingOut] = useState(false)
   
@@ -40,15 +41,15 @@ export default function SortableTaskItem({
     { label: '2 hours', value: 120 },
   ]
   
-  const updateTaskDescription = useTaskStore((state) => state.updateTaskDescription)
-  const updateTaskEstimatedTime = useTaskStore((state) => state.updateTaskEstimatedTime)
-  const updateTaskActualTime = useTaskStore((state) => state.updateTaskActualTime)
-  const editingTaskId = useTaskStore((state) => state.editingTaskId)
-  const setEditingTask = useTaskStore((state) => state.setEditingTask)
-  const clearEditingTask = useTaskStore((state) => state.clearEditingTask)
-  const startTask = useTaskStore((state) => state.startTask)
-  const stopTask = useTaskStore((state) => state.stopTask)
-  const activeTaskId = useTaskStore((state) => state.activeTaskId)
+  const updateTaskDescription = useToDoStore((state) => state.updateTaskDescription)
+  const updateTaskEstimatedTime = useToDoStore((state) => state.updateTaskEstimatedTime)
+  const updateTaskActualTime = useToDoStore((state) => state.updateTaskActualTime)
+  const editingTaskId = useToDoStore((state) => state.editingTaskId)
+  const setEditingTask = useToDoStore((state) => state.setEditingTask)
+  const clearEditingTask = useToDoStore((state) => state.clearEditingTask)
+  const startTask = useToDoStore((state) => state.startTask)
+  const stopTask = useToDoStore((state) => state.stopTask)
+  const activeTaskId = useToDoStore((state) => state.activeTaskId)
   
   const isEditing = editingTaskId === task.id
   const isActive = activeTaskId === task.id
@@ -63,7 +64,7 @@ export default function SortableTaskItem({
     isDragging,
   } = useSortable({ id: task.id })
 
-  // Update local state when task changes
+  // Update local state when to do changes
   useEffect(() => {
     setEditDescription(task.description)
     setEditEstimatedMinutes(task.estimatedMinutes)
@@ -81,6 +82,13 @@ export default function SortableTaskItem({
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        // Save custom time if there's a value in the input
+        const minutes = parseInt(customMinutes)
+        if (minutes > 0) {
+          setEditEstimatedMinutes(minutes)
+          setCustomMinutes('')
+          updateTaskEstimatedTime(task.id, minutes)
+        }
         setIsDropdownOpen(false)
       }
     }
@@ -89,9 +97,9 @@ export default function SortableTaskItem({
     return () => {
       document.removeEventListener('mousedown', handleClickOutside)
     }
-  }, [])
+  }, [customMinutes, task.id, updateTaskEstimatedTime])
 
-  // Handle click outside task card to save edits
+  // Handle click outside to do card to save edits
   useEffect(() => {
     function handleClickOutsideTaskCard(event: MouseEvent) {
       if (isEditing && taskCardRef.current && !taskCardRef.current.contains(event.target as Node)) {
@@ -118,10 +126,10 @@ export default function SortableTaskItem({
     }
   }, [isEditing, editDescription, editEstimatedMinutes, task.id, updateTaskDescription, updateTaskEstimatedTime, clearEditingTask])
 
-  // Handle when editing task changes - auto-save if we were editing
+  // Handle when editing to do changes - auto-save if we were editing
   useEffect(() => {
     if (isEditing && editingTaskId !== task.id) {
-      // We were editing this task but now another task is being edited
+      // We were editing this to do but now another to do is being edited
       // Auto-save our changes
       if (editDescription.trim()) {
         updateTaskDescription(task.id, editDescription.trim())
@@ -135,7 +143,7 @@ export default function SortableTaskItem({
     }
   }, [editingTaskId, task.id, isEditing, editDescription, editEstimatedMinutes, updateTaskDescription, updateTaskEstimatedTime])
 
-  // Handle timer start/pause when task becomes active/inactive
+  // Handle timer start/pause when to do becomes active/inactive
   useEffect(() => {
     if (isActive) {
       start()
@@ -143,6 +151,15 @@ export default function SortableTaskItem({
       pause()
     }
   }, [isActive, start, pause, hasStarted])
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (customTimeTimeoutRef.current) {
+        clearTimeout(customTimeTimeoutRef.current)
+      }
+    }
+  }, [])
 
   const handleStartTask = () => {
     startTask(task.id)
@@ -154,7 +171,7 @@ export default function SortableTaskItem({
   }
 
   const handleToggleCompletion = () => {
-    // If completing the task and we have timer data, save the actual time
+    // If completing the to do and we have timer data, save the actual time
     if (!task.isCompleted && hasStarted && seconds > 0) {
       const actualMinutes = Math.round(seconds / 60) || 1 // At least 1 minute
       updateTaskActualTime(task.id, actualMinutes)
@@ -162,11 +179,10 @@ export default function SortableTaskItem({
     onToggleCompletion(task.id)
   }
 
-
   const handleEdit = () => {
     if (task.isCompleted) return
     
-    // If another task is being edited, we need to save its current values
+    // If another to do is being edited, we need to save its current values
     // This will be handled by the component that's currently being edited
     // when it detects the editingTaskId change
     
@@ -213,6 +229,39 @@ export default function SortableTaskItem({
     }
   }
 
+  const handleCustomTimeBlur = () => {
+    const minutes = parseInt(customMinutes)
+    if (minutes > 0) {
+      setEditEstimatedMinutes(minutes)
+      setCustomMinutes('')
+      // Save the time change to the store
+      updateTaskEstimatedTime(task.id, minutes)
+      // Close dropdown after a short delay to allow the blur to complete
+      setTimeout(() => {
+        setIsDropdownOpen(false)
+      }, 100)
+    }
+  }
+
+  const handleCustomTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value
+    setCustomMinutes(value)
+    
+    // Clear existing timeout
+    if (customTimeTimeoutRef.current) {
+      clearTimeout(customTimeTimeoutRef.current)
+    }
+    
+    // Set a new timeout to save after user stops typing
+    customTimeTimeoutRef.current = setTimeout(() => {
+      const minutes = parseInt(value)
+      if (minutes > 0) {
+        setEditEstimatedMinutes(minutes)
+        updateTaskEstimatedTime(task.id, minutes)
+      }
+    }, 1000) // Save after 1 second of no typing
+  }
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       e.preventDefault()
@@ -239,178 +288,238 @@ export default function SortableTaskItem({
 
   return (
     <AnimatedBorder isActive={isActive}>
-      <div
-        ref={(node) => {
-          setNodeRef(node)
-          taskCardRef.current = node
-        }}
-        style={style}
-        className={`w-[600px] bg-[#FEFFFF] rounded-[20px] border border-[#D9D9D9] group ${
-          isDragging ? 'opacity-50 shadow-xl z-50' : 'transition-opacity duration-200'
-        } ${isActive ? 'ring-2 ring-[#9F8685]' : ''} ${isEditing ? 'pt-4 pb-4 pl-4 pr-6' : 'pt-4 pb-4 pl-4 pr-6'}`}
-        onMouseEnter={() => setShowEditButtons(true)}
-        onMouseLeave={() => !isEditing && setShowEditButtons(false)}
-      >
-      {isEditing ? (
-        // Edit mode - looks like TaskCard
-        <div className={`flex flex-col gap-8 transition-all duration-150 ${
-          isAnimatingOut 
-            ? 'animate-out fade-out-0' 
-            : 'animate-in fade-in-0'
-        }`}>
-          <div className="flex items-center">
-            <input
-              ref={descriptionInputRef}
-              type="text"
-              value={editDescription}
-              onChange={(e) => setEditDescription(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="Write something that will disappoint your future self"
-              className="flex-1 text-base text-[#2D1B1B] font-inter placeholder:text-[#989999] bg-transparent border-none outline-none"
-            />
-          </div>
-          
-          <div className="flex justify-between items-end">
-            <div className="relative" ref={dropdownRef}>
-              <button
-                type="button"
-                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                className={`h-8 px-3 rounded-[20px] border border-[#E6E6E6] flex items-center gap-1 transition-colors ${
-                  isDropdownOpen 
-                    ? 'bg-[#F0F0F0] border-[#D0D0D0]' 
-                    : 'bg-white hover:bg-[#FAFAFA]'
-                }`}
-              >
-                <Timer className="w-3.5 h-3.5 text-[#696969]" />
-                <span className="text-xs text-[#696969] font-inter" style={{ transform: 'translateY(1px)' }}>
-                  {editEstimatedMinutes < 60 ? `${editEstimatedMinutes} minutes` : `${Math.floor(editEstimatedMinutes / 60)} hours ${editEstimatedMinutes % 60}m`}
-                </span>
-                <ChevronDown className={`w-3 h-3 text-[#696969] transition-transform translate-y-px ${isDropdownOpen ? 'rotate-180' : ''}`} />
-              </button>
+      <div className="relative w-full group max-w-[460px]">
+        {/* Drag Handle - Positioned absolutely to not affect card width */}
+        <button
+          className="absolute -left-10 top-1/2 -translate-y-1/2 p-2 rounded-lg transition-all duration-200 cursor-grab active:cursor-grabbing opacity-0 group-hover:opacity-100 z-10 hover:bg-[var(--muted)]"
+          style={{ 
+            color: 'var(--color-todoloo-text-secondary)'
+          }}
+          {...attributes}
+          {...listeners}
+        >
+          <GripVertical className="w-4 h-4" />
+        </button>
+        
+        {/* Task Card */}
+        <div
+          ref={(node) => {
+            setNodeRef(node)
+            taskCardRef.current = node
+          }}
+          className={`w-full rounded-[10px] shadow-[2px_2px_4px_rgba(0,0,0,0.15)] group ${
+            isDragging ? 'opacity-50 shadow-xl z-50' : 'transition-opacity duration-200'
+          } ${isActive ? 'ring-2' : ''} ${isEditing ? 'pt-3 pb-3 pl-4 pr-4' : 'pt-3 pb-3 pl-4 pr-4'}`}
+          style={{
+            ...style,
+            backgroundColor: 'var(--color-todoloo-card)'
+          }}
+          onMouseEnter={() => setShowEditButtons(true)}
+          onMouseLeave={() => !isEditing && setShowEditButtons(false)}
+        >
+          {isEditing ? (
+            // Edit mode - looks like TaskCard
+            <div className={`flex flex-col gap-8 transition-all duration-150 ${
+              isAnimatingOut 
+                ? 'animate-out fade-out-0' 
+                : 'animate-in fade-in-0'
+            }`}>
+              <div className="flex items-center">
+                <input
+                  ref={descriptionInputRef}
+                  type="text"
+                  value={editDescription}
+                  onChange={(e) => setEditDescription(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  placeholder="Write something that will disappoint your future self"
+                  className="flex-1 text-base font-inter bg-transparent border-none outline-none"
+                  style={{ 
+                    color: 'var(--color-todoloo-text-primary)'
+                  }}
+                />
+              </div>
               
-              {isDropdownOpen && (
-                <div className="absolute top-9 left-0 w-48 bg-[#FEFFFF] rounded-[20px] border border-[#D9D9D9] shadow-[0px_4px_54px_rgba(0,0,0,0.05)] p-2 z-10">
-                  <div className="space-y-1">
-                    {commonTimes.map((time) => (
-                      <button
-                        key={time.value}
-                        type="button"
-                        onClick={() => handleTimeSelect(time.value)}
-                        className="w-full text-left px-3 py-2 text-xs text-[#696969] font-inter hover:bg-[#F5F5F5] rounded-[10px] transition-colors"
-                      >
-                        {time.label}
-                      </button>
-                    ))}
-                    <div className="border-t border-[#E6E6E6] my-1"></div>
-                    <form onSubmit={handleCustomTimeSubmit} className="px-3 py-2">
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="number"
-                          value={customMinutes}
-                          onChange={(e) => setCustomMinutes(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
-                              e.preventDefault()
-                              handleCustomTimeSubmit(e)
-                            }
-                          }}
-                          placeholder="Custom"
-                          min="1"
-                          max="999"
-                          className="flex-1 text-xs text-[#2D1B1B] font-inter bg-transparent border-none outline-none placeholder:text-[#989999]"
-                        />
-                        <span className="text-xs text-[#696969] font-inter">minutes</span>
+              <div className="flex justify-between items-end">
+                <div className="relative" ref={dropdownRef}>
+                  <button
+                    type="button"
+                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                    className="h-8 px-3 rounded-[20px] border flex items-center gap-1 transition-colors"
+                    style={{
+                      borderColor: 'var(--color-todoloo-border)',
+                      backgroundColor: isDropdownOpen ? 'var(--color-todoloo-muted)' : 'var(--color-todoloo-card)'
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!isDropdownOpen) {
+                        e.currentTarget.style.backgroundColor = 'var(--color-todoloo-muted)'
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!isDropdownOpen) {
+                        e.currentTarget.style.backgroundColor = 'var(--color-todoloo-card)'
+                      }
+                    }}
+                  >
+                    <Timer className="w-3.5 h-3.5" style={{ color: 'var(--color-todoloo-text-secondary)' }} />
+                    <span className="text-xs font-inter" style={{ color: 'var(--color-todoloo-text-secondary)', transform: 'translateY(1px)' }}>
+                      {editEstimatedMinutes < 60 ? `${editEstimatedMinutes} minutes` : `${Math.floor(editEstimatedMinutes / 60)} hours ${editEstimatedMinutes % 60}m`}
+                    </span>
+                    <ChevronDown className={`w-3 h-3 transition-transform translate-y-px ${isDropdownOpen ? 'rotate-180' : ''}`} 
+                                 style={{ color: 'var(--color-todoloo-text-secondary)' }} />
+                  </button>
+                  
+                  {isDropdownOpen && (
+                    <div className="absolute top-9 left-0 w-48 bg-[#FEFFFF] rounded-[20px] border border-[#D9D9D9] shadow-[0px_4px_54px_rgba(0,0,0,0.05)] p-2 z-10">
+                      <div className="space-y-1">
+                        {commonTimes.map((time) => (
+                          <button
+                            key={time.value}
+                            type="button"
+                            onClick={() => handleTimeSelect(time.value)}
+                            className="w-full text-left px-3 py-2 text-xs text-[#696969] font-inter hover:bg-[#F5F5F5] rounded-[10px] transition-colors cursor-pointer"
+                          >
+                            {time.label}
+                          </button>
+                        ))}
+                        <div className="border-t border-[#E6E6E6] my-1"></div>
+                        <form onSubmit={handleCustomTimeSubmit} className="px-3 py-2">
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="number"
+                              value={customMinutes}
+                              onChange={handleCustomTimeChange}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  e.preventDefault()
+                                  handleCustomTimeSubmit(e)
+                                }
+                              }}
+                              onBlur={handleCustomTimeBlur}
+                              placeholder="Custom"
+                              min="1"
+                              max="999"
+                              className="flex-1 text-xs text-[#2D1B1B] font-inter bg-transparent border-none outline-none placeholder:text-[#989999]"
+                            />
+                            <span className="text-xs text-[#696969] font-inter">minutes</span>
+                          </div>
+                        </form>
                       </div>
-                    </form>
-                  </div>
-                </div>
-              )}
-            </div>
-            
-            <button
-              onClick={handleSave}
-              className="p-1.5 bg-gradient-to-r from-[#9F8685] to-[#583636] rounded-[10px] hover:opacity-90 transition-opacity cursor-pointer"
-            >
-              <Plus className="w-5 h-5 text-white" />
-            </button>
-          </div>
-        </div>
-      ) : (
-        // Normal display mode - simplified design with hover states
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3 flex-1">
-            <button
-              onClick={handleToggleCompletion}
-              className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors cursor-pointer ${
-                task.isCompleted
-                  ? 'bg-[#9F8685] border-[#9F8685] text-white'
-                  : 'border-[#D9D9D9] hover:border-[#9F8685]'
-              }`}
-            >
-              {task.isCompleted && <Check className="w-3 h-3" />}
-            </button>
-            
-            <div className="flex-1">
-              <div 
-                className="group/description cursor-text"
-                onClick={handleEdit}
-              >
-                <p className={`text-base font-inter ${
-                  task.isCompleted ? 'text-[#989999] line-through' : 'text-[#2D1B1B]'
-                }`}>
-                  {task.description}
-                </p>
-                <div className="flex items-center gap-2 mt-1">
-                  <p className="text-sm text-[#696969] font-inter">
-                    {task.isCompleted && task.actualMinutes 
-                      ? formatEstimatedTime(task.actualMinutes)
-                      : formatEstimatedTime(task.estimatedMinutes)
-                    }
-                  </p>
-                  {hasStarted && (
-                    <p className={`text-sm font-inter font-medium ${
-                      isActive ? 'text-[#9F8685]' : 'text-[#696969]'
-                    }`}>
-                      • {formatTime(seconds)}
-                    </p>
+                    </div>
                   )}
                 </div>
+                
+                <button
+                  onClick={handleSave}
+                  className="p-1.5 rounded-[10px] hover:opacity-90 transition-opacity cursor-pointer"
+                  style={{ 
+                    background: 'linear-gradient(to right, var(--color-todoloo-gradient-start), var(--color-todoloo-gradient-end))'
+                  }}
+                >
+                  <Plus className="w-5 h-5 text-white" />
+                </button>
               </div>
             </div>
-          </div>
+          ) : (
+            // Normal display mode - simplified design with hover states
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3 flex-1">
+                <button
+                  onClick={handleToggleCompletion}
+                  className="w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors cursor-pointer"
+                  style={{
+                    backgroundColor: task.isCompleted ? 'var(--color-todoloo-gradient-start)' : 'transparent',
+                    borderColor: task.isCompleted ? 'var(--color-todoloo-gradient-start)' : 'var(--color-todoloo-border)',
+                    color: task.isCompleted ? 'white' : 'var(--color-todoloo-text-primary)'
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!task.isCompleted) {
+                      e.currentTarget.style.borderColor = 'var(--color-todoloo-gradient-start)'
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!task.isCompleted) {
+                      e.currentTarget.style.borderColor = 'var(--color-todoloo-border)'
+                    }
+                  }}
+                >
+                  {task.isCompleted && <Check className="w-3 h-3" />}
+                </button>
+                
+                <div className="flex-1">
+                  <div 
+                    className="group/description cursor-text"
+                    onClick={handleEdit}
+                  >
+                    <p className={`text-base font-['Geist'] font-medium ${
+                      task.isCompleted ? 'line-through' : ''
+                    }`}
+                       style={{ 
+                         color: task.isCompleted ? 'var(--color-todoloo-text-muted)' : 'var(--color-todoloo-text-secondary)'
+                       }}>
+                      {task.description}
+                    </p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <p className="text-sm font-['Geist'] font-normal" style={{ color: 'var(--color-todoloo-text-muted)' }}>
+                        {task.isCompleted && task.actualMinutes 
+                          ? formatEstimatedTime(task.actualMinutes)
+                          : formatEstimatedTime(task.estimatedMinutes)
+                        }
+                      </p>
+                      {hasStarted && (
+                        <p className="text-sm font-['Geist'] font-medium"
+                           style={{ 
+                             color: isActive ? 'var(--color-todoloo-gradient-start)' : 'var(--color-todoloo-text-secondary)'
+                           }}>
+                          • {formatTime(seconds)}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
 
-          {/* Hover action buttons */}
-          <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-            <button
-              onClick={() => onDelete(task.id)}
-              className="p-2 hover:bg-[#F5F5F5] rounded-lg transition-all duration-200 text-[#696969] hover:text-red-500 cursor-pointer"
-            >
-              <Trash2 className="w-4 h-4" />
-            </button>
-            
-            <button
-              className="p-2 hover:bg-[#F5F5F5] rounded-lg transition-all duration-200 cursor-grab active:cursor-grabbing text-[#696969]"
-              {...attributes}
-              {...listeners}
-            >
-              <GripVertical className="w-4 h-4" />
-            </button>
-            
-            {!task.isCompleted && (
-              <button
-                onClick={isActive ? handleStopTask : handleStartTask}
-                className={`p-2 rounded-lg transition-all duration-200 cursor-pointer ${
-                  isActive 
-                    ? 'bg-red-100 hover:bg-red-200 text-red-600' 
-                    : 'bg-green-100 hover:bg-green-200 text-green-600'
-                }`}
-              >
-                {isActive ? <Square className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-              </button>
-            )}
-          </div>
+              {/* Hover action buttons */}
+              <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                <button
+                  onClick={() => onDelete(task.id)}
+                  className="p-2 rounded-lg transition-all duration-200 cursor-pointer"
+                  style={{ 
+                    color: 'var(--color-todoloo-text-secondary)'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = 'var(--color-todoloo-muted)'
+                    e.currentTarget.style.color = 'red'
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = 'transparent'
+                    e.currentTarget.style.color = 'var(--color-todoloo-text-secondary)'
+                  }}
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+                
+                {!task.isCompleted && (
+                  <button
+                    onClick={isActive ? handleStopTask : handleStartTask}
+                    className="p-2 rounded-lg transition-all duration-200 cursor-pointer"
+                    style={{
+                      backgroundColor: isActive ? '#fee2e2' : '#dcfce7',
+                      color: isActive ? '#dc2626' : '#16a34a'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = isActive ? '#fecaca' : '#bbf7d0'
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = isActive ? '#fee2e2' : '#dcfce7'
+                    }}
+                  >
+                    {isActive ? <Square className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
         </div>
-      )}
       </div>
     </AnimatedBorder>
   )

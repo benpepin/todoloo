@@ -9,6 +9,7 @@ interface HistoryStore {
   addEntry: (entry: Omit<TaskHistoryEntry, 'id'>) => void
   clearHistory: () => void
   getSimilarStats: (description: string, threshold?: number) => SimilarTaskStats
+  migrateCompletedTasks: (completedTasks: Array<{ description: string; estimatedMinutes: number; actualMinutes?: number; completedAt: Date }>) => void
 }
 
 export const useHistoryStore = create<HistoryStore>()(
@@ -33,6 +34,33 @@ export const useHistoryStore = create<HistoryStore>()(
       getSimilarStats: (description, threshold = 0.4) => {
         const { entries } = get()
         return getSimilarTaskStats(description, entries, threshold)
+      },
+
+      migrateCompletedTasks: (completedTasks) => {
+        const { entries } = get()
+        
+        const newEntries = completedTasks
+          .filter(task => {
+            // Only add if not already in history (check by description and completion time)
+            return !entries.some(entry => 
+              entry.originalDescription === task.description && 
+              Math.abs(new Date(entry.completedAt).getTime() - new Date(task.completedAt).getTime()) < 1000
+            )
+          })
+          .map(task => ({
+            id: crypto.randomUUID(),
+            normalizedDescription: task.description.toLowerCase().replace(/[^\w\s]/g, ' ').replace(/\s+/g, ' ').trim(),
+            originalDescription: task.description,
+            estimatedMinutes: task.estimatedMinutes,
+            actualMinutes: task.actualMinutes || task.estimatedMinutes,
+            completedAt: task.completedAt,
+          }))
+        
+        if (newEntries.length > 0) {
+          set((state) => ({
+            entries: [...newEntries, ...state.entries]
+          }))
+        }
       },
     }),
     {

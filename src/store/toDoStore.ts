@@ -4,7 +4,7 @@ import { Task, AppState } from '@/types'
 import { useHistoryStore } from './historyStore'
 import { indexedDbStorage } from '@/storage/indexedDbStorage'
 
-interface TaskStore extends AppState {
+interface ToDoStore extends AppState {
   addTask: (description: string, estimatedMinutes: number) => void
   deleteTask: (id: string) => void
   toggleTaskCompletion: (id: string) => void
@@ -24,7 +24,7 @@ interface TaskStore extends AppState {
   toggleCreateTask: () => void
 }
 
-export const useTaskStore = create<TaskStore>()(
+export const useToDoStore = create<ToDoStore>()(
   persist(
     (set, get) => ({
       tasks: [],
@@ -38,16 +38,18 @@ export const useTaskStore = create<TaskStore>()(
           id: crypto.randomUUID(),
           description,
           estimatedMinutes,
+          actualMinutes: 0,
           isCompleted: false,
           isActive: false,
           createdAt: new Date(),
-          order: 0,
+          order: get().tasks.length
         }
+
         set((state) => ({
           tasks: [newTask, ...state.tasks.map(task => ({
             ...task,
             order: task.order + 1
-          }))],
+          }))]
         }))
       },
 
@@ -60,6 +62,11 @@ export const useTaskStore = create<TaskStore>()(
 
       toggleTaskCompletion: (id: string) => {
         set((state) => {
+          const task = state.tasks.find(t => t.id === id)
+          if (!task) return state
+          
+          const isCompleting = !task.isCompleted
+          
           const updatedTasks = state.tasks.map((task) =>
             task.id === id
               ? {
@@ -70,16 +77,15 @@ export const useTaskStore = create<TaskStore>()(
               : task
           )
           
-          // If task is being completed, add to history
-          const task = state.tasks.find(t => t.id === id)
-          if (task && !task.isCompleted && task.actualMinutes) {
-            const historyStore = useHistoryStore.getState()
-            historyStore.addEntry({
-              normalizedDescription: task.description.toLowerCase().replace(/[^\w\s]/g, ' ').replace(/\s+/g, ' ').trim(),
+          // If to do is being completed, add to history
+          if (isCompleting && task) {
+            const { addEntry } = useHistoryStore.getState()
+            addEntry({
+              normalizedDescription: task.description.toLowerCase().trim(),
               originalDescription: task.description,
               estimatedMinutes: task.estimatedMinutes,
-              actualMinutes: task.actualMinutes,
-              completedAt: new Date(),
+              actualMinutes: task.actualMinutes || task.estimatedMinutes,
+              completedAt: new Date()
             })
           }
           
@@ -92,7 +98,6 @@ export const useTaskStore = create<TaskStore>()(
           tasks: state.tasks.map((task) => ({
             ...task,
             isActive: task.id === id,
-            isPaused: task.id === id ? false : task.isPaused,
           })),
           activeTaskId: id,
           isTrackingMode: true,
@@ -104,7 +109,6 @@ export const useTaskStore = create<TaskStore>()(
           tasks: state.tasks.map((task) => ({
             ...task,
             isActive: false,
-            isPaused: false,
           })),
           activeTaskId: null,
           isTrackingMode: false,
@@ -115,17 +119,15 @@ export const useTaskStore = create<TaskStore>()(
         set((state) => ({
           tasks: state.tasks.map((task) => ({
             ...task,
-            isPaused: task.isActive ? true : task.isPaused,
+            isActive: false,
           })),
+          isTrackingMode: false,
         }))
       },
 
       resumeTask: () => {
         set((state) => ({
-          tasks: state.tasks.map((task) => ({
-            ...task,
-            isPaused: task.isActive ? false : task.isPaused,
-          })),
+          isTrackingMode: true,
         }))
       },
 
@@ -140,7 +142,6 @@ export const useTaskStore = create<TaskStore>()(
           ),
         }))
       },
-
 
       updateTaskDescription: (id: string, description: string) => {
         set((state) => ({
@@ -188,7 +189,7 @@ export const useTaskStore = create<TaskStore>()(
       },
     }),
     {
-      name: 'todoloo-storage',
+      name: 'todo-store',
       storage: indexedDbStorage,
       partialize: (state) => ({
         tasks: state.tasks,
@@ -199,9 +200,12 @@ export const useTaskStore = create<TaskStore>()(
       }),
       onRehydrateStorage: () => (state) => {
         if (state) {
-          console.log('Task store rehydrated successfully')
+          console.log('To do store rehydrated successfully')
         }
       },
     }
   )
 )
+
+// For backward compatibility, export the old name as well
+export const useTaskStore = useToDoStore

@@ -1,11 +1,11 @@
 'use client'
 
 import { getCurrentDate } from '@/utils/timeUtils'
-import { useTaskStore } from '@/store/taskStore'
+import { useToDoStore } from '@/store/toDoStore'
 
 export default function Header() {
-  const toggleCreateTask = useTaskStore((state) => state.toggleCreateTask)
-  const showCreateTask = useTaskStore((state) => state.showCreateTask)
+  const toggleCreateTask = useToDoStore((state) => state.toggleCreateTask)
+  const showCreateTask = useToDoStore((state) => state.showCreateTask)
 
   const handleClick = () => {
     toggleCreateTask()

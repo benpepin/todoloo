@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Download, Upload, AlertTriangle, CheckCircle, X } from 'lucide-react'
-import { useTaskStore } from '@/store/taskStore'
+import { useToDoStore } from '@/store/toDoStore'
 import { useHistoryStore } from '@/store/historyStore'
 import { useClientOnly } from '@/hooks/useClientOnly'
 
@@ -16,7 +16,7 @@ interface BackupData {
 function SettingsBackupContent() {
   const [isOpen, setIsOpen] = useState(false)
   const [message, setMessage] = useState<{ type: 'success' | 'error' | 'info', text: string } | null>(null)
-  const tasks = useTaskStore((state) => state.tasks)
+  const tasks = useToDoStore((state) => state.tasks)
   const history = useHistoryStore((state) => state.entries)
   const clearHistory = useHistoryStore((state) => state.clearHistory)
 
@@ -79,8 +79,8 @@ function SettingsBackupContent() {
   }
 
   const clearAllData = () => {
-    if (confirm('This will permanently delete all tasks and history. Are you sure?')) {
-      // Clear tasks (you'd need to add this to taskStore)
+    if (confirm('This will permanently delete all to dos and history. Are you sure?')) {
+      // Clear to dos (you'd need to add this to taskStore)
       clearHistory()
       setMessage({ type: 'info', text: 'Data cleared. Refresh the page to see changes.' })
     }
@@ -154,17 +154,17 @@ function SettingsBackupContent() {
           <div className="bg-[#FFF3CD] border border-[#FFEAA7] rounded-[12px] p-4">
             <h3 className="font-medium text-[#856404] font-inter mb-2">Data Storage</h3>
             <p className="text-sm text-[#856404] font-inter mb-2">
-              Your tasks and timing history are stored locally in your browser using IndexedDB.
+              Your to dos and timing history are stored locally in your browser using IndexedDB.
             </p>
             <p className="text-sm text-[#856404] font-inter">
-              <strong>Warning:</strong> Clearing browser data will delete all your tasks and history unless you have a backup.
+              <strong>Warning:</strong> Clearing browser data will delete all your to dos and history unless you have a backup.
             </p>
           </div>
 
           <div className="bg-[#F8D7DA] border border-[#F5C6CB] rounded-[12px] p-4">
             <h3 className="font-medium text-[#721C24] font-inter mb-2">Danger Zone</h3>
             <p className="text-sm text-[#721C24] font-inter mb-3">
-              Permanently delete all tasks and history data.
+              Permanently delete all to dos and history data.
             </p>
             <button
               onClick={clearAllData}
