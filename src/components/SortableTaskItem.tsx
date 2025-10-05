@@ -171,10 +171,18 @@ export default function SortableTaskItem({
   }
 
   const handleToggleCompletion = () => {
+    const isCompleting = !task.isCompleted
     // If completing the to do and we have timer data, save the actual time
-    if (!task.isCompleted && hasStarted && seconds > 0) {
+    if (isCompleting && hasStarted && seconds > 0) {
       const actualMinutes = Math.round(seconds / 60) || 1 // At least 1 minute
       updateTaskActualTime(task.id, actualMinutes)
+    }
+    // If completing while active or timer has started, stop task tracking and timer
+    if (isCompleting) {
+      if (isActive) {
+        stopTask()
+      }
+      stop()
     }
     onToggleCompletion(task.id)
   }
@@ -408,30 +416,87 @@ export default function SortableTaskItem({
                   )}
                 </div>
                 
-                <button
-                  onClick={handleSave}
-                  className="p-1.5 rounded-[10px] hover:opacity-90 transition-opacity cursor-pointer"
-                  style={{ 
-                    background: 'linear-gradient(to right, var(--color-todoloo-gradient-start), var(--color-todoloo-gradient-end))'
-                  }}
-                >
-                  <Plus className="w-5 h-5 text-white" />
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => onDelete(task.id)}
+                    className="p-1.5 rounded-[10px] transition-all cursor-pointer"
+                    style={{ 
+                      backgroundColor: 'transparent',
+                      color: 'var(--color-todoloo-text-secondary)'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = 'var(--color-todoloo-muted)'
+                      e.currentTarget.style.color = 'red'
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'transparent'
+                      e.currentTarget.style.color = 'var(--color-todoloo-text-secondary)'
+                    }}
+                    aria-label="Delete task"
+                    title="Delete"
+                  >
+                    <Trash2 className="w-5 h-5" />
+                  </button>
+                  <button
+                    onClick={handleSave}
+                    className="p-1.5 rounded-[10px] hover:opacity-90 transition-opacity cursor-pointer"
+                    style={{ 
+                      background: 'linear-gradient(to right, var(--color-todoloo-gradient-start), var(--color-todoloo-gradient-end))'
+                    }}
+                  >
+                    <Plus className="w-5 h-5 text-white" />
+                  </button>
+                </div>
               </div>
             </div>
           ) : (
             // Normal display mode - simplified design with hover states
             <div className={`flex items-center justify-between ${isActive ? 'active' : ''}`}>
               <div className="flex items-center gap-3 flex-1">
-                {/* Spotify-like bars animation for active tasks only */}
-                {isActive && (
-                  <div className="bars-icon">
-                    <div className="bar bar1"></div>
-                    <div className="bar bar2"></div>
-                    <div className="bar bar3"></div>
-                    <div className="bar bar4"></div>
+                {/* Left side: Animated bars + stop button for active tasks, play button for inactive tasks */}
+                {isActive ? (
+                  <div className="flex items-center gap-2">
+                    <div className="bars-icon">
+                      <div className="bar bar1"></div>
+                      <div className="bar bar2"></div>
+                      <div className="bar bar3"></div>
+                      <div className="bar bar4"></div>
+                    </div>
+                    <button
+                      onClick={handleStopTask}
+                      className="p-2 rounded-lg transition-all duration-200 cursor-pointer"
+                      style={{
+                        backgroundColor: '#fee2e2',
+                        color: '#dc2626'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = '#fecaca'
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = '#fee2e2'
+                      }}
+                    >
+                      <Square className="w-4 h-4" />
+                    </button>
                   </div>
-                )}
+                ) : !task.isCompleted ? (
+                  <button
+                    onClick={handleStartTask}
+                    className="p-2 rounded-lg transition-all duration-200 cursor-pointer"
+                    style={{
+                      backgroundColor: '#dcfce7',
+                      color: '#16a34a'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = '#bbf7d0'
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = '#dcfce7'
+                    }}
+                  >
+                    <Play className="w-4 h-4" />
+                  </button>
+                ) : null}
                 
                 <div className="flex-1">
                   <div 
@@ -490,43 +555,6 @@ export default function SortableTaskItem({
                 >
                   {task.isCompleted && <Check className="w-3 h-3" />}
                 </button>
-                
-                <button
-                  onClick={() => onDelete(task.id)}
-                  className="p-2 rounded-lg transition-all duration-200 cursor-pointer"
-                  style={{ 
-                    color: 'var(--color-todoloo-text-secondary)'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = 'var(--color-todoloo-muted)'
-                    e.currentTarget.style.color = 'red'
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = 'transparent'
-                    e.currentTarget.style.color = 'var(--color-todoloo-text-secondary)'
-                  }}
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-                
-                {!task.isCompleted && (
-                  <button
-                    onClick={isActive ? handleStopTask : handleStartTask}
-                    className="p-2 rounded-lg transition-all duration-200 cursor-pointer"
-                    style={{
-                      backgroundColor: isActive ? '#fee2e2' : '#dcfce7',
-                      color: isActive ? '#dc2626' : '#16a34a'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = isActive ? '#fecaca' : '#bbf7d0'
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = isActive ? '#fee2e2' : '#dcfce7'
-                    }}
-                  >
-                    {isActive ? <Square className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-                  </button>
-                )}
               </div>
             </div>
           )}
