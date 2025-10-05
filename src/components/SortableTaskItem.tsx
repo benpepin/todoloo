@@ -421,29 +421,17 @@ export default function SortableTaskItem({
             </div>
           ) : (
             // Normal display mode - simplified design with hover states
-            <div className="flex items-center justify-between">
+            <div className={`flex items-center justify-between ${isActive ? 'active' : ''}`}>
               <div className="flex items-center gap-3 flex-1">
-                <button
-                  onClick={handleToggleCompletion}
-                  className="w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors cursor-pointer"
-                  style={{
-                    backgroundColor: task.isCompleted ? 'var(--color-todoloo-gradient-start)' : 'transparent',
-                    borderColor: task.isCompleted ? 'var(--color-todoloo-gradient-start)' : 'var(--color-todoloo-border)',
-                    color: task.isCompleted ? 'white' : 'var(--color-todoloo-text-primary)'
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!task.isCompleted) {
-                      e.currentTarget.style.borderColor = 'var(--color-todoloo-gradient-start)'
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!task.isCompleted) {
-                      e.currentTarget.style.borderColor = 'var(--color-todoloo-border)'
-                    }
-                  }}
-                >
-                  {task.isCompleted && <Check className="w-3 h-3" />}
-                </button>
+                {/* Spotify-like bars animation for active tasks only */}
+                {isActive && (
+                  <div className="bars-icon">
+                    <div className="bar bar1"></div>
+                    <div className="bar bar2"></div>
+                    <div className="bar bar3"></div>
+                    <div className="bar bar4"></div>
+                  </div>
+                )}
                 
                 <div className="flex-1">
                   <div 
@@ -480,6 +468,29 @@ export default function SortableTaskItem({
 
               {/* Hover action buttons */}
               <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                {/* Checkbox - only visible on hover */}
+                <button
+                  onClick={handleToggleCompletion}
+                  className="w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all duration-200 cursor-pointer"
+                  style={{
+                    backgroundColor: task.isCompleted ? 'var(--color-todoloo-gradient-start)' : 'transparent',
+                    borderColor: task.isCompleted ? 'var(--color-todoloo-gradient-start)' : 'var(--color-todoloo-border)',
+                    color: task.isCompleted ? 'white' : 'var(--color-todoloo-text-primary)'
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!task.isCompleted) {
+                      e.currentTarget.style.borderColor = 'var(--color-todoloo-gradient-start)'
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!task.isCompleted) {
+                      e.currentTarget.style.borderColor = 'var(--color-todoloo-border)'
+                    }
+                  }}
+                >
+                  {task.isCompleted && <Check className="w-3 h-3" />}
+                </button>
+                
                 <button
                   onClick={() => onDelete(task.id)}
                   className="p-2 rounded-lg transition-all duration-200 cursor-pointer"

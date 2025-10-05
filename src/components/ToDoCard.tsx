@@ -310,7 +310,7 @@ function ToDoCardContent() {
             style={{ color: 'var(--color-todoloo-text-secondary)' }}
           />
                  {!description && (
-                   <div className="absolute left-0 pointer-events-none"
+                   <div className="absolute left-0 top-0 pointer-events-none flex items-start"
                         style={{ color: 'var(--color-todoloo-text-muted)' }}>
                      <RotatingPlaceholder 
                        texts={[
@@ -326,7 +326,7 @@ function ToDoCardContent() {
                          "Update my LinkedIn",
                        ]}
                        interval={4000}
-                       className="text-base font-['Geist']"
+                       className="text-base font-['Geist'] leading-tight"
                        onTextChange={(text) => {
                          const estimatedTime = estimateTimeFromDescription(text)
                          setEstimatedMinutes(estimatedTime)
