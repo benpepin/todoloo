@@ -141,10 +141,11 @@ function ToDoListContent() {
           <div className="w-full flex flex-col justify-start items-start">
             <SortableContext items={todoTasks.map(task => task.id)} strategy={verticalListSortingStrategy}>
               <div className="w-full space-y-4">
-                {todoTasks.map((task) => (
+                {todoTasks.map((task, index) => (
                   <SortableTaskItem
                     key={task.id}
                     task={task}
+                    taskIndex={index + 1}
                     onDelete={deleteTask}
                     onToggleCompletion={toggleTaskCompletion}
                     isTaskActive={activeTaskId === task.id}
@@ -165,10 +166,11 @@ function ToDoListContent() {
             <div className="w-full flex flex-col justify-start items-start">
               <SortableContext items={doneTasks.map(task => task.id)} strategy={verticalListSortingStrategy}>
                 <div className="w-full space-y-4">
-                  {doneTasks.map((task) => (
+                  {doneTasks.map((task, index) => (
                     <SortableTaskItem
                       key={task.id}
                       task={task}
+                      taskIndex={index + 1}
                       onDelete={deleteTask}
                       onToggleCompletion={toggleTaskCompletion}
                       isTaskActive={activeTaskId === task.id}

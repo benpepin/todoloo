@@ -11,6 +11,7 @@ import AnimatedBorder from './AnimatedBorder'
 
 interface SortableTaskItemProps {
   task: Task
+  taskIndex: number
   onDelete: (id: string) => void
   onToggleCompletion: (id: string) => void
   isTaskActive: boolean
@@ -18,6 +19,7 @@ interface SortableTaskItemProps {
 
 export default function SortableTaskItem({ 
   task, 
+  taskIndex,
   onDelete, 
   onToggleCompletion, 
   isTaskActive 
@@ -453,50 +455,70 @@ export default function SortableTaskItem({
             // Normal display mode - simplified design with hover states
             <div className={`flex items-center justify-between ${isActive ? 'active' : ''}`}>
               <div className="flex items-center gap-3 flex-1">
-                {/* Left side: Animated bars for active tasks (stop on hover), play button for inactive tasks */}
-                {isActive ? (
-                  <div className="relative w-8 h-8 flex items-center justify-center">
-                    <div className="bars-icon w-8 h-8 flex items-center justify-center group-hover:opacity-0 transition-opacity duration-200">
-                      <div className="bar bar1"></div>
-                      <div className="bar bar2"></div>
-                      <div className="bar bar3"></div>
-                      <div className="bar bar4"></div>
+                {/* Task number or play/animated bars */}
+                <div className="w-8 h-8 flex items-center justify-center">
+                  {isActive ? (
+                    // Active task: show animated bars that fade to pause on hover
+                    <div className="relative w-8 h-8 flex items-center justify-center">
+                      <div className="bars-icon w-8 h-8 flex items-center justify-center group-hover:opacity-0 transition-opacity duration-200">
+                        <div className="bar bar1"></div>
+                        <div className="bar bar2"></div>
+                        <div className="bar bar3"></div>
+                        <div className="bar bar4"></div>
+                      </div>
+                      <button
+                        onClick={handleStopTask}
+                        className="absolute top-0 left-0 w-8 h-8 p-2 rounded-lg transition-all duration-200 cursor-pointer opacity-0 group-hover:opacity-100 flex items-center justify-center"
+                        style={{
+                          backgroundColor: '#fee2e2',
+                          color: '#dc2626'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = '#fecaca'
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = '#fee2e2'
+                        }}
+                      >
+                        <Pause className="w-4 h-4" />
+                      </button>
                     </div>
-                    <button
-                      onClick={handleStopTask}
-                      className="absolute top-0 left-0 w-8 h-8 p-2 rounded-lg transition-all duration-200 cursor-pointer opacity-0 group-hover:opacity-100 flex items-center justify-center"
-                      style={{
-                        backgroundColor: '#fee2e2',
-                        color: '#dc2626'
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = '#fecaca'
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = '#fee2e2'
-                      }}
+                  ) : !task.isCompleted ? (
+                    // Inactive task: show play button on hover, number by default
+                    <div className="relative w-8 h-8 flex items-center justify-center">
+                      <span 
+                        className="text-sm font-medium transition-opacity duration-200 group-hover:opacity-0"
+                        style={{ color: 'var(--color-todoloo-text-muted)' }}
+                      >
+                        {taskIndex}
+                      </span>
+                      <button
+                        onClick={handleStartTask}
+                        className="absolute top-0 left-0 w-8 h-8 p-2 rounded-lg transition-all duration-200 cursor-pointer opacity-0 group-hover:opacity-100 flex items-center justify-center"
+                        style={{
+                          backgroundColor: '#dcfce7',
+                          color: '#16a34a'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = '#bbf7d0'
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = '#dcfce7'
+                        }}
+                      >
+                        <Play className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ) : (
+                    // Completed task: just show the number
+                    <span 
+                      className="text-sm font-medium"
+                      style={{ color: 'var(--color-todoloo-text-muted)' }}
                     >
-                      <Pause className="w-4 h-4" />
-                    </button>
-                  </div>
-                ) : !task.isCompleted ? (
-                  <button
-                    onClick={handleStartTask}
-                    className="p-2 rounded-lg transition-all duration-200 cursor-pointer"
-                    style={{
-                      backgroundColor: '#dcfce7',
-                      color: '#16a34a'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = '#bbf7d0'
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = '#dcfce7'
-                    }}
-                  >
-                    <Play className="w-4 h-4" />
-                  </button>
-                ) : null}
+                      {taskIndex}
+                    </span>
+                  )}
+                </div>
                 
                 <div className="flex-1">
                   <div 
