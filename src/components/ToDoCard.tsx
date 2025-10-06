@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { Plus, Timer, ChevronDown, TrendingUp } from 'lucide-react'
+import { Plus, Timer, ChevronDown, TrendingUp, CornerDownLeft } from 'lucide-react'
 import { useToDoStore } from '@/store/toDoStore'
 import { useHistoryStore } from '@/store/historyStore'
 
@@ -469,18 +469,40 @@ function ToDoCardContent() {
             )}
           </div>
           
-          <button
-            type="submit"
-            disabled={!description.trim()}
-            className={`p-1.5 rounded-[10px] transition-all ${
-              description.trim() 
-                ? 'bg-gradient-to-r from-[#9F8685] to-[#583636] hover:opacity-90 cursor-pointer' 
-                : 'bg-[#E6E6E6] cursor-not-allowed'
-            }`}
-          >
-            <Plus className="w-5 h-5" 
-                  style={{ color: description.trim() ? 'white' : 'var(--color-todoloo-text-muted)' }} />
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setShowCreateTask(false)}
+              className="px-3 py-2 text-sm font-medium cursor-pointer transition-colors"
+              style={{ 
+                backgroundColor: 'transparent',
+                color: 'var(--color-todoloo-text-secondary)'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.color = 'var(--color-todoloo-text-primary)'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.color = 'var(--color-todoloo-text-secondary)'
+              }}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={!description.trim()}
+              className={`px-4 py-2 rounded-[10px] transition-all flex items-center gap-2 ${
+                description.trim() 
+                  ? 'bg-gradient-to-r from-[#9F8685] to-[#583636] hover:opacity-90 cursor-pointer' 
+                  : 'bg-[#E6E6E6] cursor-not-allowed'
+              }`}
+              style={{ border: '1px solid #D9D9D9' }}
+            >
+              <span className="text-sm font-medium" style={{ color: description.trim() ? 'white' : 'var(--color-todoloo-text-muted)' }}>
+                Create
+              </span>
+              <CornerDownLeft className="w-4 h-4" style={{ color: description.trim() ? 'white' : 'var(--color-todoloo-text-muted)', opacity: 0.5 }} />
+            </button>
+          </div>
         </div>
       </form>
     </div>
