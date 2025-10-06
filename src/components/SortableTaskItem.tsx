@@ -421,7 +421,7 @@ export default function SortableTaskItem({
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => onDelete(task.id)}
-                    className="p-1.5 rounded-[10px] transition-all cursor-pointer"
+                    className="px-3 py-1.5 rounded-[10px] transition-all cursor-pointer text-sm font-medium"
                     style={{ 
                       backgroundColor: 'transparent',
                       color: 'var(--color-todoloo-text-secondary)'
@@ -437,7 +437,7 @@ export default function SortableTaskItem({
                     aria-label="Delete task"
                     title="Delete"
                   >
-                    <Trash2 className="w-5 h-5" />
+                    Delete
                   </button>
                   <button
                     onClick={handleSave}
