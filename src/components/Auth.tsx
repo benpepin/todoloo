@@ -15,12 +15,6 @@ export default function Auth() {
         <span className="text-sm text-gray-600">
           Signed in as {user.email}
         </span>
-        <button
-          onClick={() => supabase.auth.signOut()}
-          className="px-3 py-1 text-sm bg-gray-200 hover:bg-gray-300 rounded transition-colors"
-        >
-          Sign out
-        </button>
       </div>
     )
   }

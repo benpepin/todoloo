@@ -11,7 +11,7 @@ import { useSupabase } from '@/components/SupabaseProvider'
 import Auth from '@/components/Auth'
 
 export default function Home() {
-  const { user, loading: authLoading, supabase } = useSupabase()
+  const { user, loading: authLoading } = useSupabase()
   const toggleCreateTask = useToDoStore((state) => state.toggleCreateTask)
   const tasks = useToDoStore((state) => state.tasks)
   const addTask = useToDoStore((state) => state.addTask)
@@ -133,49 +133,7 @@ export default function Home() {
     )
   }
 
-  // Add a sign out button for testing
-  const handleSignOut = async () => {
-    try {
-      // Clear the todo store state first
-      useToDoStore.getState().clearAllTasks()
-      
-      // Sign out from Supabase
-      await supabase.auth.signOut()
-      
-      // Clear all storage types (Safari needs this)
-      if (typeof window !== 'undefined') {
-        localStorage.clear()
-        sessionStorage.clear()
-        
-        // Clear IndexedDB if it exists
-        if ('indexedDB' in window) {
-          try {
-            const deleteReq = indexedDB.deleteDatabase('todoloo')
-            deleteReq.onsuccess = () => {
-              console.log('IndexedDB cleared')
-            }
-          } catch (e) {
-            console.warn('Could not clear IndexedDB:', e)
-          }
-        }
-        
-        // Clear cookies (for Safari)
-        document.cookie.split(";").forEach((c) => {
-          const eqPos = c.indexOf("=")
-          const name = eqPos > -1 ? c.substr(0, eqPos) : c
-          document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/"
-          document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain=" + window.location.hostname
-        })
-      }
-      
-      // Force a hard reload to clear any cached state
-      window.location.href = window.location.origin
-    } catch (error) {
-      console.error('Error during sign out:', error)
-      // Fallback: just reload the page
-      window.location.href = window.location.origin
-    }
-  }
+  // Sign out moved to Settings page
 
   return (
     <div className="w-full h-screen flex" style={{ backgroundColor: 'var(--color-todoloo-bg)' }}>
@@ -212,17 +170,6 @@ export default function Home() {
                 onMouseLeave={(e) => e.currentTarget.style.color = 'var(--color-todoloo-text-secondary)'}>
             Settings
           </Link>
-          <div className="text-xs font-['Geist'] font-normal" 
-               style={{ color: 'var(--color-todoloo-text-secondary)' }}>•</div>
-          <button
-            onClick={handleSignOut}
-            className="text-xs font-['Geist'] font-normal transition-colors cursor-pointer"
-            style={{ color: 'var(--color-todoloo-text-secondary)' }}
-            onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-todoloo-text-primary)'}
-            onMouseLeave={(e) => e.currentTarget.style.color = 'var(--color-todoloo-text-secondary)'}
-          >
-            Sign Out
-          </button>
           <div className="text-xs font-['Geist'] font-normal" 
                style={{ color: 'var(--color-todoloo-text-secondary)' }}>•</div>
           <div className="text-xs font-['Geist'] font-normal" 

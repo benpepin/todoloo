@@ -87,15 +87,7 @@ function SettingsBackupContent() {
   }
 
   if (!isOpen) {
-    return (
-      <button
-        onClick={() => setIsOpen(true)}
-        className="fixed bottom-4 right-4 p-3 bg-[#F8F9FA] border border-[#E9ECEF] rounded-full shadow-lg hover:bg-[#E9ECEF] transition-colors"
-        title="Settings & Backup"
-      >
-        <AlertTriangle className="w-5 h-5 text-[#6C757D]" />
-      </button>
-    )
+    return null
   }
 
   return (
