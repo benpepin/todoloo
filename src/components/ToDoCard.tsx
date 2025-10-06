@@ -245,6 +245,12 @@ function ToDoCardContent() {
   const handleTimeSelect = (minutes: number) => {
     setEstimatedMinutes(minutes)
     setIsDropdownOpen(false)
+    // Return focus to description input so user can hit Enter to save
+    setTimeout(() => {
+      if (inputRef.current) {
+        inputRef.current.focus()
+      }
+    }, 0)
   }
 
   const handleCustomTimeSubmit = (e: React.FormEvent) => {
@@ -261,6 +267,13 @@ function ToDoCardContent() {
         setDescription('')
         setEstimatedMinutes(30)
         setShowCreateTask(false) // Close the create to do card after adding
+      } else {
+        // Return focus to description input so user can hit Enter to save
+        setTimeout(() => {
+          if (inputRef.current) {
+            inputRef.current.focus()
+          }
+        }, 0)
       }
     }
   }
@@ -306,6 +319,12 @@ function ToDoCardContent() {
             type="text"
             value={description}
             onChange={handleDescriptionChange}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault()
+                handleSubmit(e)
+              }
+            }}
             className="flex-1 text-base font-['Geist'] bg-transparent border-none outline-none"
             style={{ color: 'var(--color-todoloo-text-secondary)' }}
           />

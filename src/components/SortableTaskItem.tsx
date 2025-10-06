@@ -55,7 +55,7 @@ export default function SortableTaskItem({
   
   const isEditing = editingTaskId === task.id
   const isActive = activeTaskId === task.id
-  const { seconds, isRunning, hasStarted, start, pause, stop, formatTime } = useSimpleTimer()
+  const { seconds, isRunning, hasStarted, start, pause, stop, formatTime } = useSimpleTimer(task.id)
   
   const {
     attributes,
@@ -227,6 +227,12 @@ export default function SortableTaskItem({
   const handleTimeSelect = (minutes: number) => {
     setEditEstimatedMinutes(minutes)
     setIsDropdownOpen(false)
+    // Return focus to description input so user can hit Enter to save
+    setTimeout(() => {
+      if (descriptionInputRef.current) {
+        descriptionInputRef.current.focus()
+      }
+    }, 0)
   }
 
   const handleCustomTimeSubmit = (e: React.FormEvent) => {
@@ -235,7 +241,15 @@ export default function SortableTaskItem({
     if (minutes > 0) {
       setEditEstimatedMinutes(minutes)
       setCustomMinutes('')
+      // Save the time change to the store
+      updateTaskEstimatedTime(task.id, minutes)
       setIsDropdownOpen(false)
+      // Return focus to description input so user can hit Enter to save
+      setTimeout(() => {
+        if (descriptionInputRef.current) {
+          descriptionInputRef.current.focus()
+        }
+      }, 0)
     }
   }
 
