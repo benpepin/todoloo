@@ -145,14 +145,13 @@ export default function SortableTaskItem({
     }
   }, [editingTaskId, task.id, isEditing, editDescription, editEstimatedMinutes, updateTaskDescription, updateTaskEstimatedTime])
 
-  // Handle timer start/pause when to do becomes active/inactive
+  // Handle timer start when to do becomes active (but don't auto-pause when inactive)
   useEffect(() => {
     if (isActive) {
       start()
-    } else if (hasStarted) {
-      pause()
     }
-  }, [isActive, start, pause, hasStarted])
+    // Note: We don't automatically pause when inactive - timer continues in background
+  }, [isActive, start])
 
   // Cleanup timeout on unmount
   useEffect(() => {
@@ -165,6 +164,10 @@ export default function SortableTaskItem({
 
   const handleStartTask = () => {
     startTask(task.id)
+  }
+
+  const handlePauseTask = () => {
+    stopTask() // Stop tracking active task but keep timer running
   }
 
   const handleStopTask = () => {
@@ -469,10 +472,10 @@ export default function SortableTaskItem({
             <div className={`flex items-center justify-between ${isActive ? 'active' : ''}`}>
               <div className="flex items-center gap-3 flex-1">
                 {/* Task number or play/animated bars */}
-                <div className="w-8 h-8 flex items-center justify-center">
+                <div className="w-16 h-8 flex items-center justify-center">
                   {isActive ? (
                     // Active task: show animated bars that fade to pause on hover
-                    <div className="relative w-8 h-8 flex items-center justify-center">
+                    <div className="relative w-16 h-8 flex items-center justify-center">
                       <div className="w-8 h-8 flex items-center justify-center group-hover:opacity-0 transition-opacity duration-200" style={{ overflow: 'visible' }}>
                         <svg viewBox="0 0 200 200" className="w-32 h-32" style={{ overflow: 'visible', transform: 'translateX(-12px)' }} xmlns="http://www.w3.org/2000/svg">
                           {/* Gradient definition */}
@@ -540,9 +543,28 @@ export default function SortableTaskItem({
                           </g>
                         </svg>
                       </div>
+                      {/* Pause button */}
+                      <button
+                        onClick={handlePauseTask}
+                        className="absolute top-0 left-0 w-8 h-8 p-2 rounded-lg transition-all duration-200 cursor-pointer opacity-0 group-hover:opacity-100 flex items-center justify-center"
+                        style={{
+                          backgroundColor: '#fef3c7',
+                          color: '#d97706'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = '#fde68a'
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = '#fef3c7'
+                        }}
+                        title="Pause (timer keeps running)"
+                      >
+                        <Pause className="w-4 h-4" />
+                      </button>
+                      {/* Stop button */}
                       <button
                         onClick={handleStopTask}
-                        className="absolute top-0 left-0 w-8 h-8 p-2 rounded-lg transition-all duration-200 cursor-pointer opacity-0 group-hover:opacity-100 flex items-center justify-center"
+                        className="absolute top-0 right-0 w-8 h-8 p-2 rounded-lg transition-all duration-200 cursor-pointer opacity-0 group-hover:opacity-100 flex items-center justify-center"
                         style={{
                           backgroundColor: '#fee2e2',
                           color: '#dc2626'
@@ -553,8 +575,9 @@ export default function SortableTaskItem({
                         onMouseLeave={(e) => {
                           e.currentTarget.style.backgroundColor = '#fee2e2'
                         }}
+                        title="Stop and reset timer"
                       >
-                        <Pause className="w-4 h-4" />
+                        <Square className="w-4 h-4" />
                       </button>
                     </div>
                   ) : !task.isCompleted ? (
