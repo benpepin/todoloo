@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { Trash2, Check, GripVertical, Timer, ChevronDown, Plus, Play, Square } from 'lucide-react'
+import { Trash2, Check, GripVertical, Timer, ChevronDown, Plus, Play, Pause, Square } from 'lucide-react'
 import { Task } from '@/types'
 import { useToDoStore } from '@/store/toDoStore'
 import { useSimpleTimer } from '@/hooks/useSimpleTimer'
@@ -453,10 +453,10 @@ export default function SortableTaskItem({
             // Normal display mode - simplified design with hover states
             <div className={`flex items-center justify-between ${isActive ? 'active' : ''}`}>
               <div className="flex items-center gap-3 flex-1">
-                {/* Left side: Animated bars + stop button for active tasks, play button for inactive tasks */}
+                {/* Left side: Animated bars for active tasks (stop on hover), play button for inactive tasks */}
                 {isActive ? (
-                  <div className="flex items-center gap-2">
-                    <div className="bars-icon">
+                  <div className="relative w-8 h-8 flex items-center justify-center">
+                    <div className="bars-icon w-8 h-8 flex items-center justify-center group-hover:opacity-0 transition-opacity duration-200">
                       <div className="bar bar1"></div>
                       <div className="bar bar2"></div>
                       <div className="bar bar3"></div>
@@ -464,7 +464,7 @@ export default function SortableTaskItem({
                     </div>
                     <button
                       onClick={handleStopTask}
-                      className="p-2 rounded-lg transition-all duration-200 cursor-pointer"
+                      className="absolute top-0 left-0 w-8 h-8 p-2 rounded-lg transition-all duration-200 cursor-pointer opacity-0 group-hover:opacity-100 flex items-center justify-center"
                       style={{
                         backgroundColor: '#fee2e2',
                         color: '#dc2626'
@@ -476,7 +476,7 @@ export default function SortableTaskItem({
                         e.currentTarget.style.backgroundColor = '#fee2e2'
                       }}
                     >
-                      <Square className="w-4 h-4" />
+                      <Pause className="w-4 h-4" />
                     </button>
                   </div>
                 ) : !task.isCompleted ? (
@@ -531,9 +531,8 @@ export default function SortableTaskItem({
                 </div>
               </div>
 
-              {/* Hover action buttons */}
-              <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                {/* Checkbox - only visible on hover */}
+              {/* Checkbox - always visible */}
+              <div className="flex items-center gap-2">
                 <button
                   onClick={handleToggleCompletion}
                   className="w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all duration-200 cursor-pointer"
