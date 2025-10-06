@@ -78,26 +78,46 @@ export function useSimpleTimer(taskId?: string) {
           return
         }
         
-        // If timer has a startTime, restore it and calculate current elapsed time
-        if (parsedState.startTime && typeof parsedState.startTime === 'number') {
+        // Restore timer state
+        if (parsedState.hasStarted) {
           const now = Date.now()
-          const elapsed = Math.floor((now - parsedState.startTime) / 1000)
-          console.log(`[Timer ${taskId || 'default'}] Restoring timer - elapsed: ${elapsed}s, isRunning: ${parsedState.isRunning}`)
 
-          // Restore the state with original startTime
-          stateRef.current = {
-            isRunning: parsedState.isRunning || false,
-            hasStarted: true,
-            startTime: parsedState.startTime,
-            pausedTime: 0, // No longer needed
-            lastUpdateTime: now
+          if (parsedState.isRunning && parsedState.startTime && typeof parsedState.startTime === 'number') {
+            // Timer was running - calculate current elapsed time
+            const elapsed = Math.floor((now - parsedState.startTime) / 1000)
+            console.log(`[Timer ${taskId || 'default'}] Restoring running timer - elapsed: ${elapsed}s`)
+
+            stateRef.current = {
+              isRunning: true,
+              hasStarted: true,
+              startTime: parsedState.startTime,
+              pausedTime: 0,
+              lastUpdateTime: now
+            }
+
+            setSeconds(elapsed)
+            setIsRunning(true)
+            setHasStarted(true)
+          } else if (!parsedState.isRunning && typeof parsedState.pausedTime === 'number') {
+            // Timer was paused - restore paused state
+            console.log(`[Timer ${taskId || 'default'}] Restoring paused timer - paused at: ${parsedState.pausedTime}s`)
+
+            stateRef.current = {
+              isRunning: false,
+              hasStarted: true,
+              startTime: null,
+              pausedTime: parsedState.pausedTime,
+              lastUpdateTime: now
+            }
+
+            setSeconds(parsedState.pausedTime)
+            setIsRunning(false)
+            setHasStarted(true)
+          } else {
+            console.log(`[Timer ${taskId || 'default'}] Invalid state structure, ignoring`)
           }
-
-          setSeconds(elapsed)
-          setIsRunning(parsedState.isRunning || false)
-          setHasStarted(true)
         } else {
-          console.log(`[Timer ${taskId || 'default'}] Invalid state structure, ignoring`)
+          console.log(`[Timer ${taskId || 'default'}] Timer not started yet`)
         }
       } else {
         console.log(`[Timer ${taskId || 'default'}] No saved state found`)
@@ -174,9 +194,9 @@ export function useSimpleTimer(taskId?: string) {
     }
   }, [saveState, updateTimer])
 
-  // Main timer interval - runs when timer has started (even when paused)
+  // Main timer interval - runs when timer is running
   useEffect(() => {
-    if (hasStarted && stateRef.current.startTime) {
+    if (isRunning && stateRef.current.startTime) {
       intervalRef.current = setInterval(updateTimer, 1000)
       // Update immediately on start/resume
       updateTimer()
@@ -192,14 +212,22 @@ export function useSimpleTimer(taskId?: string) {
         clearInterval(intervalRef.current)
       }
     }
-  }, [hasStarted, updateTimer])
+  }, [isRunning, updateTimer])
 
   const start = useCallback(() => {
     const now = Date.now()
 
-    // If this is a fresh start (no startTime exists), set startTime to now
-    // Otherwise, keep existing startTime to track total elapsed time
-    if (!stateRef.current.startTime) {
+    // If resuming from pause, use pausedTime as base
+    if (stateRef.current.hasStarted && stateRef.current.pausedTime > 0) {
+      stateRef.current = {
+        isRunning: true,
+        hasStarted: true,
+        startTime: now - (stateRef.current.pausedTime * 1000), // Adjust startTime to include paused time
+        pausedTime: 0,
+        lastUpdateTime: now
+      }
+    } else if (!stateRef.current.startTime) {
+      // Fresh start
       stateRef.current = {
         isRunning: true,
         hasStarted: true,
@@ -208,7 +236,7 @@ export function useSimpleTimer(taskId?: string) {
         lastUpdateTime: now
       }
     } else {
-      // Resuming - keep original startTime
+      // Already running, just update state
       stateRef.current = {
         ...stateRef.current,
         isRunning: true,
@@ -223,14 +251,23 @@ export function useSimpleTimer(taskId?: string) {
   }, [saveState])
 
   const pause = useCallback(() => {
-    // Keep startTime intact so we can track total elapsed time
-    stateRef.current = {
-      ...stateRef.current,
-      isRunning: false,
-      lastUpdateTime: Date.now()
+    // When paused, save current elapsed time and stop counting
+    if (stateRef.current.startTime) {
+      const now = Date.now()
+      const elapsed = Math.floor((now - stateRef.current.startTime) / 1000)
+
+      stateRef.current = {
+        isRunning: false,
+        hasStarted: true,
+        startTime: null, // Clear startTime when paused
+        pausedTime: elapsed, // Store the elapsed time
+        lastUpdateTime: now
+      }
+
+      setSeconds(elapsed)
+      setIsRunning(false)
+      saveState()
     }
-    setIsRunning(false)
-    saveState()
   }, [saveState])
 
   const stop = useCallback(() => {

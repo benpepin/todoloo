@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { Trash2, Check, GripVertical, Timer, ChevronDown, Plus, Play, Pause, Square } from 'lucide-react'
+import { Trash2, Check, GripVertical, Timer, ChevronDown, Plus, Play, Pause } from 'lucide-react'
 import { Task } from '@/types'
 import { useToDoStore } from '@/store/toDoStore'
 import { useSimpleTimer } from '@/hooks/useSimpleTimer'
@@ -55,7 +55,7 @@ export default function SortableTaskItem({
   
   const isEditing = editingTaskId === task.id
   const isActive = activeTaskId === task.id
-  const { seconds, isRunning, hasStarted, start, pause, stop, formatTime } = useSimpleTimer(task.id)
+  const { seconds, isRunning, hasStarted, start, pause, formatTime } = useSimpleTimer(task.id)
   
   const {
     attributes,
@@ -145,13 +145,17 @@ export default function SortableTaskItem({
     }
   }, [editingTaskId, task.id, isEditing, editDescription, editEstimatedMinutes, updateTaskDescription, updateTaskEstimatedTime])
 
-  // Handle timer start when to do becomes active (but don't auto-pause when inactive)
+  // Handle timer start/resume when to do becomes active
   useEffect(() => {
-    if (isActive) {
+    if (isActive && hasStarted) {
+      // Task is active and timer already started - resume if needed
+      start()
+    } else if (isActive && !hasStarted) {
+      // Task is active and timer hasn't started - start fresh
       start()
     }
     // Note: We don't automatically pause when inactive - timer continues in background
-  }, [isActive, start])
+  }, [isActive, start, hasStarted])
 
   // Cleanup timeout on unmount
   useEffect(() => {
@@ -167,13 +171,10 @@ export default function SortableTaskItem({
   }
 
   const handlePauseTask = () => {
-    stopTask() // Stop tracking active task but keep timer running
+    pause() // Actually pause the timer
+    stopTask() // Stop tracking active task
   }
 
-  const handleStopTask = () => {
-    stopTask()
-    stop() // Reset the timer
-  }
 
   const handleToggleCompletion = () => {
     const isCompleting = !task.isCompleted
@@ -182,12 +183,9 @@ export default function SortableTaskItem({
       const actualMinutes = Math.round(seconds / 60) || 1 // At least 1 minute
       updateTaskActualTime(task.id, actualMinutes)
     }
-    // If completing while active or timer has started, stop task tracking and timer
-    if (isCompleting) {
-      if (isActive) {
-        stopTask()
-      }
-      stop()
+    // If completing while active, stop task tracking
+    if (isCompleting && isActive) {
+      stopTask()
     }
     onToggleCompletion(task.id)
   }
@@ -472,10 +470,10 @@ export default function SortableTaskItem({
             <div className={`flex items-center justify-between ${isActive ? 'active' : ''}`}>
               <div className="flex items-center gap-3 flex-1">
                 {/* Task number or play/animated bars */}
-                <div className="w-16 h-8 flex items-center justify-center">
-                  {isActive ? (
+                <div className="w-8 h-8 flex items-center justify-center">
+                  {isRunning && hasStarted ? (
                     // Active task: show animated bars that fade to pause on hover
-                    <div className="relative w-16 h-8 flex items-center justify-center">
+                    <div className="relative w-8 h-8 flex items-center justify-center">
                       <div className="w-8 h-8 flex items-center justify-center group-hover:opacity-0 transition-opacity duration-200" style={{ overflow: 'visible' }}>
                         <svg viewBox="0 0 200 200" className="w-32 h-32" style={{ overflow: 'visible', transform: 'translateX(-12px)' }} xmlns="http://www.w3.org/2000/svg">
                           {/* Gradient definition */}
@@ -486,55 +484,55 @@ export default function SortableTaskItem({
                               <stop offset="100%" stopColor="#ff9500" stopOpacity="1" />
                             </linearGradient>
                           </defs>
-                          
+
                           {/* Animated bars with right-rounded pill shape */}
                           <g transform="translate(100, 100) scale(0.7)">
                             {/* Bar 1 */}
                             <path d="M 0,-25 L 40,-25 A 8,8 0 0 1 40,-8 L 0,-8 Z" fill="url(#barGradient)">
-                              <animate attributeName="d" 
+                              <animate attributeName="d"
                                        values="M 0,-25 L 40,-25 A 8,8 0 0 1 40,-8 L 0,-8 Z;
                                                M 0,-25 L 65,-25 A 8,8 0 0 1 65,-8 L 0,-8 Z;
-                                               M 0,-25 L 40,-25 A 8,8 0 0 1 40,-8 L 0,-8 Z" 
-                                       dur="1.3s" 
+                                               M 0,-25 L 40,-25 A 8,8 0 0 1 40,-8 L 0,-8 Z"
+                                       dur="1.3s"
                                        begin="0s"
                                        calcMode="spline"
                                        keySplines="0.4 0 0.6 1; 0.4 0 0.6 1"
                                        repeatCount="indefinite"/>
                             </path>
-                            
+
                             {/* Bar 2 */}
                             <path d="M 0,-8 L 50,-8 A 8,8 0 0 1 50,8 L 0,8 Z" fill="url(#barGradient)">
-                              <animate attributeName="d" 
+                              <animate attributeName="d"
                                        values="M 0,-8 L 50,-8 A 8,8 0 0 1 50,8 L 0,8 Z;
                                                M 0,-8 L 30,-8 A 8,8 0 0 1 30,8 L 0,8 Z;
-                                               M 0,-8 L 50,-8 A 8,8 0 0 1 50,8 L 0,8 Z" 
-                                       dur="1.1s" 
+                                               M 0,-8 L 50,-8 A 8,8 0 0 1 50,8 L 0,8 Z"
+                                       dur="1.1s"
                                        begin="0.15s"
                                        calcMode="spline"
                                        keySplines="0.4 0 0.6 1; 0.4 0 0.6 1"
                                        repeatCount="indefinite"/>
                             </path>
-                            
+
                             {/* Bar 3 */}
                             <path d="M 0,8 L 45,8 A 8,8 0 0 1 45,24 L 0,24 Z" fill="url(#barGradient)">
-                              <animate attributeName="d" 
+                              <animate attributeName="d"
                                        values="M 0,8 L 45,8 A 8,8 0 0 1 45,24 L 0,24 Z;
                                                M 0,8 L 70,8 A 8,8 0 0 1 70,24 L 0,24 Z;
-                                               M 0,8 L 45,8 A 8,8 0 0 1 45,24 L 0,24 Z" 
-                                       dur="1.15s" 
+                                               M 0,8 L 45,8 A 8,8 0 0 1 45,24 L 0,24 Z"
+                                       dur="1.15s"
                                        begin="0.3s"
                                        calcMode="spline"
                                        keySplines="0.4 0 0.6 1; 0.4 0 0.6 1"
                                        repeatCount="indefinite"/>
                             </path>
-                            
+
                             {/* Bar 4 */}
                             <path d="M 0,24 L 35,24 A 8,8 0 0 1 35,40 L 0,40 Z" fill="url(#barGradient)">
-                              <animate attributeName="d" 
+                              <animate attributeName="d"
                                        values="M 0,24 L 35,24 A 8,8 0 0 1 35,40 L 0,40 Z;
                                                M 0,24 L 50,24 A 8,8 0 0 1 50,40 L 0,40 Z;
-                                               M 0,24 L 35,24 A 8,8 0 0 1 35,40 L 0,40 Z" 
-                                       dur="1.2s" 
+                                               M 0,24 L 35,24 A 8,8 0 0 1 35,40 L 0,40 Z"
+                                       dur="1.2s"
                                        begin="0.45s"
                                        calcMode="spline"
                                        keySplines="0.4 0 0.6 1; 0.4 0 0.6 1"
@@ -561,29 +559,32 @@ export default function SortableTaskItem({
                       >
                         <Pause className="w-4 h-4" />
                       </button>
-                      {/* Stop button */}
+                    </div>
+                  ) : !task.isCompleted && hasStarted ? (
+                    // Timer started but not active: show timer with play on hover
+                    <div className="relative w-8 h-8 flex items-center justify-center">
+                      <Timer className="w-4 h-4 group-hover:opacity-0 transition-opacity duration-200" style={{ color: 'var(--color-todoloo-text-muted)' }} />
                       <button
-                        onClick={handleStopTask}
-                        className="absolute top-0 right-0 w-8 h-8 p-2 rounded-lg transition-all duration-200 cursor-pointer opacity-0 group-hover:opacity-100 flex items-center justify-center"
+                        onClick={handleStartTask}
+                        className="absolute top-0 left-0 w-8 h-8 p-2 rounded-lg transition-all duration-200 cursor-pointer opacity-0 group-hover:opacity-100 flex items-center justify-center"
                         style={{
-                          backgroundColor: '#fee2e2',
-                          color: '#dc2626'
+                          backgroundColor: '#dcfce7',
+                          color: '#16a34a'
                         }}
                         onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = '#fecaca'
+                          e.currentTarget.style.backgroundColor = '#bbf7d0'
                         }}
                         onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = '#fee2e2'
+                          e.currentTarget.style.backgroundColor = '#dcfce7'
                         }}
-                        title="Stop and reset timer"
                       >
-                        <Square className="w-4 h-4" />
+                        <Play className="w-4 h-4" />
                       </button>
                     </div>
                   ) : !task.isCompleted ? (
                     // Inactive task: show play button on hover, number by default
                     <div className="relative w-8 h-8 flex items-center justify-center">
-                      <span 
+                      <span
                         className="text-sm font-medium transition-opacity duration-200 group-hover:opacity-0"
                         style={{ color: 'var(--color-todoloo-text-muted)' }}
                       >
@@ -608,7 +609,7 @@ export default function SortableTaskItem({
                     </div>
                   ) : (
                     // Completed task: just show the number
-                    <span 
+                    <span
                       className="text-sm font-medium"
                       style={{ color: 'var(--color-todoloo-text-muted)' }}
                     >
