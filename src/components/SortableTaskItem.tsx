@@ -190,7 +190,7 @@ export default function SortableTaskItem({
   }
 
   const handleEdit = () => {
-    if (task.isCompleted) return
+    // Allow editing both completed and incomplete todos
     
     // If another to do is being edited, we need to save its current values
     // This will be handled by the component that's currently being edited
