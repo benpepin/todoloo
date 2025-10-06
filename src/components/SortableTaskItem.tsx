@@ -421,17 +421,15 @@ export default function SortableTaskItem({
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => onDelete(task.id)}
-                    className="px-3 py-1.5 rounded-[10px] transition-all cursor-pointer text-sm font-medium"
+                    className="px-3 py-2 text-sm font-medium cursor-pointer transition-colors"
                     style={{ 
                       backgroundColor: 'transparent',
                       color: 'var(--color-todoloo-text-secondary)'
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = 'var(--color-todoloo-muted)'
                       e.currentTarget.style.color = 'red'
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = 'transparent'
                       e.currentTarget.style.color = 'var(--color-todoloo-text-secondary)'
                     }}
                     aria-label="Delete task"
@@ -441,12 +439,13 @@ export default function SortableTaskItem({
                   </button>
                   <button
                     onClick={handleSave}
-                    className="p-1.5 rounded-[10px] hover:opacity-90 transition-opacity cursor-pointer"
+                    className="px-4 py-2 rounded-[10px] hover:opacity-90 transition-opacity cursor-pointer"
                     style={{ 
-                      background: 'linear-gradient(to right, var(--color-todoloo-gradient-start), var(--color-todoloo-gradient-end))'
+                      background: 'linear-gradient(to right, var(--color-todoloo-gradient-start), var(--color-todoloo-gradient-end))',
+                      border: '1px solid #D9D9D9'
                     }}
                   >
-                    <Plus className="w-5 h-5 text-white" />
+                    <span className="text-white text-sm font-medium">Save</span>
                   </button>
                 </div>
               </div>
@@ -460,11 +459,72 @@ export default function SortableTaskItem({
                   {isActive ? (
                     // Active task: show animated bars that fade to pause on hover
                     <div className="relative w-8 h-8 flex items-center justify-center">
-                      <div className="bars-icon w-8 h-8 flex items-center justify-center group-hover:opacity-0 transition-opacity duration-200">
-                        <div className="bar bar1"></div>
-                        <div className="bar bar2"></div>
-                        <div className="bar bar3"></div>
-                        <div className="bar bar4"></div>
+                      <div className="w-8 h-8 flex items-center justify-center group-hover:opacity-0 transition-opacity duration-200" style={{ overflow: 'visible' }}>
+                        <svg viewBox="0 0 200 200" className="w-32 h-32" style={{ overflow: 'visible', transform: 'translateX(-12px)' }} xmlns="http://www.w3.org/2000/svg">
+                          {/* Gradient definition */}
+                          <defs>
+                            <linearGradient id="barGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                              <stop offset="0%" stopColor="#ff2d55" stopOpacity="1" />
+                              <stop offset="50%" stopColor="#ff3b30" stopOpacity="1" />
+                              <stop offset="100%" stopColor="#ff9500" stopOpacity="1" />
+                            </linearGradient>
+                          </defs>
+                          
+                          {/* Animated bars with right-rounded pill shape */}
+                          <g transform="translate(100, 100) scale(0.7)">
+                            {/* Bar 1 */}
+                            <path d="M 0,-25 L 40,-25 A 8,8 0 0 1 40,-8 L 0,-8 Z" fill="url(#barGradient)">
+                              <animate attributeName="d" 
+                                       values="M 0,-25 L 40,-25 A 8,8 0 0 1 40,-8 L 0,-8 Z;
+                                               M 0,-25 L 65,-25 A 8,8 0 0 1 65,-8 L 0,-8 Z;
+                                               M 0,-25 L 40,-25 A 8,8 0 0 1 40,-8 L 0,-8 Z" 
+                                       dur="1.3s" 
+                                       begin="0s"
+                                       calcMode="spline"
+                                       keySplines="0.4 0 0.6 1; 0.4 0 0.6 1"
+                                       repeatCount="indefinite"/>
+                            </path>
+                            
+                            {/* Bar 2 */}
+                            <path d="M 0,-8 L 50,-8 A 8,8 0 0 1 50,8 L 0,8 Z" fill="url(#barGradient)">
+                              <animate attributeName="d" 
+                                       values="M 0,-8 L 50,-8 A 8,8 0 0 1 50,8 L 0,8 Z;
+                                               M 0,-8 L 30,-8 A 8,8 0 0 1 30,8 L 0,8 Z;
+                                               M 0,-8 L 50,-8 A 8,8 0 0 1 50,8 L 0,8 Z" 
+                                       dur="1.1s" 
+                                       begin="0.15s"
+                                       calcMode="spline"
+                                       keySplines="0.4 0 0.6 1; 0.4 0 0.6 1"
+                                       repeatCount="indefinite"/>
+                            </path>
+                            
+                            {/* Bar 3 */}
+                            <path d="M 0,8 L 45,8 A 8,8 0 0 1 45,24 L 0,24 Z" fill="url(#barGradient)">
+                              <animate attributeName="d" 
+                                       values="M 0,8 L 45,8 A 8,8 0 0 1 45,24 L 0,24 Z;
+                                               M 0,8 L 70,8 A 8,8 0 0 1 70,24 L 0,24 Z;
+                                               M 0,8 L 45,8 A 8,8 0 0 1 45,24 L 0,24 Z" 
+                                       dur="1.15s" 
+                                       begin="0.3s"
+                                       calcMode="spline"
+                                       keySplines="0.4 0 0.6 1; 0.4 0 0.6 1"
+                                       repeatCount="indefinite"/>
+                            </path>
+                            
+                            {/* Bar 4 */}
+                            <path d="M 0,24 L 35,24 A 8,8 0 0 1 35,40 L 0,40 Z" fill="url(#barGradient)">
+                              <animate attributeName="d" 
+                                       values="M 0,24 L 35,24 A 8,8 0 0 1 35,40 L 0,40 Z;
+                                               M 0,24 L 50,24 A 8,8 0 0 1 50,40 L 0,40 Z;
+                                               M 0,24 L 35,24 A 8,8 0 0 1 35,40 L 0,40 Z" 
+                                       dur="1.2s" 
+                                       begin="0.45s"
+                                       calcMode="spline"
+                                       keySplines="0.4 0 0.6 1; 0.4 0 0.6 1"
+                                       repeatCount="indefinite"/>
+                            </path>
+                          </g>
+                        </svg>
                       </div>
                       <button
                         onClick={handleStopTask}
@@ -533,7 +593,7 @@ export default function SortableTaskItem({
                        }}>
                       {task.description}
                     </p>
-                    <div className="flex items-center gap-2 mt-1">
+                    <div className="flex items-center gap-2 mt-0">
                       <p className="text-sm font-['Geist'] font-normal" style={{ color: 'var(--color-todoloo-text-muted)' }}>
                         {task.isCompleted && task.actualMinutes 
                           ? formatEstimatedTime(task.actualMinutes)
