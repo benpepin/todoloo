@@ -8,6 +8,7 @@ import { Task } from '@/types'
 import { useToDoStore } from '@/store/toDoStore'
 import { useSimpleTimer } from '@/hooks/useSimpleTimer'
 import AnimatedBorder from './AnimatedBorder'
+import { AnimatedBars } from './AnimatedBars'
 
 interface SortableTaskItemProps {
   task: Task
@@ -475,71 +476,7 @@ export default function SortableTaskItem({
                     // Active task: show animated bars that fade to pause on hover
                     <div className="relative w-8 h-8 flex items-center justify-center">
                       <div className="w-8 h-8 flex items-center justify-center group-hover:opacity-0 transition-opacity duration-200" style={{ overflow: 'visible' }}>
-                        <svg viewBox="0 0 200 200" className="w-32 h-32" style={{ overflow: 'visible', transform: 'translateX(-12px)' }} xmlns="http://www.w3.org/2000/svg">
-                          {/* Gradient definition */}
-                          <defs>
-                            <linearGradient id="barGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                              <stop offset="0%" stopColor="#ff2d55" stopOpacity="1" />
-                              <stop offset="50%" stopColor="#ff3b30" stopOpacity="1" />
-                              <stop offset="100%" stopColor="#ff9500" stopOpacity="1" />
-                            </linearGradient>
-                          </defs>
-
-                          {/* Animated bars with right-rounded pill shape */}
-                          <g transform="translate(100, 100) scale(0.7)">
-                            {/* Bar 1 */}
-                            <path d="M 0,-25 L 40,-25 A 8,8 0 0 1 40,-8 L 0,-8 Z" fill="url(#barGradient)">
-                              <animate attributeName="d"
-                                       values="M 0,-25 L 40,-25 A 8,8 0 0 1 40,-8 L 0,-8 Z;
-                                               M 0,-25 L 65,-25 A 8,8 0 0 1 65,-8 L 0,-8 Z;
-                                               M 0,-25 L 40,-25 A 8,8 0 0 1 40,-8 L 0,-8 Z"
-                                       dur="1.3s"
-                                       begin="0s"
-                                       calcMode="spline"
-                                       keySplines="0.4 0 0.6 1; 0.4 0 0.6 1"
-                                       repeatCount="indefinite"/>
-                            </path>
-
-                            {/* Bar 2 */}
-                            <path d="M 0,-8 L 50,-8 A 8,8 0 0 1 50,8 L 0,8 Z" fill="url(#barGradient)">
-                              <animate attributeName="d"
-                                       values="M 0,-8 L 50,-8 A 8,8 0 0 1 50,8 L 0,8 Z;
-                                               M 0,-8 L 30,-8 A 8,8 0 0 1 30,8 L 0,8 Z;
-                                               M 0,-8 L 50,-8 A 8,8 0 0 1 50,8 L 0,8 Z"
-                                       dur="1.1s"
-                                       begin="0.15s"
-                                       calcMode="spline"
-                                       keySplines="0.4 0 0.6 1; 0.4 0 0.6 1"
-                                       repeatCount="indefinite"/>
-                            </path>
-
-                            {/* Bar 3 */}
-                            <path d="M 0,8 L 45,8 A 8,8 0 0 1 45,24 L 0,24 Z" fill="url(#barGradient)">
-                              <animate attributeName="d"
-                                       values="M 0,8 L 45,8 A 8,8 0 0 1 45,24 L 0,24 Z;
-                                               M 0,8 L 70,8 A 8,8 0 0 1 70,24 L 0,24 Z;
-                                               M 0,8 L 45,8 A 8,8 0 0 1 45,24 L 0,24 Z"
-                                       dur="1.15s"
-                                       begin="0.3s"
-                                       calcMode="spline"
-                                       keySplines="0.4 0 0.6 1; 0.4 0 0.6 1"
-                                       repeatCount="indefinite"/>
-                            </path>
-
-                            {/* Bar 4 */}
-                            <path d="M 0,24 L 35,24 A 8,8 0 0 1 35,40 L 0,40 Z" fill="url(#barGradient)">
-                              <animate attributeName="d"
-                                       values="M 0,24 L 35,24 A 8,8 0 0 1 35,40 L 0,40 Z;
-                                               M 0,24 L 50,24 A 8,8 0 0 1 50,40 L 0,40 Z;
-                                               M 0,24 L 35,24 A 8,8 0 0 1 35,40 L 0,40 Z"
-                                       dur="1.2s"
-                                       begin="0.45s"
-                                       calcMode="spline"
-                                       keySplines="0.4 0 0.6 1; 0.4 0 0.6 1"
-                                       repeatCount="indefinite"/>
-                            </path>
-                          </g>
-                        </svg>
+                        <AnimatedBars />
                       </div>
                       {/* Pause button */}
                       <button
