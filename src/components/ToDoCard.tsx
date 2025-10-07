@@ -167,9 +167,9 @@ function ToDoCardContent() {
   const handleDescriptionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newDescription = e.target.value
     setDescription(newDescription)
-    
-    // Check for multiplication pattern
-    const multiplicationMatch = newDescription.trim().match(/^(.+?)\s+x\s+(\d+)$/i)
+
+    // Check for multiplication pattern (with or without space: "x 3" or "x3")
+    const multiplicationMatch = newDescription.trim().match(/^(.+?)\s+x\s*(\d+)$/i)
     if (multiplicationMatch) {
       const [, baseDescription, count] = multiplicationMatch
       const taskCount = parseInt(count, 10)
@@ -190,7 +190,7 @@ function ToDoCardContent() {
       }
     } else {
       setMultiplicationPreview(null)
-      
+
       // Check for historical suggestions
       if (newDescription.trim()) {
         const stats = getSimilarStats(newDescription.trim())
@@ -213,19 +213,66 @@ function ToDoCardContent() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (description.trim()) {
-      // Check for multiplication pattern like "walk dog x 3"
-      const multiplicationMatch = description.trim().match(/^(.+?)\s+x\s+(\d+)$/i)
-      
+      // Check for bulk add mode - ends with " and", " AND", or " &"
+      const bulkAddMatch = description.match(/^(.+)\s+(and|AND|&)$/i)
+
+      if (bulkAddMatch) {
+        const taskDescription = bulkAddMatch[1].trim()
+
+        if (taskDescription) {
+          // Check if this is a multiplication pattern before bulk add (with or without space)
+          const multiplicationMatch = taskDescription.match(/^(.+?)\s+x\s*(\d+)$/i)
+
+          if (multiplicationMatch) {
+            const [, baseDescription, count] = multiplicationMatch
+            const taskCount = parseInt(count, 10)
+
+            if (taskCount > 10) {
+              alert('Maximum 10 tasks can be created at once. Please use a smaller number.')
+              return
+            }
+
+            if (taskCount > 1) {
+              // Create multiple tasks
+              for (let i = 0; i < taskCount; i++) {
+                const numberedDescription = `${baseDescription.trim()} (${i + 1})`
+                addTask(numberedDescription, estimatedMinutes)
+              }
+            }
+          } else {
+            // Create single task
+            addTask(taskDescription, estimatedMinutes)
+          }
+
+          // Reset for next task but keep the card open (bulk add mode)
+          setDescription('')
+          setMultiplicationPreview(null)
+          setShowSuggestion(false)
+          setEstimatedMinutes(30)
+
+          // Re-focus input for next task
+          setTimeout(() => {
+            if (inputRef.current) {
+              inputRef.current.focus()
+            }
+          }, 0)
+          return
+        }
+      }
+
+      // Check for multiplication pattern like "walk dog x 3" or "walk dog x3"
+      const multiplicationMatch = description.trim().match(/^(.+?)\s+x\s*(\d+)$/i)
+
       if (multiplicationMatch) {
         const [, baseDescription, count] = multiplicationMatch
         const taskCount = parseInt(count, 10)
-        
+
         // Limit to reasonable number of to dos
         if (taskCount > 10) {
           alert('Maximum 10 tasks can be created at once. Please use a smaller number.')
           return
         }
-        
+
         // Create multiple to dos
         for (let i = 0; i < taskCount; i++) {
           const taskDescription = taskCount > 1 ? `${baseDescription.trim()} (${i + 1})` : baseDescription.trim()
@@ -235,7 +282,7 @@ function ToDoCardContent() {
         // Single to do
         addTask(description.trim(), estimatedMinutes)
       }
-      
+
       setDescription('')
       setEstimatedMinutes(30)
       setShowCreateTask(false) // Close the create to do card after adding

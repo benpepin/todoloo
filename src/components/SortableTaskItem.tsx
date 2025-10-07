@@ -436,8 +436,8 @@ export default function SortableTaskItem({
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => onDelete(task.id)}
-                    className="px-3 py-2 text-sm font-medium cursor-pointer transition-colors"
-                    style={{ 
+                    className="h-8 px-3 text-xs font-inter cursor-pointer transition-colors"
+                    style={{
                       backgroundColor: 'transparent',
                       color: 'var(--color-todoloo-text-secondary)'
                     }}
@@ -454,13 +454,13 @@ export default function SortableTaskItem({
                   </button>
                   <button
                     onClick={handleSave}
-                    className="px-4 py-2 rounded-[10px] hover:opacity-90 transition-opacity cursor-pointer"
-                    style={{ 
+                    className="h-8 px-3 rounded-[20px] hover:opacity-90 transition-opacity cursor-pointer"
+                    style={{
                       background: 'linear-gradient(to right, var(--color-todoloo-gradient-start), var(--color-todoloo-gradient-end))',
-                      border: '1px solid #D9D9D9'
+                      border: 'none'
                     }}
                   >
-                    <span className="text-white text-sm font-medium">Save</span>
+                    <span className="text-white text-xs font-inter">Save</span>
                   </button>
                 </div>
               </div>
