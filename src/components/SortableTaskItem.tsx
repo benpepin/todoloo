@@ -179,6 +179,12 @@ export default function SortableTaskItem({
 
   const handleToggleCompletion = () => {
     const isCompleting = !task.isCompleted
+
+    // If completing the task while timer is running, pause it first
+    if (isCompleting && isRunning && hasStarted) {
+      pause() // Stop the timer from running
+    }
+
     // If completing the to do and we have timer data, save the actual time
     if (isCompleting && hasStarted && seconds > 0) {
       const actualMinutes = Math.round(seconds / 60) || 1 // At least 1 minute
