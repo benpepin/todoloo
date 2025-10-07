@@ -44,7 +44,7 @@
   --radius-xl: calc(var(--radius) + 4px);
   
   /* Todoloo Custom Colors - Light Mode */
-  --color-todoloo-bg: #FDFDFD;
+  --color-todoloo-bg: #F9F9FD;
   --color-todoloo-card: #FEFFFF;
   --color-todoloo-border: #D9D9D9;
   --color-todoloo-text-primary: #363636;
@@ -53,7 +53,7 @@
   --color-todoloo-gradient-start: #9F8685;
   --color-todoloo-gradient-end: #583636;
   --color-todoloo-sidebar: #D4D4D4;
-  --color-todoloo-main: #E5E5E5;
+  --color-todoloo-main: #F9F9FD;
 }
 
 :root {

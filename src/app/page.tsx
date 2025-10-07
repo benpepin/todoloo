@@ -1,10 +1,9 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import Link from 'next/link'
 import ToDoList from '@/components/ToDoList'
-import SettingsBackup from '@/components/SettingsBackup'
 import HorseRaceProgress from '@/components/HorseRaceProgress'
+import SettingsMenu from '@/components/SettingsMenu'
 import { useToDoStore } from '@/store/toDoStore'
 import { useSettingsStore } from '@/store/settingsStore'
 import { getCurrentDate, getCompletionTime } from '@/utils/timeUtils'
@@ -83,6 +82,48 @@ export default function Home() {
     }
   }, [activeTask])
 
+  // Auto-archive completed tasks at midnight
+  useEffect(() => {
+    const deleteTask = useToDoStore.getState().deleteTask
+
+    const checkAndArchive = () => {
+      const now = new Date()
+      const completedTasks = tasks.filter(task => task.isCompleted && task.completedAt)
+
+      completedTasks.forEach(task => {
+        if (task.completedAt) {
+          const completedDate = new Date(task.completedAt)
+          // If completed date is not today, delete it
+          if (completedDate.toDateString() !== now.toDateString()) {
+            deleteTask(task.id)
+          }
+        }
+      })
+    }
+
+    // Check immediately on mount
+    checkAndArchive()
+
+    // Calculate milliseconds until next midnight
+    const now = new Date()
+    const tomorrow = new Date(now)
+    tomorrow.setDate(tomorrow.getDate() + 1)
+    tomorrow.setHours(0, 0, 0, 0)
+    const msUntilMidnight = tomorrow.getTime() - now.getTime()
+
+    // Set timeout for midnight, then interval for every 24 hours
+    const midnightTimeout = setTimeout(() => {
+      checkAndArchive()
+
+      // After first midnight check, set up daily interval
+      const dailyInterval = setInterval(checkAndArchive, 24 * 60 * 60 * 1000)
+
+      return () => clearInterval(dailyInterval)
+    }, msUntilMidnight)
+
+    return () => clearTimeout(midnightTimeout)
+  }, [tasks])
+
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       // Only trigger if no input/textarea is focused
@@ -141,8 +182,8 @@ export default function Home() {
   return (
     <div className="w-full h-screen flex" style={{ backgroundColor: 'var(--color-todoloo-bg)' }}>
       {/* Sidebar - 20% width */}
-      <div className="w-[20%] h-full p-8 overflow-hidden border-r flex flex-col justify-between items-start" 
-           style={{ 
+      <div className="w-[20%] h-full p-8 overflow-hidden border-r flex flex-col justify-between items-start"
+           style={{
              backgroundColor: 'var(--color-todoloo-sidebar)',
              borderColor: 'var(--color-todoloo-border)'
            }}>
@@ -163,24 +204,8 @@ export default function Home() {
             )}
           </div>
         </div>
-        <div className="w-full flex justify-start items-start gap-4">
-          <Link href="/settings" 
-                className="text-xs font-['Geist'] font-normal transition-colors cursor-pointer"
-                style={{ 
-                  color: 'var(--color-todoloo-text-secondary)'
-                } as React.CSSProperties}
-                onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-todoloo-text-primary)'}
-                onMouseLeave={(e) => e.currentTarget.style.color = 'var(--color-todoloo-text-secondary)'}>
-            Settings
-          </Link>
-          <div className="text-xs font-['Geist'] font-normal" 
-               style={{ color: 'var(--color-todoloo-text-secondary)' }}>•</div>
-          <div className="text-xs font-['Geist'] font-normal" 
-               style={{ color: 'var(--color-todoloo-text-secondary)' }}>Terms</div>
-          <div className="text-xs font-['Geist'] font-normal" 
-               style={{ color: 'var(--color-todoloo-text-secondary)' }}>•</div>
-          <div className="text-xs font-['Geist'] font-normal" 
-               style={{ color: 'var(--color-todoloo-text-secondary)' }}>Give Feedback</div>
+        <div className="w-full flex justify-start">
+          <SettingsMenu />
         </div>
       </div>
       
@@ -229,8 +254,6 @@ export default function Home() {
           </div>
         </div>
       </div>
-      
-      <SettingsBackup />
     </div>
   )
 }
