@@ -63,7 +63,7 @@ export default function SettingsMenu() {
       {/* Menu Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="p-0 rounded-full transition-all duration-200"
+        className="p-0 rounded-full transition-all duration-200 cursor-pointer hover:opacity-70"
         style={{ color: 'var(--color-todoloo-text-secondary)' }}
         aria-label="Settings menu"
       >
@@ -82,7 +82,7 @@ export default function SettingsMenu() {
           {/* Appearance - with inline toggle */}
           <button
             onClick={handleAppearanceToggle}
-            className="w-full px-4 py-3 flex items-center justify-between transition-colors"
+            className="w-full px-4 py-3 flex items-center justify-between transition-colors cursor-pointer"
             onMouseEnter={(e) => {
               e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.03)'
             }}
@@ -111,7 +111,7 @@ export default function SettingsMenu() {
           {/* Insights */}
           <button
             onClick={handleInsights}
-            className="w-full px-4 py-3 flex items-center gap-3 transition-colors"
+            className="w-full px-4 py-3 flex items-center gap-3 transition-colors cursor-pointer"
             onMouseEnter={(e) => {
               e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.03)'
             }}
@@ -131,7 +131,7 @@ export default function SettingsMenu() {
           {/* Settings */}
           <button
             onClick={handleSettings}
-            className="w-full px-4 py-3 flex items-center gap-3 transition-colors"
+            className="w-full px-4 py-3 flex items-center gap-3 transition-colors cursor-pointer"
             onMouseEnter={(e) => {
               e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.03)'
             }}
@@ -151,7 +151,7 @@ export default function SettingsMenu() {
           {/* Log Out */}
           <button
             onClick={handleLogOut}
-            className="w-full px-4 py-3 flex items-center gap-3 transition-colors"
+            className="w-full px-4 py-3 flex items-center gap-3 transition-colors cursor-pointer"
             onMouseEnter={(e) => {
               e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.05)'
             }}

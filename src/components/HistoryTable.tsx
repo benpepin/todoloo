@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo, useEffect } from 'react'
-import { Download, Search, Filter, ChevronUp, ChevronDown } from 'lucide-react'
+import { Download, Search, ChevronUp, ChevronDown, Edit2, Trash2, TrendingUp, TrendingDown, Minus } from 'lucide-react'
 import { useHistoryStore } from '@/store/historyStore'
 import { useToDoStore } from '@/store/toDoStore'
 import { TaskHistoryEntry } from '@/types'
@@ -13,11 +13,14 @@ interface HistoryTableProps {
 export default function HistoryTable({ className = '' }: HistoryTableProps) {
   const entries = useHistoryStore((state) => state.entries)
   const migrateCompletedTasks = useHistoryStore((state) => state.migrateCompletedTasks)
+  const updateEntry = useHistoryStore((state) => state.updateEntry)
+  const deleteEntry = useHistoryStore((state) => state.deleteEntry)
   const tasks = useToDoStore((state) => state.tasks)
   const [searchTerm, setSearchTerm] = useState('')
   const [sortField, setSortField] = useState<keyof TaskHistoryEntry>('completedAt')
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc')
   const [filterBy, setFilterBy] = useState<'all' | 'recent' | 'thisWeek' | 'thisMonth'>('all')
+  const [editingEntry, setEditingEntry] = useState<TaskHistoryEntry | null>(null)
 
 
   // Migrate existing completed to dos to history on first load
@@ -35,6 +38,13 @@ export default function HistoryTable({ className = '' }: HistoryTableProps) {
       migrateCompletedTasks(completedTasks)
     }
   }, [tasks, migrateCompletedTasks]) // Include dependencies
+
+  // Calculate overall average
+  const overallAverage = useMemo(() => {
+    if (entries.length === 0) return 0
+    const total = entries.reduce((sum, entry) => sum + entry.actualMinutes, 0)
+    return total / entries.length
+  }, [entries])
 
   // Filter and sort entries
   const filteredAndSortedEntries = useMemo(() => {
@@ -143,9 +153,45 @@ export default function HistoryTable({ className = '' }: HistoryTableProps) {
 
   const SortIcon = ({ field }: { field: keyof TaskHistoryEntry }) => {
     if (sortField !== field) return null
-    return sortDirection === 'asc' ? 
-      <ChevronUp className="w-4 h-4" /> : 
+    return sortDirection === 'asc' ?
+      <ChevronUp className="w-4 h-4" /> :
       <ChevronDown className="w-4 h-4" />
+  }
+
+  const handleDelete = (id: string) => {
+    deleteEntry(id)
+  }
+
+  const getAverageComparison = (minutes: number) => {
+    if (overallAverage === 0) return { icon: Minus, color: 'var(--color-todoloo-text-muted)', text: '—' }
+
+    const diff = minutes - overallAverage
+    const percentDiff = Math.abs((diff / overallAverage) * 100)
+
+    if (Math.abs(diff) < 1) {
+      return {
+        icon: Minus,
+        color: 'var(--color-todoloo-text-muted)',
+        text: 'At avg',
+        bgColor: 'rgba(128, 128, 128, 0.1)'
+      }
+    }
+
+    if (diff > 0) {
+      return {
+        icon: TrendingUp,
+        color: '#ef4444',
+        text: `+${Math.round(percentDiff)}%`,
+        bgColor: 'rgba(239, 68, 68, 0.1)'
+      }
+    }
+
+    return {
+      icon: TrendingDown,
+      color: '#22c55e',
+      text: `-${Math.round(percentDiff)}%`,
+      bgColor: 'rgba(34, 197, 94, 0.1)'
+    }
   }
 
   if (entries.length === 0) {
@@ -164,64 +210,64 @@ export default function HistoryTable({ className = '' }: HistoryTableProps) {
   return (
     <div className={`w-full ${className}`}>
       {/* Controls */}
-      <div className="flex flex-col sm:flex-row gap-4 mb-6">
-        {/* Search */}
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4" style={{ color: 'var(--color-todoloo-text-muted)' }} />
-          <input
-            type="text"
-            placeholder="Search to dos..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 rounded-lg border text-sm font-['Geist']"
-            style={{
-              backgroundColor: 'var(--color-todoloo-card)',
-              borderColor: 'var(--color-todoloo-border)',
-              color: 'var(--color-todoloo-text-primary)'
-            }}
-          />
-        </div>
+      <div className="flex flex-col gap-4 mb-6">
+        {/* Top row: Search and Export */}
+        <div className="flex flex-col sm:flex-row gap-4">
+          {/* Search */}
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4" style={{ color: 'var(--color-todoloo-text-muted)' }} />
+            <input
+              type="text"
+              placeholder="Search to dos..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 rounded-lg border text-sm font-['Geist']"
+              style={{
+                backgroundColor: 'var(--color-todoloo-card)',
+                borderColor: 'var(--color-todoloo-border)',
+                color: 'var(--color-todoloo-text-primary)'
+              }}
+            />
+          </div>
 
-        {/* Filter - Hidden for now, will move to settings later */}
-        {/* 
-        <div className="relative">
-          <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4" style={{ color: 'var(--color-todoloo-text-muted)' }} />
-          <select
-            value={filterBy}
-            onChange={(e) => setFilterBy(e.target.value as 'all' | 'recent' | 'thisWeek' | 'thisMonth')}
-            className="pl-10 pr-8 py-2 rounded-lg border text-sm font-['Geist'] appearance-none bg-no-repeat bg-right"
+          {/* Export */}
+          <button
+            onClick={exportToCSV}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg border text-sm font-['Geist'] font-medium transition-colors whitespace-nowrap"
             style={{
-              backgroundColor: 'var(--color-todoloo-card)',
-              borderColor: 'var(--color-todoloo-border)',
-              color: 'var(--color-todoloo-text-primary)',
-              backgroundImage: 'url("data:image/svg+xml,%3csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 20 20\'%3e%3cpath stroke=\'%236b7280\' stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'1.5\' d=\'M6 8l4 4 4-4\'/%3e%3c/svg%3e")',
-              backgroundPosition: 'right 8px center',
-              backgroundSize: '16px'
+              backgroundColor: 'var(--color-todoloo-gradient-start)',
+              borderColor: 'var(--color-todoloo-gradient-start)',
+              color: 'white'
             }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--color-todoloo-gradient-end)'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--color-todoloo-gradient-start)'}
           >
-            <option value="all">All time</option>
-            <option value="recent">Last 24 hours</option>
-            <option value="thisWeek">This week</option>
-            <option value="thisMonth">This month</option>
-          </select>
+            <Download className="w-4 h-4" />
+            Export CSV
+          </button>
         </div>
-        */}
 
-        {/* Export */}
-        <button
-          onClick={exportToCSV}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg border text-sm font-['Geist'] font-medium transition-colors"
-          style={{
-            backgroundColor: 'var(--color-todoloo-gradient-start)',
-            borderColor: 'var(--color-todoloo-gradient-start)',
-            color: 'white'
-          }}
-          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--color-todoloo-gradient-end)'}
-          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--color-todoloo-gradient-start)'}
-        >
-          <Download className="w-4 h-4" />
-          Export CSV
-        </button>
+        {/* Bottom row: Time Filter */}
+        <div className="flex gap-2 flex-wrap">
+          {(['all', 'recent', 'thisWeek', 'thisMonth'] as const).map((filter) => (
+            <button
+              key={filter}
+              onClick={() => setFilterBy(filter)}
+              className="px-3 py-1.5 rounded-lg text-xs font-['Geist'] font-medium transition-all"
+              style={{
+                backgroundColor: filterBy === filter ? 'var(--color-todoloo-gradient-start)' : 'var(--color-todoloo-card)',
+                borderColor: filterBy === filter ? 'var(--color-todoloo-gradient-start)' : 'var(--color-todoloo-border)',
+                color: filterBy === filter ? 'white' : 'var(--color-todoloo-text-secondary)',
+                border: '1px solid'
+              }}
+            >
+              {filter === 'all' && 'All Time'}
+              {filter === 'recent' && 'Last 24 Hours'}
+              {filter === 'thisWeek' && 'This Week'}
+              {filter === 'thisMonth' && 'This Month'}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Table */}
@@ -229,7 +275,7 @@ export default function HistoryTable({ className = '' }: HistoryTableProps) {
         <table className="w-full">
           <thead>
             <tr className="border-b" style={{ borderColor: 'var(--color-todoloo-border)' }}>
-              <th 
+              <th
                 className="text-left py-3 px-4 font-['Geist'] font-medium text-sm cursor-pointer hover:opacity-70 transition-opacity"
                 style={{ color: 'var(--color-todoloo-text-secondary)' }}
                 onClick={() => handleSort('originalDescription')}
@@ -239,7 +285,7 @@ export default function HistoryTable({ className = '' }: HistoryTableProps) {
                   <SortIcon field="originalDescription" />
                 </div>
               </th>
-              <th 
+              <th
                 className="text-left py-3 px-4 font-['Geist'] font-medium text-sm cursor-pointer hover:opacity-70 transition-opacity"
                 style={{ color: 'var(--color-todoloo-text-secondary)' }}
                 onClick={() => handleSort('actualMinutes')}
@@ -249,7 +295,7 @@ export default function HistoryTable({ className = '' }: HistoryTableProps) {
                   <SortIcon field="actualMinutes" />
                 </div>
               </th>
-              <th 
+              <th
                 className="text-left py-3 px-4 font-['Geist'] font-medium text-sm cursor-pointer hover:opacity-70 transition-opacity"
                 style={{ color: 'var(--color-todoloo-text-secondary)' }}
                 onClick={() => handleSort('completedAt')}
@@ -259,15 +305,29 @@ export default function HistoryTable({ className = '' }: HistoryTableProps) {
                   <SortIcon field="completedAt" />
                 </div>
               </th>
+              <th
+                className="text-center py-3 px-4 font-['Geist'] font-medium text-sm"
+                style={{ color: 'var(--color-todoloo-text-secondary)' }}
+              >
+                vs Avg
+              </th>
+              <th
+                className="text-right py-3 px-4 font-['Geist'] font-medium text-sm"
+                style={{ color: 'var(--color-todoloo-text-secondary)' }}
+              >
+                Actions
+              </th>
             </tr>
           </thead>
           <tbody>
             {filteredAndSortedEntries.map((entry) => {
+              const comparison = getAverageComparison(entry.actualMinutes)
+              const Icon = comparison.icon
               return (
-                <tr 
-                  key={entry.id} 
+                <tr
+                  key={entry.id}
                   className="border-b hover:opacity-80 transition-opacity"
-                  style={{ 
+                  style={{
                     borderColor: 'var(--color-todoloo-border)',
                     backgroundColor: 'var(--color-todoloo-card)'
                   }}
@@ -286,6 +346,39 @@ export default function HistoryTable({ className = '' }: HistoryTableProps) {
                     <div className="font-['Geist'] text-sm" style={{ color: 'var(--color-todoloo-text-secondary)' }}>
                       <div>{formatDate(entry.completedAt)}</div>
                       <div className="text-xs opacity-70">{formatTime(entry.completedAt)}</div>
+                    </div>
+                  </td>
+                  <td className="py-3 px-4">
+                    <div className="flex items-center justify-center">
+                      <div
+                        className="flex items-center gap-1 px-2 py-1 rounded-md"
+                        style={{ backgroundColor: comparison.bgColor }}
+                      >
+                        <Icon className="w-3.5 h-3.5" style={{ color: comparison.color }} />
+                        <span className="text-xs font-['Geist'] font-medium" style={{ color: comparison.color }}>
+                          {comparison.text}
+                        </span>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="py-3 px-4">
+                    <div className="flex items-center justify-end gap-2">
+                      <button
+                        onClick={() => setEditingEntry(entry)}
+                        className="p-1.5 rounded hover:bg-opacity-10 hover:bg-black transition-colors"
+                        style={{ color: 'var(--color-todoloo-text-muted)' }}
+                        title="Edit entry"
+                      >
+                        <Edit2 className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(entry.id)}
+                        className="p-1.5 rounded hover:bg-opacity-10 hover:bg-red-500 transition-colors"
+                        style={{ color: 'var(--color-todoloo-text-muted)' }}
+                        title="Delete entry"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -326,6 +419,135 @@ export default function HistoryTable({ className = '' }: HistoryTableProps) {
           </div>
         </div>
       )}
+
+      {/* Edit Modal */}
+      {editingEntry && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => setEditingEntry(null)}>
+          <div
+            className="rounded-lg p-6 max-w-md w-full mx-4"
+            style={{ backgroundColor: 'var(--color-todoloo-card)' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-lg font-['Geist'] font-semibold mb-4" style={{ color: 'var(--color-todoloo-text-primary)' }}>
+              Edit History Entry
+            </h3>
+            <form onSubmit={(e) => {
+              e.preventDefault()
+              const formData = new FormData(e.currentTarget)
+              const description = formData.get('description') as string
+              const minutes = parseInt(formData.get('minutes') as string)
+              const date = formData.get('date') as string
+              const time = formData.get('time') as string
+
+              const completedAt = new Date(`${date}T${time}`)
+
+              updateEntry(editingEntry.id, {
+                originalDescription: description,
+                actualMinutes: minutes,
+                completedAt
+              })
+              setEditingEntry(null)
+            }}>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-['Geist'] font-medium mb-1" style={{ color: 'var(--color-todoloo-text-secondary)' }}>
+                    Description
+                  </label>
+                  <input
+                    type="text"
+                    name="description"
+                    defaultValue={editingEntry.originalDescription}
+                    className="w-full px-3 py-2 rounded-lg border text-sm font-['Geist']"
+                    style={{
+                      backgroundColor: 'var(--color-todoloo-bg)',
+                      borderColor: 'var(--color-todoloo-border)',
+                      color: 'var(--color-todoloo-text-primary)'
+                    }}
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-['Geist'] font-medium mb-1" style={{ color: 'var(--color-todoloo-text-secondary)' }}>
+                    Duration (minutes)
+                  </label>
+                  <input
+                    type="number"
+                    name="minutes"
+                    defaultValue={editingEntry.actualMinutes}
+                    min="1"
+                    className="w-full px-3 py-2 rounded-lg border text-sm font-['Geist']"
+                    style={{
+                      backgroundColor: 'var(--color-todoloo-bg)',
+                      borderColor: 'var(--color-todoloo-border)',
+                      color: 'var(--color-todoloo-text-primary)'
+                    }}
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-['Geist'] font-medium mb-1" style={{ color: 'var(--color-todoloo-text-secondary)' }}>
+                    Date
+                  </label>
+                  <input
+                    type="date"
+                    name="date"
+                    defaultValue={new Date(editingEntry.completedAt).toISOString().split('T')[0]}
+                    className="w-full px-3 py-2 rounded-lg border text-sm font-['Geist']"
+                    style={{
+                      backgroundColor: 'var(--color-todoloo-bg)',
+                      borderColor: 'var(--color-todoloo-border)',
+                      color: 'var(--color-todoloo-text-primary)'
+                    }}
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-['Geist'] font-medium mb-1" style={{ color: 'var(--color-todoloo-text-secondary)' }}>
+                    Time
+                  </label>
+                  <input
+                    type="time"
+                    name="time"
+                    defaultValue={new Date(editingEntry.completedAt).toTimeString().slice(0, 5)}
+                    className="w-full px-3 py-2 rounded-lg border text-sm font-['Geist']"
+                    style={{
+                      backgroundColor: 'var(--color-todoloo-bg)',
+                      borderColor: 'var(--color-todoloo-border)',
+                      color: 'var(--color-todoloo-text-primary)'
+                    }}
+                    required
+                  />
+                </div>
+              </div>
+              <div className="flex gap-3 mt-6">
+                <button
+                  type="button"
+                  onClick={() => setEditingEntry(null)}
+                  className="flex-1 px-4 py-2 rounded-lg border text-sm font-['Geist'] font-medium transition-colors"
+                  style={{
+                    backgroundColor: 'var(--color-todoloo-bg)',
+                    borderColor: 'var(--color-todoloo-border)',
+                    color: 'var(--color-todoloo-text-secondary)'
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 px-4 py-2 rounded-lg text-sm font-['Geist'] font-medium transition-colors"
+                  style={{
+                    backgroundColor: 'var(--color-todoloo-gradient-start)',
+                    color: 'white'
+                  }}
+                >
+                  Save
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
     </div>
   )
 }

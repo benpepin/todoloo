@@ -7,6 +7,8 @@ import { getSimilarTaskStats } from '@/utils/similarity'
 interface HistoryStore {
   entries: TaskHistoryEntry[]
   addEntry: (entry: Omit<TaskHistoryEntry, 'id'>) => void
+  updateEntry: (id: string, updates: Partial<Omit<TaskHistoryEntry, 'id'>>) => void
+  deleteEntry: (id: string) => void
   clearHistory: () => void
   getSimilarStats: (description: string, threshold?: number) => SimilarTaskStats
   migrateCompletedTasks: (completedTasks: Array<{ description: string; estimatedMinutes: number; actualMinutes?: number; completedAt: Date }>) => void
@@ -24,6 +26,29 @@ export const useHistoryStore = create<HistoryStore>()(
         }
         set((state) => ({
           entries: [entry, ...state.entries],
+        }))
+      },
+
+      updateEntry: (id, updates) => {
+        set((state) => ({
+          entries: state.entries.map((entry) =>
+            entry.id === id
+              ? {
+                  ...entry,
+                  ...updates,
+                  // Update normalized description if original description changes
+                  normalizedDescription: updates.originalDescription
+                    ? updates.originalDescription.toLowerCase().replace(/[^\w\s]/g, ' ').replace(/\s+/g, ' ').trim()
+                    : entry.normalizedDescription,
+                }
+              : entry
+          ),
+        }))
+      },
+
+      deleteEntry: (id) => {
+        set((state) => ({
+          entries: state.entries.filter((entry) => entry.id !== id),
         }))
       },
 

@@ -557,8 +557,8 @@ function ToDoCardContent() {
               type="submit"
               disabled={!description.trim()}
               className={`px-4 py-2 rounded-[10px] transition-all flex items-center gap-2 ${
-                description.trim() 
-                  ? 'bg-gradient-to-r from-[#9F8685] to-[#583636] hover:opacity-90 cursor-pointer' 
+                description.trim()
+                  ? 'bg-gradient-to-r from-[#6269F3] to-[#434CF3] hover:opacity-90 cursor-pointer'
                   : 'bg-[#E6E6E6] cursor-not-allowed'
               }`}
               style={{ border: '1px solid #D9D9D9' }}
