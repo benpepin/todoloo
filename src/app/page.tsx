@@ -147,19 +147,19 @@ export default function Home() {
              borderColor: 'var(--color-todoloo-border)'
            }}>
         <div className="w-full flex flex-col justify-start items-start gap-1.5">
-          <div 
-            className="w-full text-base font-['Geist'] font-normal cursor-pointer transition-colors duration-200 hover:opacity-70" 
+          <div
+            className="w-full text-base font-['Geist'] font-normal cursor-pointer transition-colors duration-200 hover:opacity-70"
             style={{ color: 'var(--color-todoloo-text-secondary)' }}
             onClick={() => setShowCompletionTime(!showCompletionTime)}
           >
             {showCompletionTime ? (
+              getCurrentDate()
+            ) : (
               totalMinutes === 0 ? (
                 "You're done! Put the computer down"
               ) : (
-                `You'll be done at ${completionTime}`
+                `Free at ${completionTime}`
               )
-            ) : (
-              getCurrentDate()
             )}
           </div>
         </div>
