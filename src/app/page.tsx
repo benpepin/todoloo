@@ -4,7 +4,9 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import ToDoList from '@/components/ToDoList'
 import SettingsBackup from '@/components/SettingsBackup'
+import HorseRaceProgress from '@/components/HorseRaceProgress'
 import { useToDoStore } from '@/store/toDoStore'
+import { useSettingsStore } from '@/store/settingsStore'
 import { getCurrentDate, getCompletionTime } from '@/utils/timeUtils'
 import { migrateLocalStorageToSupabase } from '@/lib/migrate-to-supabase'
 import { useSupabase } from '@/components/SupabaseProvider'
@@ -20,7 +22,8 @@ export default function Home() {
   const error = useToDoStore((state) => state.error)
   const clearError = useToDoStore((state) => state.clearError)
   const isInitialized = useToDoStore((state) => state.isInitialized)
-  
+  const showProgressIndicator = useSettingsStore((state) => state.showProgressIndicator)
+
   const [showCompletionTime, setShowCompletionTime] = useState(false)
   const [migrationStatus, setMigrationStatus] = useState<string | null>(null)
   
@@ -74,7 +77,7 @@ export default function Home() {
   // Update document title with active task
   useEffect(() => {
     if (activeTask) {
-      document.title = `TODOLOOS - ${activeTask.description}`
+      document.title = activeTask.description
     } else {
       document.title = 'TODOLOOS'
     }
@@ -219,6 +222,9 @@ export default function Home() {
 
         <div className="w-full flex justify-center items-center gap-0.75">
           <div className="w-full max-w-[460px] flex flex-col justify-start items-start gap-8">
+            {/* Horse Race Progress Indicator */}
+            {showProgressIndicator && <HorseRaceProgress />}
+
             <ToDoList />
           </div>
         </div>

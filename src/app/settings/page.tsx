@@ -8,6 +8,7 @@ import { useTheme } from '@/contexts/ThemeContext'
 import HistoryTable from '@/components/HistoryTable'
 import { useSupabase } from '@/components/SupabaseProvider'
 import { useRouter } from 'next/navigation'
+import { useSettingsStore } from '@/store/settingsStore'
 
 export default function SettingsPage() {
   const { theme, toggleTheme } = useTheme()
@@ -15,6 +16,7 @@ export default function SettingsPage() {
   const [showCompleted, setShowCompleted] = useState(true)
   const { supabase, user } = useSupabase()
   const router = useRouter()
+  const { showProgressIndicator, toggleProgressIndicator } = useSettingsStore()
 
 
   return (
@@ -149,6 +151,24 @@ export default function SettingsPage() {
                       <div className="w-5 h-5 bg-white rounded-full transition-transform"
                            style={{
                              transform: showCompleted ? 'translateX(24px)' : 'translateX(2px)'
+                           }} />
+                    </button>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-['Geist'] font-medium" style={{ color: 'var(--color-todoloo-text-primary)' }}>Show progress indicator</p>
+                      <p className="text-xs font-['Geist']" style={{ color: 'var(--color-todoloo-text-muted)' }}>Display carnival horse race for completed todos</p>
+                    </div>
+                    <button
+                      onClick={toggleProgressIndicator}
+                      className="w-12 h-6 rounded-full transition-colors"
+                      style={{
+                        backgroundColor: showProgressIndicator ? 'var(--color-todoloo-gradient-start)' : 'var(--color-todoloo-border)'
+                      }}
+                    >
+                      <div className="w-5 h-5 bg-white rounded-full transition-transform"
+                           style={{
+                             transform: showProgressIndicator ? 'translateX(24px)' : 'translateX(2px)'
                            }} />
                     </button>
                   </div>
