@@ -34,3 +34,19 @@ export interface SimilarTaskStats {
   p90Minutes: number
   similarEntries: TaskHistoryEntry[]
 }
+
+export interface ListShare {
+  id: string
+  createdAt: Date
+  listOwnerId: string
+  sharedWithUserId: string
+  sharedWithEmail?: string
+  permission: 'read' | 'write'
+}
+
+export interface SharedUser {
+  userId: string
+  email: string
+  permission: 'read' | 'write'
+  sharedAt: Date
+}

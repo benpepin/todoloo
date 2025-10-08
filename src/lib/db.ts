@@ -1,5 +1,5 @@
 import { supabase } from './supabase-browser'
-import { Task, TaskHistoryEntry } from '@/types'
+import { Task, TaskHistoryEntry, ListShare, SharedUser } from '@/types'
 
 // Database types (snake_case for Supabase)
 interface DbTask {
@@ -24,6 +24,14 @@ interface DbTaskCompletion {
   duration: number
   task_title: string
   tags?: string[]
+}
+
+interface DbListShare {
+  id: string
+  created_at: string
+  list_owner_id: string
+  shared_with_user_id: string
+  permission: 'read' | 'write'
 }
 
 // Convert between camelCase (app) and snake_case (database)
@@ -281,5 +289,158 @@ export async function backfillUserData(userId: string): Promise<void> {
     console.error('Error backfilling user data:', error)
     // Degrade gracefully so users can proceed even if backfill is unavailable
     return
+  }
+}
+
+// ============================================================================
+// List Sharing Functions
+// ============================================================================
+
+// Share list with another user by email
+export async function shareListWithUser(
+  ownerUserId: string,
+  shareWithEmail: string,
+  permission: 'read' | 'write' = 'write'
+): Promise<ListShare> {
+  // First, find the user by email
+  const { data: targetUserId, error: findError } = await supabase
+    .rpc('find_user_by_email', { user_email: shareWithEmail })
+
+  if (findError || !targetUserId) {
+    throw new Error(`User with email ${shareWithEmail} not found`)
+  }
+
+  // Don't allow sharing with yourself
+  if (targetUserId === ownerUserId) {
+    throw new Error('You cannot share your list with yourself')
+  }
+
+  // Create the share
+  const { data, error } = await supabase
+    .from('list_shares')
+    .insert([{
+      list_owner_id: ownerUserId,
+      shared_with_user_id: targetUserId,
+      permission
+    }])
+    .select()
+    .single()
+
+  if (error) {
+    if (error.code === '23505') { // Unique constraint violation
+      throw new Error('List is already shared with this user')
+    }
+    console.error('Error sharing list:', error)
+    throw new Error(`Failed to share list: ${error.message}`)
+  }
+
+  return {
+    id: data.id,
+    createdAt: new Date(data.created_at),
+    listOwnerId: data.list_owner_id,
+    sharedWithUserId: data.shared_with_user_id,
+    sharedWithEmail: shareWithEmail,
+    permission: data.permission
+  }
+}
+
+// Get all users who have access to your list
+export async function getSharedUsers(ownerUserId: string): Promise<SharedUser[]> {
+  const { data, error } = await supabase
+    .from('list_shares')
+    .select('*')
+    .eq('list_owner_id', ownerUserId)
+
+  if (error) {
+    console.error('Error fetching shared users:', error)
+    throw new Error(`Failed to fetch shared users: ${error.message}`)
+  }
+
+  if (!data || data.length === 0) {
+    return []
+  }
+
+  // Get emails for each shared user
+  const sharedUsers = await Promise.all(
+    data.map(async (share) => {
+      const { data: email } = await supabase.rpc('get_user_email', {
+        user_id: share.shared_with_user_id
+      })
+
+      return {
+        userId: share.shared_with_user_id,
+        email: email || 'Unknown',
+        permission: share.permission as 'read' | 'write',
+        sharedAt: new Date(share.created_at)
+      }
+    })
+  )
+
+  return sharedUsers
+}
+
+// Get lists that have been shared with you
+export async function getSharedLists(userId: string): Promise<Array<{ ownerId: string, ownerEmail: string, permission: 'read' | 'write' }>> {
+  const { data, error } = await supabase
+    .from('list_shares')
+    .select('*')
+    .eq('shared_with_user_id', userId)
+
+  if (error) {
+    console.error('Error fetching shared lists:', error)
+    throw new Error(`Failed to fetch shared lists: ${error.message}`)
+  }
+
+  if (!data || data.length === 0) {
+    return []
+  }
+
+  // Get owner emails
+  const sharedLists = await Promise.all(
+    data.map(async (share) => {
+      const { data: email } = await supabase.rpc('get_user_email', {
+        user_id: share.list_owner_id
+      })
+
+      return {
+        ownerId: share.list_owner_id,
+        ownerEmail: email || 'Unknown',
+        permission: share.permission as 'read' | 'write'
+      }
+    })
+  )
+
+  return sharedLists
+}
+
+// Remove share access
+export async function removeShare(ownerUserId: string, sharedWithUserId: string): Promise<void> {
+  const { error } = await supabase
+    .from('list_shares')
+    .delete()
+    .eq('list_owner_id', ownerUserId)
+    .eq('shared_with_user_id', sharedWithUserId)
+
+  if (error) {
+    console.error('Error removing share:', error)
+    throw new Error(`Failed to remove share: ${error.message}`)
+  }
+}
+
+// Update share permission
+export async function updateSharePermission(
+  ownerUserId: string,
+  sharedWithUserId: string,
+  permission: 'read' | 'write'
+): Promise<void> {
+  const { error } = await supabase
+    .from('list_shares')
+    .update({ permission })
+    .eq('list_owner_id', ownerUserId)
+    .eq('shared_with_user_id', sharedWithUserId)
+
+  if (error) {
+    console.error('Error updating share permission:', error)
+    throw new Error(`Failed to update permission: ${error.message}`)
   }
 }
