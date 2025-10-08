@@ -21,7 +21,7 @@ interface ToDoStore extends AppState {
   // Async methods for Supabase operations
   initializeUser: (userId: string) => Promise<void>
   loadTasks: () => Promise<void>
-  addTask: (description: string, estimatedMinutes: number) => Promise<void>
+  addTask: (description: string, estimatedMinutes: number, groupId?: string) => Promise<void>
   deleteTask: (id: string) => Promise<void>
   toggleTaskCompletion: (id: string) => Promise<void>
   updateTaskOrder: (tasks: Task[]) => Promise<void>
@@ -113,7 +113,7 @@ export const useToDoStore = create<ToDoStore>()((set, get) => ({
   },
 
   // Add new task with optimistic update
-  addTask: async (description: string, estimatedMinutes: number) => {
+  addTask: async (description: string, estimatedMinutes: number, groupId?: string) => {
     const { userId, currentListOwnerId } = get()
     if (!userId) {
       set({ error: 'User not authenticated' })
@@ -133,7 +133,8 @@ export const useToDoStore = create<ToDoStore>()((set, get) => ({
       isActive: false,
       createdAt: new Date(),
       order: get().tasks.length,
-      userId: targetUserId
+      userId: targetUserId,
+      groupId
     }
 
     // Optimistic update
@@ -146,13 +147,16 @@ export const useToDoStore = create<ToDoStore>()((set, get) => ({
 
     try {
       set({ error: null })
+      console.log('[STORE] addTask calling createTodo with groupId:', groupId)
       const newTask = await createTodo({
         description,
         estimatedMinutes,
         actualMinutes: 0,
         isCompleted: false,
-        isActive: false
+        isActive: false,
+        groupId
       }, targetUserId)
+      console.log('[STORE] createTodo returned task with groupId:', newTask.groupId)
 
       // Replace optimistic task with real one
       set((state) => ({

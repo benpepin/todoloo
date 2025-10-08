@@ -9,6 +9,7 @@ export function normalizeText(text: string): string {
 }
 
 export function getTokenSet(text: string): Set<string> {
+  if (!text || typeof text !== 'string') return new Set()
   const tokens = text.split(' ').filter(token => token.length > 2) // Filter short words
   return new Set(tokens)
 }

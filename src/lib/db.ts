@@ -15,6 +15,7 @@ interface DbTask {
   started_at?: string
   order_index: number
   tags?: string[]
+  group_id?: string
 }
 
 interface DbTaskCompletion {
@@ -46,7 +47,8 @@ function dbTaskToTask(dbTask: DbTask & { user_id?: string }): Task {
     createdAt: new Date(dbTask.created_at),
     completedAt: dbTask.completed_at ? new Date(dbTask.completed_at) : undefined,
     order: dbTask.order_index,
-    userId: dbTask.user_id // Include user_id for shared list detection
+    userId: dbTask.user_id, // Include user_id for shared list detection
+    groupId: dbTask.group_id
   }
 }
 
@@ -73,7 +75,7 @@ export async function fetchTodos(userId: string): Promise<Task[]> {
   // We just need to remove the .eq('user_id', userId) filter
   const { data, error } = await supabase
     .from('todos')
-    .select('*, user_id') // Explicitly select user_id to know who owns each task
+    .select('*, user_id, group_id') // Explicitly select user_id and group_id
     .order('created_at', { ascending: false })
 
   if (error) {
@@ -81,11 +83,15 @@ export async function fetchTodos(userId: string): Promise<Task[]> {
     throw new Error(`Failed to fetch todos: ${error.message}`)
   }
 
-  return data?.map(dbTaskToTask) || []
+  console.log('[DB] fetchTodos raw data sample:', data?.[0])
+  const mapped = data?.map(dbTaskToTask) || []
+  console.log('[DB] fetchTodos mapped sample:', mapped?.[0])
+  return mapped
 }
 
 // Create todo
 export async function createTodo(task: Omit<Task, 'id' | 'createdAt' | 'order'>, userId: string): Promise<Task> {
+  console.log('[DB] createTodo called with groupId:', task.groupId)
   const dbTask = {
     title: task.description,
     description: task.description,
@@ -95,21 +101,26 @@ export async function createTodo(task: Omit<Task, 'id' | 'createdAt' | 'order'>,
     completed_at: task.completedAt?.toISOString(),
     order_index: 0, // Will be updated by the store
     tags: [],
-    user_id: userId
+    user_id: userId,
+    group_id: task.groupId
   }
+  console.log('[DB] Inserting dbTask with group_id:', dbTask.group_id)
 
   const { data, error } = await supabase
     .from('todos')
     .insert([dbTask])
     .select()
     .single()
-  
+
   if (error) {
     console.error('Error creating todo:', error)
     throw new Error(`Failed to create todo: ${error.message}`)
   }
-  
-  return dbTaskToTask(data)
+
+  console.log('[DB] Supabase returned data with group_id:', data?.group_id)
+  const mappedTask = dbTaskToTask(data)
+  console.log('[DB] Mapped task has groupId:', mappedTask.groupId)
+  return mappedTask
 }
 
 // Update todo

@@ -140,17 +140,48 @@ function ToDoListContent() {
           
           <div className="w-full flex flex-col justify-start items-start">
             <SortableContext items={todoTasks.map(task => task.id)} strategy={verticalListSortingStrategy}>
-              <div className="w-full space-y-4">
-                {todoTasks.map((task, index) => (
-                  <SortableTaskItem
-                    key={task.id}
-                    task={task}
-                    taskIndex={index + 1}
-                    onDelete={deleteTask}
-                    onToggleCompletion={toggleTaskCompletion}
-                    isTaskActive={activeTaskId === task.id}
-                  />
-                ))}
+              <div className="w-full flex flex-col">
+                {todoTasks.map((task, index) => {
+                  // Determine group position
+                  let groupPosition: 'single' | 'first' | 'middle' | 'last' = 'single'
+                  const prevTask = index > 0 ? todoTasks[index - 1] : null
+                  const isPartOfPreviousGroup = prevTask && task.groupId && prevTask.groupId === task.groupId
+
+                  console.log('Task:', task.description, 'groupId:', task.groupId)
+
+                  if (task.groupId) {
+                    const groupTasks = todoTasks.filter(t => t.groupId === task.groupId)
+                    console.log('Group tasks for', task.description, ':', groupTasks.length)
+                    if (groupTasks.length > 1) {
+                      const taskIndexInGroup = groupTasks.findIndex(t => t.id === task.id)
+                      if (taskIndexInGroup === 0) {
+                        groupPosition = 'first'
+                      } else if (taskIndexInGroup === groupTasks.length - 1) {
+                        groupPosition = 'last'
+                      } else {
+                        groupPosition = 'middle'
+                      }
+                      console.log('Group position for', task.description, ':', groupPosition)
+                    }
+                  }
+
+                  return (
+                    <div
+                      key={task.id}
+                      className={isPartOfPreviousGroup ? '' : (index === 0 ? '' : 'mt-4')}
+                      style={isPartOfPreviousGroup ? { marginTop: '1px' } : undefined}
+                    >
+                      <SortableTaskItem
+                        task={task}
+                        taskIndex={index + 1}
+                        onDelete={deleteTask}
+                        onToggleCompletion={toggleTaskCompletion}
+                        isTaskActive={activeTaskId === task.id}
+                        groupPosition={groupPosition}
+                      />
+                    </div>
+                  )
+                })}
               </div>
             </SortableContext>
           </div>
@@ -165,17 +196,44 @@ function ToDoListContent() {
             </div>
             <div className="w-full flex flex-col justify-start items-start">
               <SortableContext items={doneTasks.map(task => task.id)} strategy={verticalListSortingStrategy}>
-                <div className="w-full space-y-4">
-                  {doneTasks.map((task, index) => (
-                    <SortableTaskItem
-                      key={task.id}
-                      task={task}
-                      taskIndex={index + 1}
-                      onDelete={deleteTask}
-                      onToggleCompletion={toggleTaskCompletion}
-                      isTaskActive={activeTaskId === task.id}
-                    />
-                  ))}
+                <div className="w-full flex flex-col">
+                  {doneTasks.map((task, index) => {
+                    // Determine group position
+                    let groupPosition: 'single' | 'first' | 'middle' | 'last' = 'single'
+                    const prevTask = index > 0 ? doneTasks[index - 1] : null
+                    const isPartOfPreviousGroup = prevTask && task.groupId && prevTask.groupId === task.groupId
+
+                    if (task.groupId) {
+                      const groupTasks = doneTasks.filter(t => t.groupId === task.groupId)
+                      if (groupTasks.length > 1) {
+                        const taskIndexInGroup = groupTasks.findIndex(t => t.id === task.id)
+                        if (taskIndexInGroup === 0) {
+                          groupPosition = 'first'
+                        } else if (taskIndexInGroup === groupTasks.length - 1) {
+                          groupPosition = 'last'
+                        } else {
+                          groupPosition = 'middle'
+                        }
+                      }
+                    }
+
+                    return (
+                      <div
+                        key={task.id}
+                        className={isPartOfPreviousGroup ? '' : (index === 0 ? '' : 'mt-4')}
+                        style={isPartOfPreviousGroup ? { marginTop: '1px' } : undefined}
+                      >
+                        <SortableTaskItem
+                          task={task}
+                          taskIndex={index + 1}
+                          onDelete={deleteTask}
+                          onToggleCompletion={toggleTaskCompletion}
+                          isTaskActive={activeTaskId === task.id}
+                          groupPosition={groupPosition}
+                        />
+                      </div>
+                    )
+                  })}
                 </div>
               </SortableContext>
             </div>

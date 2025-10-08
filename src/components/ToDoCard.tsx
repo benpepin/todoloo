@@ -213,8 +213,10 @@ function ToDoCardContent() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (description.trim()) {
+      console.log('handleSubmit called with:', description)
       // Check for bulk add mode - ends with " and", " AND", or " &"
       const bulkAddMatch = description.match(/^(.+)\s+(and|AND|&)$/i)
+      console.log('bulkAddMatch:', bulkAddMatch)
 
       if (bulkAddMatch) {
         const taskDescription = bulkAddMatch[1].trim()
@@ -233,15 +235,20 @@ function ToDoCardContent() {
             }
 
             if (taskCount > 1) {
-              // Create multiple tasks
+              // Create multiple tasks with group ID
+              const groupId = crypto.randomUUID()
               for (let i = 0; i < taskCount; i++) {
                 const numberedDescription = `${baseDescription.trim()} (${i + 1})`
-                addTask(numberedDescription, estimatedMinutes)
+                addTask(numberedDescription, estimatedMinutes, groupId)
               }
             }
           } else {
-            // Create single task
-            addTask(taskDescription, estimatedMinutes)
+            // Create single task in a group (waiting for next task)
+            const groupId = crypto.randomUUID()
+            console.log('Creating first task in group:', groupId, taskDescription)
+            // Store groupId in component state to continue the group
+            ;(window as any).__currentGroupId = groupId
+            addTask(taskDescription, estimatedMinutes, groupId)
           }
 
           // Reset for next task but keep the card open (bulk add mode)
@@ -256,6 +263,22 @@ function ToDoCardContent() {
               inputRef.current.focus()
             }
           }, 0)
+          return
+        }
+      } else {
+        // Check if we're continuing a group
+        const currentGroupId = (window as any).__currentGroupId
+        console.log('Checking for existing group:', currentGroupId)
+        if (currentGroupId) {
+          // This task is part of the current group
+          console.log('Adding second task to group:', currentGroupId, description.trim())
+          addTask(description.trim(), estimatedMinutes, currentGroupId)
+          // Clear the group ID for future tasks
+          delete (window as any).__currentGroupId
+
+          setDescription('')
+          setEstimatedMinutes(30)
+          setShowCreateTask(false)
           return
         }
       }

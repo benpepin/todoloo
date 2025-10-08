@@ -16,14 +16,16 @@ interface SortableTaskItemProps {
   onDelete: (id: string) => void
   onToggleCompletion: (id: string) => void
   isTaskActive: boolean
+  groupPosition?: 'single' | 'first' | 'middle' | 'last'
 }
 
-export default function SortableTaskItem({ 
-  task, 
+export default function SortableTaskItem({
+  task,
   taskIndex,
-  onDelete, 
-  onToggleCompletion, 
-  isTaskActive 
+  onDelete,
+  onToggleCompletion,
+  isTaskActive,
+  groupPosition = 'single'
 }: SortableTaskItemProps) {
   const [editDescription, setEditDescription] = useState(task.description)
   const [editEstimatedMinutes, setEditEstimatedMinutes] = useState(task.estimatedMinutes)
@@ -339,9 +341,14 @@ export default function SortableTaskItem({
             setNodeRef(node)
             taskCardRef.current = node
           }}
-          className={`w-full rounded-[20px] shadow-[2px_2px_4px_rgba(0,0,0,0.15)] group ${
+          className={`w-full shadow-[2px_2px_4px_rgba(0,0,0,0.15)] group ${
             isDragging ? 'opacity-50 shadow-xl z-50' : 'transition-opacity duration-200'
-          } ${isActive ? 'ring-2' : ''} ${isEditing ? 'p-6' : 'p-6'}`}
+          } ${isActive ? 'ring-2' : ''} ${isEditing ? 'p-6' : 'p-6'} ${
+            groupPosition === 'single' ? 'rounded-[20px]' :
+            groupPosition === 'first' ? 'rounded-t-[20px]' :
+            groupPosition === 'last' ? 'rounded-b-[20px]' :
+            ''
+          }`}
           style={{
             ...style,
             backgroundColor: 'var(--color-todoloo-card)'
@@ -560,9 +567,9 @@ export default function SortableTaskItem({
                 )}
               </div>
                 
-              <div className="flex-1 flex items-center gap-2">
+              <div className="flex-1">
                 <div
-                  className="flex-1 cursor-text"
+                  className="cursor-text"
                   onClick={handleEdit}
                 >
                   <div className="flex flex-col gap-1">

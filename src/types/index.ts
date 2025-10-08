@@ -10,6 +10,7 @@ export interface Task {
   completedAt?: Date
   order: number
   userId?: string // The owner of this task (for shared lists)
+  groupId?: string // ID to group related tasks together
 }
 
 export interface AppState {
