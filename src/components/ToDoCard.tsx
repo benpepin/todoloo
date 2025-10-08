@@ -579,12 +579,11 @@ function ToDoCardContent() {
             <button
               type="submit"
               disabled={!description.trim()}
-              className={`px-4 py-2 rounded-[10px] transition-all flex items-center gap-2 ${
+              className={`px-4 py-2 rounded-[10px] transition-all flex items-center gap-2 border ${
                 description.trim()
-                  ? 'bg-gradient-to-r from-[#6269F3] to-[#434CF3] hover:opacity-90 cursor-pointer'
-                  : 'bg-[#E6E6E6] cursor-not-allowed'
+                  ? 'bg-gradient-to-r from-[#6269F3] to-[#434CF3] hover:opacity-90 cursor-pointer border-[#D9D9D9] dark:border-gray-600'
+                  : 'bg-[#E6E6E6] dark:bg-gray-700 cursor-not-allowed border-[#D9D9D9] dark:border-gray-600'
               }`}
-              style={{ border: '1px solid #D9D9D9' }}
             >
               <span className="text-sm font-medium" style={{ color: description.trim() ? 'white' : 'var(--color-todoloo-text-muted)' }}>
                 Create

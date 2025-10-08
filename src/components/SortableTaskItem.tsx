@@ -609,10 +609,14 @@ export default function SortableTaskItem({
                   onClick={handleToggleCompletion}
                   className={`w-8 h-8 rounded-full border-2 flex items-center justify-center cursor-pointer relative ${
                     !task.isCompleted ? 'hover:scale-90 transition-transform duration-150 ease-out' : ''
+                  } ${
+                    task.isCompleted
+                      ? ''
+                      : 'bg-[#F9F9FD] dark:bg-gray-700 border-[#E8E6E6] dark:border-gray-600'
                   }`}
                   style={{
-                    backgroundColor: task.isCompleted ? 'var(--color-todoloo-gradient-start)' : '#F9F9FD',
-                    borderColor: task.isCompleted ? 'var(--color-todoloo-gradient-start)' : '#E8E6E6',
+                    backgroundColor: task.isCompleted ? 'var(--color-todoloo-gradient-start)' : undefined,
+                    borderColor: task.isCompleted ? 'var(--color-todoloo-gradient-start)' : undefined,
                     color: task.isCompleted ? 'white' : 'var(--color-todoloo-text-primary)'
                   }}
                   onMouseEnter={(e) => {
@@ -622,7 +626,8 @@ export default function SortableTaskItem({
                   }}
                   onMouseLeave={(e) => {
                     if (!task.isCompleted) {
-                      e.currentTarget.style.borderColor = '#E8E6E6'
+                      e.currentTarget.style.borderColor = ''
+                      e.currentTarget.classList.add('border-[#E8E6E6]', 'dark:border-gray-600')
                     }
                   }}
                 >
