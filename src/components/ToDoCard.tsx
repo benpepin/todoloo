@@ -247,7 +247,7 @@ function ToDoCardContent() {
             const groupId = crypto.randomUUID()
             console.log('Creating first task in group:', groupId, taskDescription)
             // Store groupId in component state to continue the group
-            ;(window as any).__currentGroupId = groupId
+            ;(window as Window & { __currentGroupId?: string }).__currentGroupId = groupId
             addTask(taskDescription, estimatedMinutes, groupId)
           }
 
@@ -267,14 +267,14 @@ function ToDoCardContent() {
         }
       } else {
         // Check if we're continuing a group
-        const currentGroupId = (window as any).__currentGroupId
+        const currentGroupId = (window as Window & { __currentGroupId?: string }).__currentGroupId
         console.log('Checking for existing group:', currentGroupId)
         if (currentGroupId) {
           // This task is part of the current group
           console.log('Adding second task to group:', currentGroupId, description.trim())
           addTask(description.trim(), estimatedMinutes, currentGroupId)
           // Clear the group ID for future tasks
-          delete (window as any).__currentGroupId
+          delete (window as Window & { __currentGroupId?: string }).__currentGroupId
 
           setDescription('')
           setEstimatedMinutes(30)
