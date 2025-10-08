@@ -208,7 +208,7 @@ export const useToDoStore = create<ToDoStore>()((set, get) => ({
       
       if (isCompleting) {
         // Complete the task and record duration
-        const duration = task.actualMinutes || task.estimatedMinutes
+        const duration = task.actualMinutes ?? task.estimatedMinutes
         await completeTodo(id, duration, task, userId)
         
         // Add to history store
