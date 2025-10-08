@@ -339,9 +339,9 @@ export default function SortableTaskItem({
             setNodeRef(node)
             taskCardRef.current = node
           }}
-          className={`w-full rounded-[10px] shadow-[2px_2px_4px_rgba(0,0,0,0.15)] group ${
+          className={`w-full rounded-[20px] shadow-[2px_2px_4px_rgba(0,0,0,0.15)] group ${
             isDragging ? 'opacity-50 shadow-xl z-50' : 'transition-opacity duration-200'
-          } ${isActive ? 'ring-2' : ''} ${isEditing ? 'pt-3 pb-3 pl-4 pr-4' : 'pt-3 pb-3 pl-4 pr-4'}`}
+          } ${isActive ? 'ring-2' : ''} ${isEditing ? 'p-6' : 'p-6'}`}
           style={{
             ...style,
             backgroundColor: 'var(--color-todoloo-card)'
@@ -474,117 +474,119 @@ export default function SortableTaskItem({
             </div>
           ) : (
             // Normal display mode - simplified design with hover states
-            <div className={`flex items-center justify-between ${isActive ? 'active' : ''}`}>
-              <div className="flex items-center gap-3 flex-1">
-                {/* Task number or play/animated bars */}
-                <div className="w-8 h-8 flex items-center justify-center">
-                  {isRunning && hasStarted ? (
-                    // Active task: show animated bars that fade to pause on hover
-                    <div className="relative w-8 h-8 flex items-center justify-center">
-                      <div className="w-8 h-8 flex items-center justify-center group-hover:opacity-0 transition-opacity duration-200" style={{ overflow: 'visible' }}>
-                        <AnimatedBars />
-                      </div>
-                      {/* Pause button */}
-                      <button
-                        onClick={handlePauseTask}
-                        className="absolute top-0 left-0 w-8 h-8 p-2 rounded-lg transition-all duration-200 cursor-pointer opacity-0 group-hover:opacity-100 flex items-center justify-center"
-                        style={{
-                          backgroundColor: '#fef3c7',
-                          color: '#d97706'
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = '#fde68a'
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = '#fef3c7'
-                        }}
-                        title="Pause (timer keeps running)"
-                      >
-                        <Pause className="w-4 h-4" />
-                      </button>
+            <div className={`flex items-center gap-6 ${isActive ? 'active' : ''}`}>
+              {/* Task number or play/animated bars */}
+              <div className="flex items-center justify-center">
+                {isRunning && hasStarted ? (
+                  // Active task: show animated bars that fade to pause on hover
+                  <div className="relative w-8 h-8 flex items-center justify-center">
+                    <div className="w-8 h-8 flex items-center justify-center group-hover:opacity-0 transition-opacity duration-200" style={{ overflow: 'visible' }}>
+                      <AnimatedBars />
                     </div>
-                  ) : !task.isCompleted && hasStarted ? (
-                    // Timer started but not active: show timer with play on hover
-                    <div className="relative w-8 h-8 flex items-center justify-center">
-                      <Timer className="w-4 h-4 group-hover:opacity-0 transition-opacity duration-200" style={{ color: 'var(--color-todoloo-text-muted)' }} />
-                      <button
-                        onClick={handleStartTask}
-                        className="absolute top-0 left-0 w-8 h-8 p-2 rounded-lg transition-all duration-200 cursor-pointer opacity-0 group-hover:opacity-100 flex items-center justify-center"
-                        style={{
-                          backgroundColor: '#dcfce7',
-                          color: '#16a34a'
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = '#bbf7d0'
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = '#dcfce7'
-                        }}
-                      >
-                        <Play className="w-4 h-4" />
-                      </button>
-                    </div>
-                  ) : !task.isCompleted ? (
-                    // Inactive task: show play button on hover, number by default
-                    <div className="relative w-8 h-8 flex items-center justify-center">
-                      <span
-                        className="text-sm font-medium transition-opacity duration-200 group-hover:opacity-0"
-                        style={{ color: 'var(--color-todoloo-text-muted)' }}
-                      >
-                        {taskIndex}
-                      </span>
-                      <button
-                        onClick={handleStartTask}
-                        className="absolute top-0 left-0 w-8 h-8 p-2 rounded-lg transition-all duration-200 cursor-pointer opacity-0 group-hover:opacity-100 flex items-center justify-center"
-                        style={{
-                          backgroundColor: '#dcfce7',
-                          color: '#16a34a'
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = '#bbf7d0'
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = '#dcfce7'
-                        }}
-                      >
-                        <Play className="w-4 h-4" />
-                      </button>
-                    </div>
-                  ) : (
-                    // Completed task: just show the number
+                    {/* Pause button */}
+                    <button
+                      onClick={handlePauseTask}
+                      className="absolute top-0 left-0 w-8 h-8 p-2 rounded-lg transition-all duration-200 cursor-pointer opacity-0 group-hover:opacity-100 flex items-center justify-center"
+                      style={{
+                        backgroundColor: '#fef3c7',
+                        color: '#d97706'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = '#fde68a'
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = '#fef3c7'
+                      }}
+                      title="Pause (timer keeps running)"
+                    >
+                      <Pause className="w-4 h-4" />
+                    </button>
+                  </div>
+                ) : !task.isCompleted && hasStarted ? (
+                  // Timer started but not active: show timer with play on hover
+                  <div className="relative w-8 h-8 flex items-center justify-center">
+                    <Timer className="w-4 h-4 group-hover:opacity-0 transition-opacity duration-200" style={{ color: 'var(--color-todoloo-text-muted)' }} />
+                    <button
+                      onClick={handleStartTask}
+                      className="absolute top-0 left-0 w-8 h-8 p-2 rounded-lg transition-all duration-200 cursor-pointer opacity-0 group-hover:opacity-100 flex items-center justify-center"
+                      style={{
+                        backgroundColor: '#dcfce7',
+                        color: '#16a34a'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = '#bbf7d0'
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = '#dcfce7'
+                      }}
+                    >
+                      <Play className="w-4 h-4" />
+                    </button>
+                  </div>
+                ) : !task.isCompleted ? (
+                  // Inactive task: show play button on hover, number by default
+                  <div className="relative w-8 h-8 flex items-center justify-center">
                     <span
-                      className="text-sm font-medium"
-                      style={{ color: 'var(--color-todoloo-text-muted)' }}
+                      className="font-normal transition-opacity duration-200 group-hover:opacity-0"
+                      style={{ color: '#989999', fontSize: 28, fontFamily: 'Inter' }}
                     >
                       {taskIndex}
                     </span>
-                  )}
-                </div>
-                
-                <div className="flex-1">
-                  <div 
-                    className="group/description cursor-text"
-                    onClick={handleEdit}
+                    <button
+                      onClick={handleStartTask}
+                      className="absolute top-0 left-0 w-8 h-8 p-2 rounded-lg transition-all duration-200 cursor-pointer opacity-0 group-hover:opacity-100 flex items-center justify-center"
+                      style={{
+                        backgroundColor: '#dcfce7',
+                        color: '#16a34a'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = '#bbf7d0'
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = '#dcfce7'
+                      }}
+                    >
+                      <Play className="w-4 h-4" />
+                    </button>
+                  </div>
+                ) : (
+                  // Completed task: just show the number
+                  <span
+                    className="font-normal"
+                    style={{ color: '#989999', fontSize: 28, fontFamily: 'Inter' }}
                   >
-                    <p className={`text-base font-['Geist'] font-medium ${
+                    {taskIndex}
+                  </span>
+                )}
+              </div>
+                
+              <div className="flex-1 flex items-center gap-2">
+                <div
+                  className="flex-1 cursor-text"
+                  onClick={handleEdit}
+                >
+                  <div className="flex flex-col gap-1">
+                    <p className={`text-base font-medium ${
                       task.isCompleted ? 'line-through' : ''
                     }`}
-                       style={{ 
-                         color: task.isCompleted ? 'var(--color-todoloo-text-muted)' : 'var(--color-todoloo-text-secondary)'
+                       style={{
+                         color: task.isCompleted ? 'var(--color-todoloo-text-muted)' : 'var(--color-todoloo-text-secondary)',
+                         fontFamily: 'Geist'
                        }}>
                       {task.description}
                     </p>
-                    <div className="flex items-center gap-2 mt-0">
-                      <p className="text-sm font-['Geist'] font-normal" style={{ color: 'var(--color-todoloo-text-muted)' }}>
-                        {task.isCompleted && task.actualMinutes 
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-normal" style={{ color: 'var(--color-todoloo-text-muted)', fontFamily: 'Geist' }}>
+                        {task.isCompleted && task.actualMinutes
                           ? formatEstimatedTime(task.actualMinutes)
                           : formatEstimatedTime(task.estimatedMinutes)
                         }
                       </p>
                       {hasStarted && (
-                        <p className="text-sm font-['Geist'] font-medium"
-                           style={{ 
-                             color: isActive ? 'var(--color-todoloo-gradient-start)' : 'var(--color-todoloo-text-secondary)'
+                        <p className="text-sm font-medium"
+                           style={{
+                             color: isActive ? 'var(--color-todoloo-gradient-start)' : 'var(--color-todoloo-text-secondary)',
+                             fontFamily: 'Geist'
                            }}>
                           • {formatTime(seconds)}
                         </p>
@@ -595,13 +597,15 @@ export default function SortableTaskItem({
               </div>
 
               {/* Checkbox - always visible */}
-              <div className="flex items-center gap-2">
+              <div className="flex items-center justify-center" style={{ width: 56, height: 56 }}>
                 <button
                   onClick={handleToggleCompletion}
-                  className="w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all duration-200 cursor-pointer"
+                  className={`w-8 h-8 rounded-full border-2 flex items-center justify-center cursor-pointer relative ${
+                    !task.isCompleted ? 'hover:scale-90 transition-transform duration-150 ease-out' : ''
+                  }`}
                   style={{
-                    backgroundColor: task.isCompleted ? 'var(--color-todoloo-gradient-start)' : 'transparent',
-                    borderColor: task.isCompleted ? 'var(--color-todoloo-gradient-start)' : 'var(--color-todoloo-border)',
+                    backgroundColor: task.isCompleted ? 'var(--color-todoloo-gradient-start)' : '#F9F9FD',
+                    borderColor: task.isCompleted ? 'var(--color-todoloo-gradient-start)' : '#E8E6E6',
                     color: task.isCompleted ? 'white' : 'var(--color-todoloo-text-primary)'
                   }}
                   onMouseEnter={(e) => {
@@ -611,11 +615,17 @@ export default function SortableTaskItem({
                   }}
                   onMouseLeave={(e) => {
                     if (!task.isCompleted) {
-                      e.currentTarget.style.borderColor = 'var(--color-todoloo-border)'
+                      e.currentTarget.style.borderColor = '#E8E6E6'
                     }
                   }}
                 >
-                  {task.isCompleted && <Check className="w-3 h-3" />}
+                  {task.isCompleted && (
+                    <>
+                      <Check className="w-4 h-4 animate-in zoom-in-50 duration-300" style={{ animationTimingFunction: 'cubic-bezier(0.68, -0.55, 0.265, 1.55)' }} />
+                      <span className="absolute inset-0 rounded-full border-2 animate-ping" style={{ borderColor: 'var(--color-todoloo-gradient-start)', animationDuration: '0.6s', animationIterationCount: '1' }} />
+                      <span className="absolute inset-0 rounded-full border-2 animate-ping" style={{ borderColor: 'var(--color-todoloo-gradient-start)', animationDuration: '0.8s', animationIterationCount: '1', animationDelay: '0.1s' }} />
+                    </>
+                  )}
                 </button>
               </div>
             </div>
