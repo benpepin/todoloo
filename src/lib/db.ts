@@ -35,7 +35,7 @@ interface DbListShare {
 }
 
 // Convert between camelCase (app) and snake_case (database)
-function dbTaskToTask(dbTask: DbTask): Task {
+function dbTaskToTask(dbTask: DbTask & { user_id?: string }): Task {
   return {
     id: dbTask.id,
     description: dbTask.title, // Map title to description for consistency
@@ -45,7 +45,8 @@ function dbTaskToTask(dbTask: DbTask): Task {
     isActive: false, // Will be set by the store
     createdAt: new Date(dbTask.created_at),
     completedAt: dbTask.completed_at ? new Date(dbTask.completed_at) : undefined,
-    order: dbTask.order_index
+    order: dbTask.order_index,
+    userId: dbTask.user_id // Include user_id for shared list detection
   }
 }
 
@@ -64,19 +65,22 @@ function taskToDbTask(task: Task): Partial<DbTask> {
   }
 }
 
-// Fetch all todos for the current user
+// Fetch all todos for the current user (including shared lists)
 export async function fetchTodos(userId: string): Promise<Task[]> {
+  // The RLS policies will automatically handle showing both:
+  // 1. Todos where user_id = userId (user's own todos)
+  // 2. Todos from lists shared with the user
+  // We just need to remove the .eq('user_id', userId) filter
   const { data, error } = await supabase
     .from('todos')
-    .select('*')
-    .eq('user_id', userId)
+    .select('*, user_id') // Explicitly select user_id to know who owns each task
     .order('created_at', { ascending: false })
-  
+
   if (error) {
     console.error('Error fetching todos:', error)
     throw new Error(`Failed to fetch todos: ${error.message}`)
   }
-  
+
   return data?.map(dbTaskToTask) || []
 }
 

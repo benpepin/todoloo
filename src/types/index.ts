@@ -9,6 +9,7 @@ export interface Task {
   createdAt: Date
   completedAt?: Date
   order: number
+  userId?: string // The owner of this task (for shared lists)
 }
 
 export interface AppState {

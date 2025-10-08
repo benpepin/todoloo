@@ -16,6 +16,7 @@ interface ToDoStore extends AppState {
   error: string | null
   userId: string | null
   isInitialized: boolean
+  currentListOwnerId: string | null // Track which list we're viewing (for shared lists)
   
   // Async methods for Supabase operations
   initializeUser: (userId: string) => Promise<void>
@@ -54,6 +55,7 @@ export const useToDoStore = create<ToDoStore>()((set, get) => ({
   error: null,
   userId: null,
   isInitialized: false,
+  currentListOwnerId: null,
 
   // Initialize user and backfill data
   initializeUser: async (userId: string) => {
@@ -91,23 +93,36 @@ export const useToDoStore = create<ToDoStore>()((set, get) => ({
     try {
       set({ isLoading: true, error: null })
       const tasks = await fetchTodos(userId)
-      set({ tasks, isLoading: false })
+
+      // Determine if we're viewing a shared list
+      // If we have tasks and they all belong to someone else, we're viewing their shared list
+      let currentListOwnerId = userId
+      if (tasks.length > 0 && tasks[0].userId && tasks[0].userId !== userId) {
+        // We're viewing someone else's shared list
+        currentListOwnerId = tasks[0].userId
+      }
+
+      set({ tasks, isLoading: false, currentListOwnerId })
     } catch (error) {
       console.error('Error loading tasks:', error)
-      set({ 
+      set({
         error: error instanceof Error ? error.message : 'Failed to load tasks',
-        isLoading: false 
+        isLoading: false
       })
     }
   },
 
   // Add new task with optimistic update
   addTask: async (description: string, estimatedMinutes: number) => {
-    const { userId } = get()
+    const { userId, currentListOwnerId } = get()
     if (!userId) {
       set({ error: 'User not authenticated' })
       return
     }
+
+    // Use currentListOwnerId to create task in the right list
+    // If viewing a shared list, create task for that list owner
+    const targetUserId = currentListOwnerId || userId
 
     const optimisticTask: Task = {
       id: crypto.randomUUID(),
@@ -117,7 +132,8 @@ export const useToDoStore = create<ToDoStore>()((set, get) => ({
       isCompleted: false,
       isActive: false,
       createdAt: new Date(),
-      order: get().tasks.length
+      order: get().tasks.length,
+      userId: targetUserId
     }
 
     // Optimistic update
@@ -136,7 +152,7 @@ export const useToDoStore = create<ToDoStore>()((set, get) => ({
         actualMinutes: 0,
         isCompleted: false,
         isActive: false
-      }, userId)
+      }, targetUserId)
 
       // Replace optimistic task with real one
       set((state) => ({
