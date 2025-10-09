@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { Plus, Timer, ChevronDown, TrendingUp, CornerDownLeft } from 'lucide-react'
+import { Plus, Timer, ChevronDown, CornerDownLeft } from 'lucide-react'
 import { useToDoStore } from '@/store/toDoStore'
 import { useHistoryStore } from '@/store/historyStore'
 
@@ -53,7 +53,6 @@ function ToDoCardContent() {
   const [estimatedMinutes, setEstimatedMinutes] = useState(30)
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [customMinutes, setCustomMinutes] = useState('')
-  const [showSuggestion, setShowSuggestion] = useState(false)
   const [multiplicationPreview, setMultiplicationPreview] = useState<{baseDescription: string, count: number} | null>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -177,13 +176,11 @@ function ToDoCardContent() {
       const taskCount = parseInt(count, 10)
       if (taskCount > 1 && taskCount <= 10) { // Limit to reasonable number
         setMultiplicationPreview({ baseDescription: baseDescription.trim(), count: taskCount })
-        setShowSuggestion(false)
         // Use base description for time estimation
         const estimatedTime = estimateTimeFromDescription(baseDescription.trim())
         setEstimatedMinutes(estimatedTime)
       } else if (taskCount > 10) {
         setMultiplicationPreview({ baseDescription: baseDescription.trim(), count: taskCount })
-        setShowSuggestion(false)
         // Still estimate time but show warning
         const estimatedTime = estimateTimeFromDescription(baseDescription.trim())
         setEstimatedMinutes(estimatedTime)
@@ -193,21 +190,10 @@ function ToDoCardContent() {
     } else {
       setMultiplicationPreview(null)
 
-      // Check for historical suggestions
+      // Use keyword-based estimation
       if (newDescription.trim()) {
-        const stats = getSimilarStats(newDescription.trim())
-        if (stats.count > 0) {
-          setShowSuggestion(true)
-          // Auto-set to historical average if available
-          setEstimatedMinutes(stats.averageMinutes)
-        } else {
-          setShowSuggestion(false)
-          // Fallback to keyword-based estimation
-          const estimatedTime = estimateTimeFromDescription(newDescription)
-          setEstimatedMinutes(estimatedTime)
-        }
-      } else {
-        setShowSuggestion(false)
+        const estimatedTime = estimateTimeFromDescription(newDescription)
+        setEstimatedMinutes(estimatedTime)
       }
     }
   }
@@ -264,7 +250,6 @@ function ToDoCardContent() {
           // Reset for next task but keep the card open and group active
           setDescription('')
           setMultiplicationPreview(null)
-          setShowSuggestion(false)
           setEstimatedMinutes(30)
 
           // Re-focus input for next task
@@ -384,15 +369,6 @@ function ToDoCardContent() {
     return remainingMinutes > 0 ? `${hours} hour${hours !== 1 ? 's' : ''} ${remainingMinutes}m` : `${hours} hour${hours !== 1 ? 's' : ''}`
   }
 
-  const handleUseSuggestion = () => {
-    if (description.trim()) {
-      const stats = getSimilarStats(description.trim())
-      if (stats.count > 0) {
-        setEstimatedMinutes(stats.averageMinutes)
-      }
-    }
-  }
-
   return (
     <div className="w-full max-w-[460px] rounded-[20px] shadow-[2px_2px_4px_rgba(0,0,0,0.15)] p-3 animate-in fade-in-0 zoom-in-95 duration-200"
          style={{ backgroundColor: 'var(--color-todoloo-card)' }}>
@@ -475,7 +451,7 @@ function ToDoCardContent() {
         )}
 
         {/* Historical Suggestion */}
-        {showSuggestion && description.trim() && !multiplicationPreview && (() => {
+        {/* {showSuggestion && description.trim() && !multiplicationPreview && (() => {
           const stats = getSimilarStats(description.trim())
           return stats.count > 0 ? (
             <div className="bg-[#F8F9FA] border border-[#E9ECEF] rounded-[12px] p-3 animate-in fade-in-0 slide-in-from-top-2 duration-200">
@@ -501,7 +477,7 @@ function ToDoCardContent() {
               </div>
             </div>
           ) : null
-        })()}
+        })()} */}
         
         <div className="flex justify-between items-end">
           <div className="relative" ref={dropdownRef}>
