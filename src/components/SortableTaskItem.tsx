@@ -34,6 +34,8 @@ export default function SortableTaskItem({
   const customTimeTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const [, setShowEditButtons] = useState(false)
   const [isAnimatingOut, setIsAnimatingOut] = useState(false)
+  const [isScratching, setIsScratching] = useState(false)
+  const [showStrikethrough, setShowStrikethrough] = useState(false)
   
   const descriptionInputRef = useRef<HTMLInputElement>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
@@ -184,21 +186,45 @@ export default function SortableTaskItem({
   const handleToggleCompletion = () => {
     const isCompleting = !task.isCompleted
 
-    // If completing the task while timer is running, pause it first
-    if (isCompleting && isRunning && hasStarted) {
-      pause() // Stop the timer from running
-    }
+    // If completing the task, trigger cat paw animation
+    if (isCompleting) {
+      // Start the scratch animation
+      setIsScratching(true)
 
-    // If completing the to do and we have timer data, save the actual time
-    if (isCompleting && hasStarted && seconds > 0) {
-      const actualMinutes = Math.round(seconds / 60) || 1 // At least 1 minute
-      updateTaskActualTime(task.id, actualMinutes)
+      // If completing the task while timer is running, pause it first
+      if (isRunning && hasStarted) {
+        pause() // Stop the timer from running
+      }
+
+      // If completing the to do and we have timer data, save the actual time
+      if (hasStarted && seconds > 0) {
+        const actualMinutes = Math.round(seconds / 60) || 1 // At least 1 minute
+        updateTaskActualTime(task.id, actualMinutes)
+      }
+      // If completing while active, stop task tracking
+      if (isActive) {
+        stopTask()
+      }
+
+      // Show strikethrough mid-animation (when paw is scratching)
+      setTimeout(() => {
+        setShowStrikethrough(true)
+      }, 500)
+
+      // Hide the paw after animation completes
+      setTimeout(() => {
+        setIsScratching(false)
+      }, 1500)
+
+      // Complete the task after showing strikethrough for a bit longer
+      setTimeout(() => {
+        setShowStrikethrough(false)
+        onToggleCompletion(task.id)
+      }, 3000)
+    } else {
+      // If uncompleting, do it immediately
+      onToggleCompletion(task.id)
     }
-    // If completing while active, stop task tracking
-    if (isCompleting && isActive) {
-      stopTask()
-    }
-    onToggleCompletion(task.id)
   }
 
   const handleEdit = () => {
@@ -347,7 +373,7 @@ export default function SortableTaskItem({
             setNodeRef(node)
             taskCardRef.current = node
           }}
-          className={`w-full shadow-[2px_2px_4px_rgba(0,0,0,0.15)] group ${isActive ? 'ring-2' : ''} ${isEditing ? 'p-6' : 'p-6'} ${
+          className={`w-full shadow-[2px_2px_4px_rgba(0,0,0,0.15)] group overflow-hidden ${isActive ? 'ring-2' : ''} ${isEditing ? 'p-6' : 'p-6'} ${
             groupPosition === 'single' ? 'rounded-[20px]' :
             groupPosition === 'first' ? 'rounded-t-[20px]' :
             groupPosition === 'last' ? 'rounded-b-[20px]' :
@@ -506,7 +532,26 @@ export default function SortableTaskItem({
             </div>
           ) : (
             // Normal display mode - simplified design with hover states
-            <div className={`flex items-center gap-6 ${isActive ? 'active' : ''}`}>
+            <div className={`flex items-center gap-6 relative ${isActive ? 'active' : ''}`}>
+              {/* Cat Paw Scratch Animation - covers entire card */}
+              {isScratching && (
+                <div
+                  className="absolute top-0 left-0 h-full flex items-center pointer-events-none z-20"
+                  style={{
+                    animation: 'catPawSlide 1.5s ease-in-out',
+                  }}
+                >
+                  <img
+                    src="/catpaw.png"
+                    alt="cat paw"
+                    className="w-96 h-auto"
+                    style={{
+                      animation: 'catPawScratch 0.6s ease-in-out 0.3s'
+                    }}
+                  />
+                </div>
+              )}
+
               {/* Task number or play/animated bars */}
               <div className="flex items-center justify-center">
                 {isRunning && hasStarted ? (
@@ -599,7 +644,7 @@ export default function SortableTaskItem({
                 >
                   <div className="flex flex-col gap-1">
                     <p className={`text-base font-medium ${
-                      task.isCompleted ? 'line-through' : ''
+                      task.isCompleted || showStrikethrough ? 'line-through' : ''
                     }`}
                        style={{
                          color: task.isCompleted ? 'var(--color-todoloo-text-muted)' : 'var(--color-todoloo-text-secondary)',
