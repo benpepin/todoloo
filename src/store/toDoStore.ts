@@ -17,10 +17,11 @@ interface ToDoStore extends AppState {
   userId: string | null
   isInitialized: boolean
   currentListOwnerId: string | null // Track which list we're viewing (for shared lists)
-  
+
   // Async methods for Supabase operations
   initializeUser: (userId: string) => Promise<void>
   loadTasks: () => Promise<void>
+  switchToList: (listOwnerId: string) => Promise<void>
   addTask: (description: string, estimatedMinutes: number, groupId?: string) => Promise<void>
   deleteTask: (id: string) => Promise<void>
   toggleTaskCompletion: (id: string) => Promise<void>
@@ -107,6 +108,27 @@ export const useToDoStore = create<ToDoStore>()((set, get) => ({
       console.error('Error loading tasks:', error)
       set({
         error: error instanceof Error ? error.message : 'Failed to load tasks',
+        isLoading: false
+      })
+    }
+  },
+
+  // Switch to a different list (your own or a shared list)
+  switchToList: async (listOwnerId: string) => {
+    const { userId } = get()
+    if (!userId) {
+      set({ error: 'User not authenticated' })
+      return
+    }
+
+    try {
+      set({ isLoading: true, error: null, currentListOwnerId: listOwnerId })
+      const tasks = await fetchTodos(listOwnerId)
+      set({ tasks, isLoading: false })
+    } catch (error) {
+      console.error('Error switching list:', error)
+      set({
+        error: error instanceof Error ? error.message : 'Failed to switch list',
         isLoading: false
       })
     }

@@ -2,18 +2,22 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Settings as SettingsIcon, Clock, Users, Trash2, UserPlus } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { Settings as SettingsIcon, Clock, Users, Trash2, UserPlus, List } from 'lucide-react'
 import { getCurrentDate } from '@/utils/timeUtils'
 import { useSettingsStore } from '@/store/settingsStore'
 import { useSupabase } from '@/components/SupabaseProvider'
+import { useToDoStore } from '@/store/toDoStore'
 import { getSharedUsers, shareListWithUser, removeShare, getSharedLists } from '@/lib/db'
 import { SharedUser } from '@/types'
 
 export default function SettingsPage() {
+  const router = useRouter()
   const [autoSave, setAutoSave] = useState(true)
   const [showCompleted, setShowCompleted] = useState(true)
   const { showProgressIndicator, toggleProgressIndicator } = useSettingsStore()
   const { user } = useSupabase()
+  const { switchToList, currentListOwnerId } = useToDoStore()
 
   // Sharing state
   const [sharedUsers, setSharedUsers] = useState<SharedUser[]>([])
@@ -202,26 +206,74 @@ export default function SettingsPage() {
                   <h2 className="text-lg font-['Geist'] font-medium" style={{ color: 'var(--color-todoloo-text-secondary)' }}>List Sharing</h2>
                 </div>
 
-                {/* Lists shared with you */}
-                {sharedLists.length > 0 && (
-                  <div className="mb-6 p-4 rounded-lg" style={{ backgroundColor: 'var(--color-todoloo-muted)' }}>
-                    <p className="text-xs font-['Geist'] font-medium mb-2" style={{ color: 'var(--color-todoloo-text-secondary)' }}>
-                      Lists Shared With You
-                    </p>
-                    {sharedLists.map((list) => (
-                      <div key={list.ownerId} className="flex items-center gap-2 mt-2">
-                        <div className="flex-1">
-                          <p className="text-sm font-['Geist']" style={{ color: 'var(--color-todoloo-text-primary)' }}>
-                            {list.ownerEmail}&apos;s list
-                          </p>
-                          <p className="text-xs font-['Geist']" style={{ color: 'var(--color-todoloo-text-muted)' }}>
-                            {list.permission} access
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                {/* Active List Selector */}
+                <div className="mb-6">
+                  <p className="text-sm font-['Geist'] font-medium mb-3" style={{ color: 'var(--color-todoloo-text-primary)' }}>
+                    Active List
+                  </p>
+
+                  {/* Your own list */}
+                  <button
+                    onClick={async () => {
+                      if (user?.id && currentListOwnerId !== user.id) {
+                        await switchToList(user.id)
+                        router.push('/')
+                      }
+                    }}
+                    className={`w-full p-3 rounded-lg mb-2 flex items-center gap-3 transition-all ${
+                      currentListOwnerId === user?.id ? 'ring-2' : ''
+                    }`}
+                    style={{
+                      backgroundColor: currentListOwnerId === user?.id ? 'var(--color-todoloo-gradient-start)' : 'var(--color-todoloo-muted)',
+                      color: currentListOwnerId === user?.id ? 'white' : 'var(--color-todoloo-text-primary)',
+                      ringColor: 'var(--color-todoloo-gradient-start)'
+                    }}
+                  >
+                    <List className="w-5 h-5" />
+                    <div className="flex-1 text-left">
+                      <p className="text-sm font-['Geist'] font-medium">My List</p>
+                      <p className="text-xs opacity-75">Your personal todo list</p>
+                    </div>
+                  </button>
+
+                  {/* Shared lists */}
+                  {sharedLists.length > 0 && (
+                    <>
+                      <p className="text-xs font-['Geist'] font-medium mb-2 mt-4" style={{ color: 'var(--color-todoloo-text-secondary)' }}>
+                        Shared With You
+                      </p>
+                      {sharedLists.map((list) => (
+                        <button
+                          key={list.ownerId}
+                          onClick={async () => {
+                            if (currentListOwnerId !== list.ownerId) {
+                              await switchToList(list.ownerId)
+                              router.push('/')
+                            }
+                          }}
+                          className={`w-full p-3 rounded-lg mb-2 flex items-center gap-3 transition-all ${
+                            currentListOwnerId === list.ownerId ? 'ring-2' : ''
+                          }`}
+                          style={{
+                            backgroundColor: currentListOwnerId === list.ownerId ? 'var(--color-todoloo-gradient-start)' : 'var(--color-todoloo-muted)',
+                            color: currentListOwnerId === list.ownerId ? 'white' : 'var(--color-todoloo-text-primary)',
+                            ringColor: 'var(--color-todoloo-gradient-start)'
+                          }}
+                        >
+                          <List className="w-5 h-5" />
+                          <div className="flex-1 text-left">
+                            <p className="text-sm font-['Geist'] font-medium">
+                              {list.ownerEmail}&apos;s list
+                            </p>
+                            <p className="text-xs opacity-75">
+                              {list.permission} access
+                            </p>
+                          </div>
+                        </button>
+                      ))}
+                    </>
+                  )}
+                </div>
 
                 {/* Share your list */}
                 <div className="space-y-4">

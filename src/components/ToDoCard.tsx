@@ -156,6 +156,8 @@ function ToDoCardContent() {
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
+        // Clear any ongoing group when closing
+        delete (window as Window & { __currentGroupId?: string }).__currentGroupId
         setShowCreateTask(false)
       }
     }
@@ -271,14 +273,20 @@ function ToDoCardContent() {
         console.log('Checking for existing group:', currentGroupId)
         if (currentGroupId) {
           // This task is part of the current group
-          console.log('Adding second task to group:', currentGroupId, description.trim())
+          console.log('Adding task to group:', currentGroupId, description.trim())
           addTask(description.trim(), estimatedMinutes, currentGroupId)
-          // Clear the group ID for future tasks
-          delete (window as Window & { __currentGroupId?: string }).__currentGroupId
+          // DON'T clear the group ID - keep it for more tasks
+          // Only clear when card is closed or user doesn't end with "and"
 
           setDescription('')
           setEstimatedMinutes(30)
-          setShowCreateTask(false)
+          // Keep the card open for more tasks
+          // Re-focus input for next task
+          setTimeout(() => {
+            if (inputRef.current) {
+              inputRef.current.focus()
+            }
+          }, 0)
           return
         }
       }
@@ -302,10 +310,12 @@ function ToDoCardContent() {
           addTask(taskDescription, estimatedMinutes)
         }
       } else {
-        // Single to do
+        // Single to do (no group)
         addTask(description.trim(), estimatedMinutes)
       }
 
+      // Clear any ongoing group when creating a standalone task
+      delete (window as Window & { __currentGroupId?: string }).__currentGroupId
       setDescription('')
       setEstimatedMinutes(30)
       setShowCreateTask(false) // Close the create to do card after adding
@@ -561,9 +571,13 @@ function ToDoCardContent() {
           <div className="flex items-center gap-2">
             <button
               type="button"
-              onClick={() => setShowCreateTask(false)}
+              onClick={() => {
+                // Clear any ongoing group when canceling
+                delete (window as Window & { __currentGroupId?: string }).__currentGroupId
+                setShowCreateTask(false)
+              }}
               className="px-3 py-2 text-sm font-medium cursor-pointer transition-colors"
-              style={{ 
+              style={{
                 backgroundColor: 'transparent',
                 color: 'var(--color-todoloo-text-secondary)'
               }}
