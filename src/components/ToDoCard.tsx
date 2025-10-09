@@ -394,7 +394,7 @@ function ToDoCardContent() {
   }
 
   return (
-    <div className="w-full max-w-[460px] rounded-[10px] shadow-[2px_2px_4px_rgba(0,0,0,0.15)] p-3 animate-in fade-in-0 zoom-in-95 duration-200"
+    <div className="w-full max-w-[460px] rounded-[20px] shadow-[2px_2px_4px_rgba(0,0,0,0.15)] p-3 animate-in fade-in-0 zoom-in-95 duration-200"
          style={{ backgroundColor: 'var(--color-todoloo-card)' }}>
       <form onSubmit={handleSubmit} className="flex flex-col gap-8">
         <div className="flex items-center relative">
