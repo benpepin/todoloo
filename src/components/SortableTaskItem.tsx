@@ -310,8 +310,11 @@ export default function SortableTaskItem({
 
   const style = {
     transform: CSS.Transform.toString(transform),
-    transition: 'none',
+    transition: isDragging
+      ? 'none'
+      : transition || 'transform 250ms cubic-bezier(0.34, 1.56, 0.64, 1), opacity 150ms ease-out',
     willChange: isDragging ? 'transform' : 'auto',
+    opacity: isDragging ? 0.4 : 1,
   }
 
   const formatEstimatedTime = (minutes: number) => {
@@ -344,9 +347,7 @@ export default function SortableTaskItem({
             setNodeRef(node)
             taskCardRef.current = node
           }}
-          className={`w-full shadow-[2px_2px_4px_rgba(0,0,0,0.15)] group ${
-            isDragging ? 'opacity-50' : ''
-          } ${isActive ? 'ring-2' : ''} ${isEditing ? 'p-6' : 'p-6'} ${
+          className={`w-full shadow-[2px_2px_4px_rgba(0,0,0,0.15)] group ${isActive ? 'ring-2' : ''} ${isEditing ? 'p-6' : 'p-6'} ${
             groupPosition === 'single' ? 'rounded-[20px]' :
             groupPosition === 'first' ? 'rounded-t-[20px]' :
             groupPosition === 'last' ? 'rounded-b-[20px]' :
