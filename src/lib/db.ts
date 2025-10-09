@@ -190,6 +190,9 @@ export async function updateTodo(id: string, updates: Partial<Task>): Promise<Ta
   if (updates.order !== undefined) {
     dbUpdates.order_index = updates.order
   }
+  if (updates.groupId !== undefined) {
+    dbUpdates.group_id = updates.groupId
+  }
   
   dbUpdates.updated_at = new Date().toISOString()
 

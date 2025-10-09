@@ -70,7 +70,7 @@ export default function Home() {
         
         // Add test function to window for debugging
         if (typeof window !== 'undefined') {
-          (window as any).testSharing = () => testSharing(user.id)
+          (window as unknown as { testSharing: () => Promise<void> }).testSharing = () => testSharing(user.id)
           console.log('🔧 Debug function available: window.testSharing()')
         }
         

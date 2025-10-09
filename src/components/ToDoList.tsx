@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent, DragOverEvent } from '@dnd-kit/core'
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { useToDoStore } from '@/store/toDoStore'
@@ -8,8 +8,7 @@ import SortableTaskItem from './SortableTaskItem'
 import ToDoCard from './ToDoCard'
 
 function ToDoListContent() {
-  const { tasks, activeTaskId, deleteTask, toggleTaskCompletion, updateTaskOrder, showCreateTask, toggleCreateTask, groupTasks, ungroupTask } = useToDoStore()
-  const [dropTargetId, setDropTargetId] = useState<string | null>(null)
+  const { tasks, activeTaskId, deleteTask, toggleTaskCompletion, updateTaskOrder, showCreateTask, toggleCreateTask } = useToDoStore()
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -47,19 +46,12 @@ function ToDoListContent() {
     })
   )
 
-  const handleDragOver = (event: DragOverEvent) => {
-    const { active, over } = event
-
-    if (over && active.id !== over.id) {
-      setDropTargetId(over.id as string)
-    } else {
-      setDropTargetId(null)
-    }
+  const handleDragOver = () => {
+    // No special handling needed for simple reordering
   }
 
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event
-    setDropTargetId(null) // Clear drop target highlight
 
     console.log('[DRAG] Drag ended:', { activeId: active.id, overId: over?.id })
 
@@ -84,36 +76,14 @@ function ToDoListContent() {
       const newIndex = tasks.findIndex((task) => task.id === over.id)
 
       if (oldIndex !== -1 && newIndex !== -1) {
-        console.log('[DRAG] Group check:', {
-          draggedGroupId: draggedTask.groupId,
-          targetGroupId: targetTask.groupId,
-          sameGroup: draggedTask.groupId === targetTask.groupId,
-          oldIndex,
-          newIndex,
-          distance: Math.abs(oldIndex - newIndex)
-        })
-
-        // Check if they're already in the same group
-        const inSameGroup = draggedTask.groupId && draggedTask.groupId === targetTask.groupId
-
-        if (!inSameGroup) {
-          // Not in same group - always group them when dropped on each other
-          console.log('[DRAG] Different groups - grouping tasks together')
-          await groupTasks(draggedTask.id, targetTask.id)
-        } else {
-          // Already in same group - just reorder
-          console.log('[DRAG] Already in same group - just reordering')
-        }
-
-        // Reorder tasks
+        // Simple reordering - no grouping via drag
+        console.log('[DRAG] Reordering tasks')
         const reorderedTasks = arrayMove(tasks, oldIndex, newIndex)
-
-        // Update the order property for each to do
         const updatedTasks = reorderedTasks.map((task, index) => ({
           ...task,
           order: index
         }))
-
+        
         console.log('[DRAG] Updating task order')
         await updateTaskOrder(updatedTasks)
       }
@@ -207,10 +177,14 @@ function ToDoListContent() {
                     const groupTasks = todoTasks.filter(t => t.groupId === task.groupId)
                     console.log('Group tasks for', task.description, ':', groupTasks.length)
                     if (groupTasks.length > 1) {
-                      const taskIndexInGroup = groupTasks.findIndex(t => t.id === task.id)
-                      if (taskIndexInGroup === 0) {
+                      // Find the position within the actual list order, not just within the group
+                      const groupTaskIndices = groupTasks.map(t => todoTasks.findIndex(task => task.id === t.id)).sort((a, b) => a - b)
+                      const currentTaskIndex = todoTasks.findIndex(t => t.id === task.id)
+                      const positionInGroup = groupTaskIndices.indexOf(currentTaskIndex)
+                      
+                      if (positionInGroup === 0) {
                         groupPosition = 'first'
-                      } else if (taskIndexInGroup === groupTasks.length - 1) {
+                      } else if (positionInGroup === groupTaskIndices.length - 1) {
                         groupPosition = 'last'
                       } else {
                         groupPosition = 'middle'
@@ -232,7 +206,6 @@ function ToDoListContent() {
                         onToggleCompletion={toggleTaskCompletion}
                         isTaskActive={activeTaskId === task.id}
                         groupPosition={groupPosition}
-                        isDropTarget={dropTargetId === task.id}
                       />
                     </div>
                   )
@@ -283,9 +256,8 @@ function ToDoListContent() {
                           taskIndex={index + 1}
                           onDelete={deleteTask}
                           onToggleCompletion={toggleTaskCompletion}
-                          isTaskActive={activeTaskId === task.id}
-                          groupPosition={groupPosition}
-                          isDropTarget={false}
+                        isTaskActive={activeTaskId === task.id}
+                        groupPosition={groupPosition}
                         />
                       </div>
                     )

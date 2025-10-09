@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { Trash2, Check, GripVertical, Timer, ChevronDown, Plus, Play, Pause } from 'lucide-react'
+import { Check, GripVertical, Timer, ChevronDown, Play, Pause, Unlink } from 'lucide-react'
 import { Task } from '@/types'
 import { useToDoStore } from '@/store/toDoStore'
 import { useSimpleTimer } from '@/hooks/useSimpleTimer'
@@ -17,7 +17,6 @@ interface SortableTaskItemProps {
   onToggleCompletion: (id: string) => void
   isTaskActive: boolean
   groupPosition?: 'single' | 'first' | 'middle' | 'last'
-  isDropTarget?: boolean
 }
 
 export default function SortableTaskItem({
@@ -26,8 +25,7 @@ export default function SortableTaskItem({
   onDelete,
   onToggleCompletion,
   isTaskActive,
-  groupPosition = 'single',
-  isDropTarget = false
+  groupPosition = 'single'
 }: SortableTaskItemProps) {
   const [editDescription, setEditDescription] = useState(task.description)
   const [editEstimatedMinutes, setEditEstimatedMinutes] = useState(task.estimatedMinutes)
@@ -57,6 +55,7 @@ export default function SortableTaskItem({
   const startTask = useToDoStore((state) => state.startTask)
   const stopTask = useToDoStore((state) => state.stopTask)
   const activeTaskId = useToDoStore((state) => state.activeTaskId)
+  const ungroupTask = useToDoStore((state) => state.ungroupTask)
   
   const isEditing = editingTaskId === task.id
   const isActive = activeTaskId === task.id
@@ -346,8 +345,6 @@ export default function SortableTaskItem({
           className={`w-full shadow-[2px_2px_4px_rgba(0,0,0,0.15)] group ${
             isDragging ? 'opacity-50 shadow-xl z-50' : 'transition-all duration-200'
           } ${isActive ? 'ring-2' : ''} ${isEditing ? 'p-6' : 'p-6'} ${
-            isDropTarget ? 'ring-4 ring-blue-400 scale-105' : ''
-          } ${
             groupPosition === 'single' ? 'rounded-[20px]' :
             groupPosition === 'first' ? 'rounded-t-[20px]' :
             groupPosition === 'last' ? 'rounded-b-[20px]' :
@@ -355,7 +352,7 @@ export default function SortableTaskItem({
           }`}
           style={{
             ...style,
-            backgroundColor: isDropTarget ? '#EEF2FF' : 'var(--color-todoloo-card)'
+            backgroundColor: 'var(--color-todoloo-card)'
           }}
           onMouseEnter={() => setShowEditButtons(true)}
           onMouseLeave={() => !isEditing && setShowEditButtons(false)}
@@ -452,6 +449,27 @@ export default function SortableTaskItem({
                 </div>
                 
                 <div className="flex items-center gap-2">
+                  {task.groupId && (
+                    <button
+                      onClick={() => ungroupTask(task.id)}
+                      className="h-8 px-3 text-xs font-inter cursor-pointer transition-colors flex items-center gap-1"
+                      style={{
+                        backgroundColor: 'transparent',
+                        color: 'var(--color-todoloo-text-secondary)'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.color = 'var(--color-todoloo-gradient-start)'
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.color = 'var(--color-todoloo-text-secondary)'
+                      }}
+                      aria-label="Ungroup task"
+                      title="Ungroup"
+                    >
+                      <Unlink className="w-3 h-3" />
+                      Ungroup
+                    </button>
+                  )}
                   <button
                     onClick={() => onDelete(task.id)}
                     className="h-8 px-3 text-xs font-inter cursor-pointer transition-colors"
