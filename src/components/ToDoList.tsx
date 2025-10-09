@@ -1,14 +1,17 @@
 'use client'
 
-import { useEffect } from 'react'
-import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent, DragOverEvent } from '@dnd-kit/core'
+import { useEffect, useState } from 'react'
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent, DragStartEvent, DragOverlay, DragOverEvent } from '@dnd-kit/core'
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { useToDoStore } from '@/store/toDoStore'
 import SortableTaskItem from './SortableTaskItem'
 import ToDoCard from './ToDoCard'
+import { Check } from 'lucide-react'
 
 function ToDoListContent() {
   const { tasks, activeTaskId, deleteTask, toggleTaskCompletion, updateTaskOrder, showCreateTask, toggleCreateTask } = useToDoStore()
+  const [activeId, setActiveId] = useState<string | null>(null)
+  const [overId, setOverId] = useState<string | null>(null)
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -46,14 +49,21 @@ function ToDoListContent() {
     })
   )
 
-  const handleDragOver = () => {
-    // No special handling needed for simple reordering
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveId(event.active.id as string)
+  }
+
+  const handleDragOver = (event: DragOverEvent) => {
+    setOverId(event.over?.id as string || null)
   }
 
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event
 
     console.log('[DRAG] Drag ended:', { activeId: active.id, overId: over?.id })
+    
+    setActiveId(null)
+    setOverId(null)
 
     if (active.id !== over?.id && over) {
       const draggedTask = tasks.find(t => t.id === active.id)
@@ -140,6 +150,7 @@ function ToDoListContent() {
     <DndContext
       sensors={sensors}
       collisionDetection={closestCenter}
+      onDragStart={handleDragStart}
       onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
     >
@@ -171,11 +182,8 @@ function ToDoListContent() {
                   const prevTask = index > 0 ? todoTasks[index - 1] : null
                   const isPartOfPreviousGroup = prevTask && task.groupId && prevTask.groupId === task.groupId
 
-                  console.log('Task:', task.description, 'groupId:', task.groupId)
-
                   if (task.groupId) {
                     const groupTasks = todoTasks.filter(t => t.groupId === task.groupId)
-                    console.log('Group tasks for', task.description, ':', groupTasks.length)
                     if (groupTasks.length > 1) {
                       // Find the position within the actual list order, not just within the group
                       const groupTaskIndices = groupTasks.map(t => todoTasks.findIndex(task => task.id === t.id)).sort((a, b) => a - b)
@@ -189,16 +197,11 @@ function ToDoListContent() {
                       } else {
                         groupPosition = 'middle'
                       }
-                      console.log('Group position for', task.description, ':', groupPosition)
                     }
                   }
 
                   return (
-                    <div
-                      key={task.id}
-                      className={isPartOfPreviousGroup ? '' : (index === 0 ? '' : 'mt-4')}
-                      style={isPartOfPreviousGroup ? { marginTop: '1px' } : undefined}
-                    >
+                    <div key={task.id} className={index === 0 ? '' : 'mt-4'}>
                       <SortableTaskItem
                         task={task}
                         taskIndex={index + 1}
@@ -268,6 +271,89 @@ function ToDoListContent() {
           </div>
         )}
       </div>
+      <DragOverlay>
+        {activeId ? (
+          <div className="w-full max-w-[460px] rounded-[20px] shadow-[0_12px_40px_rgba(0,0,0,0.4)] p-6 opacity-95 transform rotate-1"
+               style={{ backgroundColor: 'var(--color-todoloo-card)' }}>
+            <div className="flex items-center gap-6">
+              <div className="flex items-center justify-center">
+                <span
+                  className="font-normal"
+                  style={{ color: '#989999', fontSize: 28, fontFamily: 'Inter' }}
+                >
+                  {(() => {
+                    const task = tasks.find(t => t.id === activeId)
+                    const index = todoTasks.findIndex(t => t.id === activeId)
+                    return index + 1
+                  })()}
+                </span>
+              </div>
+              <div className="flex-1">
+                <div className="flex flex-col gap-1">
+                  <p className="text-base font-medium"
+                     style={{
+                       color: 'var(--color-todoloo-text-secondary)',
+                       fontFamily: 'Geist'
+                     }}>
+                    {(() => {
+                      const task = tasks.find(t => t.id === activeId)
+                      return task?.description || ''
+                    })()}
+                  </p>
+                  <p className="text-sm font-normal" style={{ color: 'var(--color-todoloo-text-muted)', fontFamily: 'Geist' }}>
+                    {(() => {
+                      const task = tasks.find(t => t.id === activeId)
+                      if (!task) return ''
+                      const formatEstimatedTime = (minutes: number) => {
+                        if (minutes < 60) {
+                          return `${minutes} minute${minutes !== 1 ? 's' : ''}`
+                        }
+                        const hours = Math.floor(minutes / 60)
+                        const remainingMinutes = minutes % 60
+                        return remainingMinutes > 0 ? `${hours} hour${hours !== 1 ? 's' : ''} ${remainingMinutes}m` : `${hours} hour${hours !== 1 ? 's' : ''}`
+                      }
+                      return task.isCompleted && task.actualMinutes
+                        ? formatEstimatedTime(task.actualMinutes)
+                        : formatEstimatedTime(task.estimatedMinutes)
+                    })()}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center justify-center" style={{ width: 56, height: 56 }}>
+                <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center ${
+                  (() => {
+                    const task = tasks.find(t => t.id === activeId)
+                    return task?.isCompleted
+                      ? ''
+                      : 'bg-[#F9F9FD] dark:bg-gray-700 border-[#E8E6E6] dark:border-gray-600'
+                  })()
+                }`}
+                     style={{
+                       backgroundColor: (() => {
+                         const task = tasks.find(t => t.id === activeId)
+                         return task?.isCompleted ? 'var(--color-todoloo-gradient-start)' : undefined
+                       })(),
+                       borderColor: (() => {
+                         const task = tasks.find(t => t.id === activeId)
+                         return task?.isCompleted ? 'var(--color-todoloo-gradient-start)' : undefined
+                       })(),
+                       color: (() => {
+                         const task = tasks.find(t => t.id === activeId)
+                         return task?.isCompleted ? 'white' : 'var(--color-todoloo-text-primary)'
+                       })()
+                     }}>
+                  {(() => {
+                    const task = tasks.find(t => t.id === activeId)
+                    return task?.isCompleted && (
+                      <Check className="w-4 h-4" />
+                    )
+                  })()}
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : null}
+      </DragOverlay>
     </DndContext>
   )
 }
