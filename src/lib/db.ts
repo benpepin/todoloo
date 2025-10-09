@@ -67,15 +67,16 @@ function taskToDbTask(task: Task): Partial<DbTask> {
   }
 }
 
-// Fetch all todos for the current user (including shared lists)
+// Fetch all todos for a specific user
 export async function fetchTodos(userId: string): Promise<Task[]> {
-  // The RLS policies will automatically handle showing both:
-  // 1. Todos where user_id = userId (user's own todos)
-  // 2. Todos from lists shared with the user
-  // We just need to remove the .eq('user_id', userId) filter
+  // Fetch todos for a specific user by filtering on user_id
+  // RLS policies should handle shared access, but we need to be careful about the filter
+  console.log('[DB] fetchTodos called with userId:', userId)
+  
   const { data, error } = await supabase
     .from('todos')
     .select('*, user_id, group_id') // Explicitly select user_id and group_id
+    .eq('user_id', userId) // Filter by the specific user
     .order('created_at', { ascending: false })
 
   if (error) {
@@ -83,9 +84,52 @@ export async function fetchTodos(userId: string): Promise<Task[]> {
     throw new Error(`Failed to fetch todos: ${error.message}`)
   }
 
+  console.log('[DB] fetchTodos for userId:', userId, 'count:', data?.length)
   console.log('[DB] fetchTodos raw data sample:', data?.[0])
   const mapped = data?.map(dbTaskToTask) || []
   console.log('[DB] fetchTodos mapped sample:', mapped?.[0])
+  return mapped
+}
+
+// Alternative fetch function that doesn't rely on RLS policies
+export async function fetchTodosDirect(userId: string): Promise<Task[]> {
+  console.log('[DB] fetchTodosDirect called with userId:', userId)
+  
+  // First check if we have access to this user's todos via sharing
+  const { data: shares, error: sharesError } = await supabase
+    .from('list_shares')
+    .select('list_owner_id')
+    .eq('shared_with_user_id', (await supabase.auth.getUser()).data.user?.id)
+  
+  if (sharesError) {
+    console.error('Error checking shares:', sharesError)
+    // Fall back to regular fetch
+    return fetchTodos(userId)
+  }
+  
+  const sharedOwnerIds = shares?.map(s => s.list_owner_id) || []
+  const currentUserId = (await supabase.auth.getUser()).data.user?.id
+  
+  // Check if we're trying to access our own todos or a shared list
+  if (userId !== currentUserId && !sharedOwnerIds.includes(userId)) {
+    console.error('Access denied: No permission to view this user\'s todos')
+    throw new Error('Access denied: No permission to view this user\'s todos')
+  }
+  
+  // If we have permission, fetch the todos
+  const { data, error } = await supabase
+    .from('todos')
+    .select('*, user_id, group_id')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false })
+
+  if (error) {
+    console.error('Error fetching todos:', error)
+    throw new Error(`Failed to fetch todos: ${error.message}`)
+  }
+
+  console.log('[DB] fetchTodosDirect for userId:', userId, 'count:', data?.length)
+  const mapped = data?.map(dbTaskToTask) || []
   return mapped
 }
 
@@ -440,6 +484,55 @@ export async function removeShare(ownerUserId: string, sharedWithUserId: string)
     console.error('Error removing share:', error)
     throw new Error(`Failed to remove share: ${error.message}`)
   }
+}
+
+// Test function to debug sharing issues
+export async function testSharing(userId: string): Promise<void> {
+  console.log('=== SHARING DEBUG TEST ===')
+  console.log('Current user ID:', userId)
+  
+  // Test 1: Check if list_shares table exists and has data
+  const { data: shares, error: sharesError } = await supabase
+    .from('list_shares')
+    .select('*')
+  
+  if (sharesError) {
+    console.error('❌ list_shares table error:', sharesError)
+    console.log('🔧 SOLUTION: Run the database migration from supabase-migration-list-shares.sql')
+    return
+  }
+  
+  console.log('✅ list_shares table exists')
+  console.log('📊 Total shares in database:', shares?.length || 0)
+  
+  // Test 2: Check shares for current user
+  const userShares = shares?.filter(s => s.shared_with_user_id === userId) || []
+  console.log('📋 Shares with current user:', userShares.length)
+  
+  if (userShares.length === 0) {
+    console.log('⚠️  No shares found for current user')
+    console.log('🔧 SOLUTION: Have someone share their list with you, or share your list with someone else')
+    return
+  }
+  
+  // Test 3: Try to fetch todos for each shared list owner
+  for (const share of userShares) {
+    console.log(`\n🧪 Testing access to list owner: ${share.list_owner_id}`)
+    
+    const { data: todos, error: todosError } = await supabase
+      .from('todos')
+      .select('*')
+      .eq('user_id', share.list_owner_id)
+      .limit(5)
+    
+    if (todosError) {
+      console.error(`❌ Error fetching todos for ${share.list_owner_id}:`, todosError)
+    } else {
+      console.log(`✅ Successfully fetched ${todos?.length || 0} todos for ${share.list_owner_id}`)
+    }
+  }
+  
+  console.log('\n=== END DEBUG TEST ===')
 }
 
 // Update share permission

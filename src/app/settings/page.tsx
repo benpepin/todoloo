@@ -225,9 +225,8 @@ export default function SettingsPage() {
                     }`}
                     style={{
                       backgroundColor: currentListOwnerId === user?.id ? 'var(--color-todoloo-gradient-start)' : 'var(--color-todoloo-muted)',
-                      color: currentListOwnerId === user?.id ? 'white' : 'var(--color-todoloo-text-primary)',
-                      ringColor: 'var(--color-todoloo-gradient-start)'
-                    }}
+                      color: currentListOwnerId === user?.id ? 'white' : 'var(--color-todoloo-text-primary)'
+                    } as React.CSSProperties}
                   >
                     <List className="w-5 h-5" />
                     <div className="flex-1 text-left">
@@ -256,9 +255,8 @@ export default function SettingsPage() {
                           }`}
                           style={{
                             backgroundColor: currentListOwnerId === list.ownerId ? 'var(--color-todoloo-gradient-start)' : 'var(--color-todoloo-muted)',
-                            color: currentListOwnerId === list.ownerId ? 'white' : 'var(--color-todoloo-text-primary)',
-                            ringColor: 'var(--color-todoloo-gradient-start)'
-                          }}
+                            color: currentListOwnerId === list.ownerId ? 'white' : 'var(--color-todoloo-text-primary)'
+                          } as React.CSSProperties}
                         >
                           <List className="w-5 h-5" />
                           <div className="flex-1 text-left">

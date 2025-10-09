@@ -10,6 +10,9 @@ import { getCurrentDate, getCompletionTime } from '@/utils/timeUtils'
 import { migrateLocalStorageToSupabase } from '@/lib/migrate-to-supabase'
 import { useSupabase } from '@/components/SupabaseProvider'
 import Auth from '@/components/Auth'
+import { testSharing } from '@/lib/db'
+import SharingDebug from '@/components/SharingDebug'
+import ListSwitcher from '@/components/ListSwitcher'
 
 export default function Home() {
   const { user, loading: authLoading } = useSupabase()
@@ -64,6 +67,15 @@ export default function Home() {
         
         // Initialize user and load tasks
         await initializeUser(user.id)
+        
+        // Add test function to window for debugging
+        if (typeof window !== 'undefined') {
+          (window as any).testSharing = () => testSharing(user.id)
+          console.log('🔧 Debug function available: window.testSharing()')
+        }
+        
+        // Auto-run the sharing test and show results
+        testSharing(user.id).catch(console.error)
       } catch (error) {
         console.error('Error initializing app:', error)
         setMigrationStatus('Failed to initialize app')
@@ -188,6 +200,9 @@ export default function Home() {
              borderColor: 'var(--color-todoloo-border)'
            }}>
         <div className="w-full flex flex-col justify-start items-start gap-1.5">
+          {/* List Switcher */}
+          <ListSwitcher />
+          
           <div
             className="w-full text-base font-['Geist'] font-normal cursor-pointer transition-colors duration-200 hover:opacity-70"
             style={{ color: 'var(--color-todoloo-text-secondary)' }}
@@ -254,6 +269,9 @@ export default function Home() {
           </div>
         </div>
       </div>
+      
+      {/* Debug Component */}
+      <SharingDebug />
     </div>
   )
 }

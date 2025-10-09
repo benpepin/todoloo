@@ -9,10 +9,8 @@ import { ChevronDown } from 'lucide-react'
 
 export default function Header() {
   const toggleCreateTask = useToDoStore((state) => state.toggleCreateTask)
-  const showCreateTask = useToDoStore((state) => state.showCreateTask)
   const userId = useToDoStore((state) => state.userId)
   const currentListOwnerId = useToDoStore((state) => state.currentListOwnerId)
-  const loadTasks = useToDoStore((state) => state.loadTasks)
 
   const [sharedLists, setSharedLists] = useState<Array<{ ownerId: string, ownerEmail: string }>>([])
   const [showListMenu, setShowListMenu] = useState(false)
@@ -28,7 +26,9 @@ export default function Header() {
   const loadSharedLists = async () => {
     if (!user?.id) return
     try {
+      console.log('[Header] Loading shared lists for user:', user.id)
       const lists = await getSharedLists(user.id)
+      console.log('[Header] Got shared lists:', lists)
       setSharedLists(lists)
     } catch (error) {
       console.error('Error loading shared lists:', error)
@@ -40,9 +40,9 @@ export default function Header() {
   }
 
   const switchToList = async (ownerId: string) => {
-    // Set the current list owner and reload tasks
-    useToDoStore.setState({ currentListOwnerId: ownerId })
-    await loadTasks()
+    // Use the store's switchToList function which handles the logic properly
+    const switchToListStore = useToDoStore.getState().switchToList
+    await switchToListStore(ownerId)
     setShowListMenu(false)
   }
 
@@ -94,6 +94,7 @@ export default function Header() {
             </div>
           )}
         </div>
+        
         <div className="flex justify-end items-center gap-8">
           <div className="px-4 py-2 bg-zinc-100 rounded-md shadow-[0px_4px_7px_0px_rgba(0,0,0,0.05)] outline outline-1 outline-offset-[-1px] outline-zinc-300 inline-flex flex-col justify-start items-start gap-2.5">
             <button
@@ -108,4 +109,3 @@ export default function Header() {
     </div>
   )
 }
-

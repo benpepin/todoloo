@@ -224,6 +224,18 @@ function ToDoCardContent() {
         const taskDescription = bulkAddMatch[1].trim()
 
         if (taskDescription) {
+          // Check if we're continuing an existing group or starting a new one
+          let groupId = (window as Window & { __currentGroupId?: string }).__currentGroupId
+
+          if (!groupId) {
+            // Starting a new group
+            groupId = crypto.randomUUID()
+            console.log('Creating new group:', groupId)
+            ;(window as Window & { __currentGroupId?: string }).__currentGroupId = groupId
+          } else {
+            console.log('Continuing existing group:', groupId)
+          }
+
           // Check if this is a multiplication pattern before bulk add (with or without space)
           const multiplicationMatch = taskDescription.match(/^(.+?)\s+x\s*(\d+)$/i)
 
@@ -237,23 +249,19 @@ function ToDoCardContent() {
             }
 
             if (taskCount > 1) {
-              // Create multiple tasks with group ID
-              const groupId = crypto.randomUUID()
+              // Create multiple tasks with the current group ID
               for (let i = 0; i < taskCount; i++) {
                 const numberedDescription = `${baseDescription.trim()} (${i + 1})`
                 addTask(numberedDescription, estimatedMinutes, groupId)
               }
             }
           } else {
-            // Create single task in a group (waiting for next task)
-            const groupId = crypto.randomUUID()
-            console.log('Creating first task in group:', groupId, taskDescription)
-            // Store groupId in component state to continue the group
-            ;(window as Window & { __currentGroupId?: string }).__currentGroupId = groupId
+            // Create single task in the current group
+            console.log('Adding task to group:', groupId, taskDescription)
             addTask(taskDescription, estimatedMinutes, groupId)
           }
 
-          // Reset for next task but keep the card open (bulk add mode)
+          // Reset for next task but keep the card open and group active
           setDescription('')
           setMultiplicationPreview(null)
           setShowSuggestion(false)
@@ -275,18 +283,14 @@ function ToDoCardContent() {
           // This task is part of the current group
           console.log('Adding task to group:', currentGroupId, description.trim())
           addTask(description.trim(), estimatedMinutes, currentGroupId)
-          // DON'T clear the group ID - keep it for more tasks
-          // Only clear when card is closed or user doesn't end with "and"
+
+          // Clear the group ID since user didn't end with "and"
+          // This closes the group - user is done adding to it
+          delete (window as Window & { __currentGroupId?: string }).__currentGroupId
 
           setDescription('')
           setEstimatedMinutes(30)
-          // Keep the card open for more tasks
-          // Re-focus input for next task
-          setTimeout(() => {
-            if (inputRef.current) {
-              inputRef.current.focus()
-            }
-          }, 0)
+          setShowCreateTask(false) // Close the card since group is complete
           return
         }
       }

@@ -17,6 +17,7 @@ interface SortableTaskItemProps {
   onToggleCompletion: (id: string) => void
   isTaskActive: boolean
   groupPosition?: 'single' | 'first' | 'middle' | 'last'
+  isDropTarget?: boolean
 }
 
 export default function SortableTaskItem({
@@ -25,7 +26,8 @@ export default function SortableTaskItem({
   onDelete,
   onToggleCompletion,
   isTaskActive,
-  groupPosition = 'single'
+  groupPosition = 'single',
+  isDropTarget = false
 }: SortableTaskItemProps) {
   const [editDescription, setEditDescription] = useState(task.description)
   const [editEstimatedMinutes, setEditEstimatedMinutes] = useState(task.estimatedMinutes)
@@ -342,8 +344,10 @@ export default function SortableTaskItem({
             taskCardRef.current = node
           }}
           className={`w-full shadow-[2px_2px_4px_rgba(0,0,0,0.15)] group ${
-            isDragging ? 'opacity-50 shadow-xl z-50' : 'transition-opacity duration-200'
+            isDragging ? 'opacity-50 shadow-xl z-50' : 'transition-all duration-200'
           } ${isActive ? 'ring-2' : ''} ${isEditing ? 'p-6' : 'p-6'} ${
+            isDropTarget ? 'ring-4 ring-blue-400 scale-105' : ''
+          } ${
             groupPosition === 'single' ? 'rounded-[20px]' :
             groupPosition === 'first' ? 'rounded-t-[20px]' :
             groupPosition === 'last' ? 'rounded-b-[20px]' :
@@ -351,7 +355,7 @@ export default function SortableTaskItem({
           }`}
           style={{
             ...style,
-            backgroundColor: 'var(--color-todoloo-card)'
+            backgroundColor: isDropTarget ? '#EEF2FF' : 'var(--color-todoloo-card)'
           }}
           onMouseEnter={() => setShowEditButtons(true)}
           onMouseLeave={() => !isEditing && setShowEditButtons(false)}

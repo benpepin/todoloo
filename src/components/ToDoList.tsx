@@ -1,14 +1,15 @@
 'use client'
 
-import { useEffect } from 'react'
-import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core'
+import { useEffect, useState } from 'react'
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent, DragOverEvent } from '@dnd-kit/core'
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { useToDoStore } from '@/store/toDoStore'
 import SortableTaskItem from './SortableTaskItem'
 import ToDoCard from './ToDoCard'
 
 function ToDoListContent() {
-  const { tasks, activeTaskId, deleteTask, toggleTaskCompletion, updateTaskOrder, showCreateTask, toggleCreateTask } = useToDoStore()
+  const { tasks, activeTaskId, deleteTask, toggleTaskCompletion, updateTaskOrder, showCreateTask, toggleCreateTask, groupTasks, ungroupTask } = useToDoStore()
+  const [dropTargetId, setDropTargetId] = useState<string | null>(null)
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -46,23 +47,75 @@ function ToDoListContent() {
     })
   )
 
-  const handleDragEnd = (event: DragEndEvent) => {
+  const handleDragOver = (event: DragOverEvent) => {
     const { active, over } = event
 
+    if (over && active.id !== over.id) {
+      setDropTargetId(over.id as string)
+    } else {
+      setDropTargetId(null)
+    }
+  }
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event
+    setDropTargetId(null) // Clear drop target highlight
+
+    console.log('[DRAG] Drag ended:', { activeId: active.id, overId: over?.id })
+
     if (active.id !== over?.id && over) {
+      const draggedTask = tasks.find(t => t.id === active.id)
+      const targetTask = tasks.find(t => t.id === over.id)
+
+      console.log('[DRAG] Found tasks:', {
+        draggedTask: draggedTask?.description,
+        targetTask: targetTask?.description,
+        draggedCompleted: draggedTask?.isCompleted,
+        targetCompleted: targetTask?.isCompleted
+      })
+
+      // Only work with incomplete tasks
+      if (!draggedTask || draggedTask.isCompleted || !targetTask || targetTask.isCompleted) {
+        console.log('[DRAG] Skipping - completed task or not found')
+        return
+      }
+
       const oldIndex = tasks.findIndex((task) => task.id === active.id)
       const newIndex = tasks.findIndex((task) => task.id === over.id)
-      
+
       if (oldIndex !== -1 && newIndex !== -1) {
+        console.log('[DRAG] Group check:', {
+          draggedGroupId: draggedTask.groupId,
+          targetGroupId: targetTask.groupId,
+          sameGroup: draggedTask.groupId === targetTask.groupId,
+          oldIndex,
+          newIndex,
+          distance: Math.abs(oldIndex - newIndex)
+        })
+
+        // Check if they're already in the same group
+        const inSameGroup = draggedTask.groupId && draggedTask.groupId === targetTask.groupId
+
+        if (!inSameGroup) {
+          // Not in same group - always group them when dropped on each other
+          console.log('[DRAG] Different groups - grouping tasks together')
+          await groupTasks(draggedTask.id, targetTask.id)
+        } else {
+          // Already in same group - just reorder
+          console.log('[DRAG] Already in same group - just reordering')
+        }
+
+        // Reorder tasks
         const reorderedTasks = arrayMove(tasks, oldIndex, newIndex)
-        
+
         // Update the order property for each to do
         const updatedTasks = reorderedTasks.map((task, index) => ({
           ...task,
           order: index
         }))
-        
-        updateTaskOrder(updatedTasks)
+
+        console.log('[DRAG] Updating task order')
+        await updateTaskOrder(updatedTasks)
       }
     }
   }
@@ -117,6 +170,7 @@ function ToDoListContent() {
     <DndContext
       sensors={sensors}
       collisionDetection={closestCenter}
+      onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
     >
       <div className="w-full flex flex-col justify-start items-start gap-8">
@@ -178,6 +232,7 @@ function ToDoListContent() {
                         onToggleCompletion={toggleTaskCompletion}
                         isTaskActive={activeTaskId === task.id}
                         groupPosition={groupPosition}
+                        isDropTarget={dropTargetId === task.id}
                       />
                     </div>
                   )
@@ -230,6 +285,7 @@ function ToDoListContent() {
                           onToggleCompletion={toggleTaskCompletion}
                           isTaskActive={activeTaskId === task.id}
                           groupPosition={groupPosition}
+                          isDropTarget={false}
                         />
                       </div>
                     )
