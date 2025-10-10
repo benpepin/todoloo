@@ -151,6 +151,11 @@
 
 @layer utilities {
   /* Border beam styles are now handled by the Magic UI component */
+
+  /* Touch action for better mobile drag-and-drop */
+  .touch-manipulation {
+    touch-action: manipulation;
+  }
 }
 
 /* Spotify-like bars animation */
