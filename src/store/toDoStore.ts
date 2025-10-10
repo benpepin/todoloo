@@ -192,7 +192,8 @@ export const useToDoStore = create<ToDoStore>()((set, get) => ({
       createdAt: new Date(),
       order: orderValue,
       userId: targetUserId,
-      groupId
+      groupId,
+      createdByUserId: userId // The current logged-in user is the creator
     }
 
     // Optimistic update

@@ -7,6 +7,7 @@ import { Check, GripVertical, Timer, ChevronDown, Play, Pause, Unlink } from 'lu
 import { Task } from '@/types'
 import { useToDoStore } from '@/store/toDoStore'
 import { useSimpleTimer } from '@/hooks/useSimpleTimer'
+import { useSupabase } from './SupabaseProvider'
 import AnimatedBorder from './AnimatedBorder'
 import { AnimatedBars } from './AnimatedBars'
 
@@ -27,6 +28,7 @@ export default function SortableTaskItem({
   isTaskActive,
   groupPosition = 'single'
 }: SortableTaskItemProps) {
+  const { user } = useSupabase()
   const [editDescription, setEditDescription] = useState(task.description)
   const [editEstimatedMinutes, setEditEstimatedMinutes] = useState(task.estimatedMinutes)
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
@@ -391,7 +393,13 @@ export default function SortableTaskItem({
             setNodeRef(node)
             taskCardRef.current = node
           }}
-          className={`w-full shadow-[2px_2px_4px_rgba(0,0,0,0.15)] group ${isEditing ? 'overflow-visible' : 'overflow-hidden'} ${isActive ? 'ring-2' : ''} ${isEditing ? 'p-4 md:p-6' : 'p-4 md:p-6'} ${
+          className={`w-full shadow-[2px_2px_4px_rgba(0,0,0,0.15)] group ${isEditing ? 'overflow-visible' : 'overflow-hidden'} ${isActive ? 'ring-2' : ''} ${
+            isEditing 
+              ? 'p-4 md:p-6' 
+              : task.createdByName && task.createdByUserId && task.createdByUserId !== user?.id 
+                ? 'p-4 md:p-6 pb-10 md:pb-12' 
+                : 'p-4 md:p-6'
+          } ${
             groupPosition === 'single' ? 'rounded-[20px]' :
             groupPosition === 'first' ? 'rounded-t-[20px]' :
             groupPosition === 'last' ? 'rounded-b-[20px]' :
@@ -743,6 +751,16 @@ export default function SortableTaskItem({
               </div>
             </div>
           )}
+          
+          {/* Creator attribution - positioned absolutely at bottom right */}
+          {task.createdByName && task.createdByUserId && task.createdByUserId !== user?.id && (
+            <div className="absolute bottom-3 right-4">
+              <p className="text-xs font-normal" style={{ color: 'var(--color-todoloo-text-muted)', fontFamily: 'Geist' }}>
+                With love from {task.createdByName}
+              </p>
+            </div>
+          )}
+          
         </div>
       </div>
     </AnimatedBorder>

@@ -16,6 +16,7 @@ interface DbTask {
   order_index: number
   tags?: string[]
   group_id?: string
+  created_by_user_id?: string
 }
 
 interface DbTaskCompletion {
@@ -48,7 +49,8 @@ function dbTaskToTask(dbTask: DbTask & { user_id?: string }): Task {
     completedAt: dbTask.completed_at ? new Date(dbTask.completed_at) : undefined,
     order: dbTask.order_index,
     userId: dbTask.user_id, // Include user_id for shared list detection
-    groupId: dbTask.group_id
+    groupId: dbTask.group_id,
+    createdByUserId: dbTask.created_by_user_id
   }
 }
 
@@ -67,15 +69,46 @@ function taskToDbTask(task: Task): Partial<DbTask> {
   }
 }
 
+// Enrich tasks with creator display names
+async function enrichTasksWithCreatorNames(tasks: Task[]): Promise<Task[]> {
+  // Get unique creator IDs
+  const creatorIds = [...new Set(tasks.map(t => t.createdByUserId).filter(Boolean))] as string[]
+
+  if (creatorIds.length === 0) {
+    return tasks
+  }
+
+  // Fetch all creator names in parallel
+  const creatorNames = await Promise.all(
+    creatorIds.map(async (userId) => {
+      const { data, error } = await supabase.rpc('get_user_display_name', { user_id: userId })
+      if (error) {
+        console.error('Error fetching creator name for', userId, error)
+        return { userId, name: 'Someone' }
+      }
+      return { userId, name: data || 'Someone' }
+    })
+  )
+
+  // Create a map for quick lookup
+  const creatorNameMap = new Map(creatorNames.map(c => [c.userId, c.name]))
+
+  // Enrich tasks with creator names
+  return tasks.map(task => ({
+    ...task,
+    createdByName: task.createdByUserId ? creatorNameMap.get(task.createdByUserId) : undefined
+  }))
+}
+
 // Fetch all todos for a specific user
 export async function fetchTodos(userId: string): Promise<Task[]> {
   // Fetch todos for a specific user by filtering on user_id
   // RLS policies should handle shared access, but we need to be careful about the filter
   console.log('[DB] fetchTodos called with userId:', userId)
-  
+
   const { data, error } = await supabase
     .from('todos')
-    .select('*, user_id, group_id') // Explicitly select user_id and group_id
+    .select('*, user_id, group_id, created_by_user_id') // Explicitly select user_id, group_id, and created_by_user_id
     .eq('user_id', userId) // Filter by the specific user
     .order('created_at', { ascending: false })
 
@@ -88,38 +121,41 @@ export async function fetchTodos(userId: string): Promise<Task[]> {
   console.log('[DB] fetchTodos raw data sample:', data?.[0])
   const mapped = data?.map(dbTaskToTask) || []
   console.log('[DB] fetchTodos mapped sample:', mapped?.[0])
-  return mapped
+
+  // Enrich with creator names
+  const enriched = await enrichTasksWithCreatorNames(mapped)
+  return enriched
 }
 
 // Alternative fetch function that doesn't rely on RLS policies
 export async function fetchTodosDirect(userId: string): Promise<Task[]> {
   console.log('[DB] fetchTodosDirect called with userId:', userId)
-  
+
   // First check if we have access to this user's todos via sharing
   const { data: shares, error: sharesError } = await supabase
     .from('list_shares')
     .select('list_owner_id')
     .eq('shared_with_user_id', (await supabase.auth.getUser()).data.user?.id)
-  
+
   if (sharesError) {
     console.error('Error checking shares:', sharesError)
     // Fall back to regular fetch
     return fetchTodos(userId)
   }
-  
+
   const sharedOwnerIds = shares?.map(s => s.list_owner_id) || []
   const currentUserId = (await supabase.auth.getUser()).data.user?.id
-  
+
   // Check if we're trying to access our own todos or a shared list
   if (userId !== currentUserId && !sharedOwnerIds.includes(userId)) {
     console.error('Access denied: No permission to view this user\'s todos')
     throw new Error('Access denied: No permission to view this user\'s todos')
   }
-  
+
   // If we have permission, fetch the todos
   const { data, error } = await supabase
     .from('todos')
-    .select('*, user_id, group_id')
+    .select('*, user_id, group_id, created_by_user_id')
     .eq('user_id', userId)
     .order('created_at', { ascending: false })
 
@@ -130,12 +166,24 @@ export async function fetchTodosDirect(userId: string): Promise<Task[]> {
 
   console.log('[DB] fetchTodosDirect for userId:', userId, 'count:', data?.length)
   const mapped = data?.map(dbTaskToTask) || []
-  return mapped
+
+  // Enrich with creator names
+  const enriched = await enrichTasksWithCreatorNames(mapped)
+  return enriched
 }
 
 // Create todo
-export async function createTodo(task: Omit<Task, 'id' | 'createdAt' | 'order'>, userId: string): Promise<Task> {
+export async function createTodo(
+  task: Omit<Task, 'id' | 'createdAt' | 'order'>,
+  userId: string,
+  createdByUserId?: string
+): Promise<Task> {
   console.log('[DB] createTodo called with groupId:', task.groupId)
+
+  // Get current user if createdByUserId not provided
+  const currentUser = await supabase.auth.getUser()
+  const actualCreatorId = createdByUserId || currentUser.data.user?.id || userId
+
   const dbTask = {
     title: task.description,
     description: task.description,
@@ -146,9 +194,10 @@ export async function createTodo(task: Omit<Task, 'id' | 'createdAt' | 'order'>,
     order_index: 0, // Will be updated by the store
     tags: [],
     user_id: userId,
-    group_id: task.groupId
+    group_id: task.groupId,
+    created_by_user_id: actualCreatorId
   }
-  console.log('[DB] Inserting dbTask with group_id:', dbTask.group_id)
+  console.log('[DB] Inserting dbTask with group_id:', dbTask.group_id, 'created_by_user_id:', dbTask.created_by_user_id)
 
   const { data, error } = await supabase
     .from('todos')
@@ -164,7 +213,10 @@ export async function createTodo(task: Omit<Task, 'id' | 'createdAt' | 'order'>,
   console.log('[DB] Supabase returned data with group_id:', data?.group_id)
   const mappedTask = dbTaskToTask(data)
   console.log('[DB] Mapped task has groupId:', mappedTask.groupId)
-  return mappedTask
+
+  // Enrich with creator name
+  const enrichedTasks = await enrichTasksWithCreatorNames([mappedTask])
+  return enrichedTasks[0]
 }
 
 // Update todo
