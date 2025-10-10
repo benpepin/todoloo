@@ -36,7 +36,8 @@ export default function SortableTaskItem({
   const [isAnimatingOut, setIsAnimatingOut] = useState(false)
   const [isScratching, setIsScratching] = useState(false)
   const [showStrikethrough, setShowStrikethrough] = useState(false)
-  
+  const [showCheckmarkAnimation, setShowCheckmarkAnimation] = useState(false)
+
   const descriptionInputRef = useRef<HTMLInputElement>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const taskCardRef = useRef<HTMLDivElement>(null)
@@ -188,8 +189,16 @@ export default function SortableTaskItem({
 
     // If completing the task, trigger cat paw animation
     if (isCompleting) {
-      // Start the scratch animation
-      setIsScratching(true)
+      // 30% chance for cat paw scratch
+      const showScratch = Math.random() < 0.3
+
+      // Trigger checkmark animation
+      setShowCheckmarkAnimation(true)
+
+      if (showScratch) {
+        // Start the scratch animation
+        setIsScratching(true)
+      }
 
       // If completing the task while timer is running, pause it first
       if (isRunning && hasStarted) {
@@ -206,21 +215,30 @@ export default function SortableTaskItem({
         stopTask()
       }
 
-      // Show strikethrough mid-animation (when paw is scratching)
-      setTimeout(() => {
-        setShowStrikethrough(true)
-      }, 500)
+      if (showScratch) {
+        // Show strikethrough mid-animation (when paw is scratching)
+        setTimeout(() => {
+          setShowStrikethrough(true)
+        }, 500)
 
-      // Hide the paw after animation completes
-      setTimeout(() => {
-        setIsScratching(false)
-      }, 1500)
+        // Hide the paw after animation completes
+        setTimeout(() => {
+          setIsScratching(false)
+        }, 1500)
 
-      // Complete the task after showing strikethrough for a bit longer
-      setTimeout(() => {
-        setShowStrikethrough(false)
-        onToggleCompletion(task.id)
-      }, 3000)
+        // Complete the task after showing strikethrough for a bit longer
+        setTimeout(() => {
+          setShowStrikethrough(false)
+          setShowCheckmarkAnimation(false)
+          onToggleCompletion(task.id)
+        }, 3000)
+      } else {
+        // No scratch animation - show checkmark briefly before completing
+        setTimeout(() => {
+          setShowCheckmarkAnimation(false)
+          onToggleCompletion(task.id)
+        }, 800)
+      }
     } else {
       // If uncompleting, do it immediately
       onToggleCompletion(task.id)
@@ -373,7 +391,7 @@ export default function SortableTaskItem({
             setNodeRef(node)
             taskCardRef.current = node
           }}
-          className={`w-full shadow-[2px_2px_4px_rgba(0,0,0,0.15)] group overflow-hidden ${isActive ? 'ring-2' : ''} ${isEditing ? 'p-6' : 'p-6'} ${
+          className={`w-full shadow-[2px_2px_4px_rgba(0,0,0,0.15)] group ${isEditing ? 'overflow-visible' : 'overflow-hidden'} ${isActive ? 'ring-2' : ''} ${isEditing ? 'p-6' : 'p-6'} ${
             groupPosition === 'single' ? 'rounded-[20px]' :
             groupPosition === 'first' ? 'rounded-t-[20px]' :
             groupPosition === 'last' ? 'rounded-b-[20px]' :
@@ -536,15 +554,16 @@ export default function SortableTaskItem({
               {/* Cat Paw Scratch Animation - covers entire card */}
               {isScratching && (
                 <div
-                  className="absolute top-0 left-0 h-full flex items-center pointer-events-none z-20"
+                  className="absolute left-0 h-full flex items-center pointer-events-none z-20"
                   style={{
+                    top: '12px',
                     animation: 'catPawSlide 1.5s ease-in-out',
                   }}
                 >
                   <img
                     src="/catpaw.png"
                     alt="cat paw"
-                    className="w-96 h-auto"
+                    className="w-72 h-auto"
                     style={{
                       animation: 'catPawScratch 0.6s ease-in-out 0.3s'
                     }}
@@ -674,38 +693,49 @@ export default function SortableTaskItem({
               </div>
 
               {/* Checkbox - always visible */}
-              <div className="flex items-center justify-center" style={{ width: 56, height: 56 }}>
+              <div className="flex items-center justify-center relative" style={{ width: 56, height: 56 }}>
                 <button
                   onClick={handleToggleCompletion}
                   className={`w-8 h-8 rounded-full border-2 flex items-center justify-center cursor-pointer relative ${
-                    !task.isCompleted ? 'hover:scale-90 transition-transform duration-150 ease-out' : ''
+                    !task.isCompleted && !isScratching ? 'hover:scale-90 transition-transform duration-150 ease-out' : ''
                   } ${
-                    task.isCompleted
+                    task.isCompleted || isScratching
                       ? ''
                       : 'bg-[#F9F9FD] dark:bg-gray-700 border-[#E8E6E6] dark:border-gray-600'
                   }`}
                   style={{
-                    backgroundColor: task.isCompleted ? 'var(--color-todoloo-gradient-start)' : undefined,
-                    borderColor: task.isCompleted ? 'var(--color-todoloo-gradient-start)' : undefined,
-                    color: task.isCompleted ? 'white' : 'var(--color-todoloo-text-primary)'
+                    backgroundColor: (task.isCompleted || isScratching || showCheckmarkAnimation) ? 'var(--color-todoloo-gradient-start)' : undefined,
+                    borderColor: (task.isCompleted || isScratching || showCheckmarkAnimation) ? 'var(--color-todoloo-gradient-start)' : undefined,
+                    color: (task.isCompleted || isScratching || showCheckmarkAnimation) ? 'white' : 'var(--color-todoloo-text-primary)',
+                    animation: showCheckmarkAnimation ? 'checkmarkRotate 0.5s ease-out 0.3s' : undefined,
                   }}
                   onMouseEnter={(e) => {
-                    if (!task.isCompleted) {
+                    if (!task.isCompleted && !isScratching) {
                       e.currentTarget.style.borderColor = 'var(--color-todoloo-gradient-start)'
                     }
                   }}
                   onMouseLeave={(e) => {
-                    if (!task.isCompleted) {
+                    if (!task.isCompleted && !isScratching) {
                       e.currentTarget.style.borderColor = ''
                       e.currentTarget.classList.add('border-[#E8E6E6]', 'dark:border-gray-600')
                     }
                   }}
                 >
-                  {task.isCompleted && (
+                  {(task.isCompleted || isScratching || showCheckmarkAnimation) && (
                     <>
-                      <Check className="w-4 h-4 animate-in zoom-in-50 duration-300" style={{ animationTimingFunction: 'cubic-bezier(0.68, -0.55, 0.265, 1.55)' }} />
-                      <span className="absolute inset-0 rounded-full border-2 animate-ping" style={{ borderColor: 'var(--color-todoloo-gradient-start)', animationDuration: '0.6s', animationIterationCount: '1' }} />
-                      <span className="absolute inset-0 rounded-full border-2 animate-ping" style={{ borderColor: 'var(--color-todoloo-gradient-start)', animationDuration: '0.8s', animationIterationCount: '1', animationDelay: '0.1s' }} />
+                      <Check
+                        className="w-4 h-4"
+                        style={{
+                          animation: showCheckmarkAnimation ? 'checkmarkBounce 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55)' : undefined
+                        }}
+                      />
+                      {showCheckmarkAnimation && (
+                        <>
+                          <span className="absolute inset-0 rounded-full border-2" style={{ borderColor: 'var(--color-todoloo-gradient-start)', animation: 'rippleExpand 0.6s ease-out' }} />
+                          <span className="absolute inset-0 rounded-full border-2" style={{ borderColor: 'var(--color-todoloo-gradient-start)', animation: 'rippleExpand 0.8s ease-out 0.1s' }} />
+                          <span className="absolute inset-0 rounded-full border-2" style={{ borderColor: 'var(--color-todoloo-gradient-start)', animation: 'rippleExpand 1s ease-out 0.2s' }} />
+                        </>
+                      )}
                     </>
                   )}
                 </button>
