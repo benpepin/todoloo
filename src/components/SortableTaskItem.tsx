@@ -373,10 +373,10 @@ export default function SortableTaskItem({
   return (
     <AnimatedBorder isActive={isActive}>
       <div className="relative w-full group max-w-[460px]">
-        {/* Drag Handle - Positioned absolutely to not affect card width */}
+        {/* Drag Handle - Positioned absolutely to not affect card width, hidden on mobile */}
         <button
-          className="absolute -left-10 top-1/2 -translate-y-1/2 p-2 rounded-lg transition-all duration-200 cursor-grab active:cursor-grabbing opacity-0 group-hover:opacity-100 z-10 hover:bg-[var(--muted)]"
-          style={{ 
+          className="hidden lg:block absolute -left-10 top-1/2 -translate-y-1/2 p-2 rounded-lg transition-all duration-200 cursor-grab active:cursor-grabbing opacity-0 group-hover:opacity-100 z-10 hover:bg-[var(--muted)]"
+          style={{
             color: 'var(--color-todoloo-text-secondary)'
           }}
           {...attributes}
@@ -391,18 +391,19 @@ export default function SortableTaskItem({
             setNodeRef(node)
             taskCardRef.current = node
           }}
-          className={`w-full shadow-[2px_2px_4px_rgba(0,0,0,0.15)] group ${isEditing ? 'overflow-visible' : 'overflow-hidden'} ${isActive ? 'ring-2' : ''} ${isEditing ? 'p-6' : 'p-6'} ${
+          className={`w-full shadow-[2px_2px_4px_rgba(0,0,0,0.15)] group ${isEditing ? 'overflow-visible' : 'overflow-hidden'} ${isActive ? 'ring-2' : ''} ${isEditing ? 'p-4 md:p-6' : 'p-4 md:p-6'} ${
             groupPosition === 'single' ? 'rounded-[20px]' :
             groupPosition === 'first' ? 'rounded-t-[20px]' :
             groupPosition === 'last' ? 'rounded-b-[20px]' :
             ''
-          }`}
+          } ${!isEditing && !task.isCompleted ? 'lg:cursor-default touch-manipulation' : ''}`}
           style={{
             ...style,
             backgroundColor: 'var(--color-todoloo-card)'
           }}
           onMouseEnter={() => setShowEditButtons(true)}
           onMouseLeave={() => !isEditing && setShowEditButtons(false)}
+          {...(!isEditing && !task.isCompleted ? { ...attributes, ...listeners } : {})}
         >
           {isEditing ? (
             // Edit mode - looks like TaskCard
@@ -550,7 +551,7 @@ export default function SortableTaskItem({
             </div>
           ) : (
             // Normal display mode - simplified design with hover states
-            <div className={`flex items-center gap-6 relative ${isActive ? 'active' : ''}`}>
+            <div className={`flex items-center gap-3 md:gap-6 relative ${isActive ? 'active' : ''}`}>
               {/* Cat Paw Scratch Animation - covers entire card */}
               {isScratching && (
                 <div
@@ -572,10 +573,10 @@ export default function SortableTaskItem({
               )}
 
               {/* Task number or play/animated bars */}
-              <div className="flex items-center justify-center">
+              <div className="flex items-center justify-center min-w-[32px]">
                 {isRunning && hasStarted ? (
                   // Active task: show animated bars that fade to pause on hover
-                  <div className="relative w-8 h-8 flex items-center justify-center">
+                  <div className="relative w-10 h-10 md:w-8 md:h-8 flex items-center justify-center">
                     <div className="w-8 h-8 flex items-center justify-center group-hover:opacity-0 transition-opacity duration-200" style={{ overflow: 'visible' }}>
                       <AnimatedBars />
                     </div>
@@ -662,7 +663,7 @@ export default function SortableTaskItem({
                   onClick={handleEdit}
                 >
                   <div className="flex flex-col gap-1">
-                    <p className={`text-base font-medium ${
+                    <p className={`text-sm md:text-base font-medium ${
                       task.isCompleted || showStrikethrough ? 'line-through' : ''
                     }`}
                        style={{
@@ -672,7 +673,7 @@ export default function SortableTaskItem({
                       {task.description}
                     </p>
                     <div className="flex items-center gap-2">
-                      <p className="text-sm font-normal" style={{ color: 'var(--color-todoloo-text-muted)', fontFamily: 'Geist' }}>
+                      <p className="text-xs md:text-sm font-normal" style={{ color: 'var(--color-todoloo-text-muted)', fontFamily: 'Geist' }}>
                         {task.isCompleted && task.actualMinutes
                           ? formatEstimatedTime(task.actualMinutes)
                           : formatEstimatedTime(task.estimatedMinutes)
@@ -693,10 +694,10 @@ export default function SortableTaskItem({
               </div>
 
               {/* Checkbox - always visible */}
-              <div className="flex items-center justify-center relative" style={{ width: 56, height: 56 }}>
+              <div className="flex items-center justify-center relative min-w-[56px]" style={{ width: 56, height: 56 }}>
                 <button
                   onClick={handleToggleCompletion}
-                  className={`w-8 h-8 rounded-full border-2 flex items-center justify-center cursor-pointer relative ${
+                  className={`w-10 h-10 md:w-8 md:h-8 rounded-full border-2 flex items-center justify-center cursor-pointer relative ${
                     !task.isCompleted && !isScratching ? 'hover:scale-90 transition-transform duration-150 ease-out' : ''
                   } ${
                     task.isCompleted || isScratching

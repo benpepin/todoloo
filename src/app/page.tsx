@@ -192,9 +192,31 @@ export default function Home() {
   // Sign out moved to Settings page
 
   return (
-    <div className="w-full h-screen flex" style={{ backgroundColor: 'var(--color-todoloo-bg)' }}>
-      {/* Sidebar - 20% width */}
-      <div className="w-[20%] h-full p-8 overflow-hidden border-r flex flex-col justify-between items-start"
+    <div className="w-full h-screen flex flex-col lg:flex-row" style={{ backgroundColor: 'var(--color-todoloo-bg)' }}>
+      {/* Mobile Header - visible only on mobile/tablet */}
+      <div className="lg:hidden w-full p-4 border-b flex justify-between items-center"
+           style={{
+             backgroundColor: 'var(--color-todoloo-sidebar)',
+             borderColor: 'var(--color-todoloo-border)'
+           }}>
+        <div className="flex flex-col gap-1">
+          <ListSwitcher />
+          <div
+            className="text-sm font-['Geist'] font-normal"
+            style={{ color: 'var(--color-todoloo-text-secondary)' }}
+          >
+            {totalMinutes === 0 ? (
+              "You're done!"
+            ) : (
+              `Done at ${completionTime}`
+            )}
+          </div>
+        </div>
+        <SettingsMenu />
+      </div>
+
+      {/* Desktop Sidebar - hidden on mobile/tablet */}
+      <div className="hidden lg:flex lg:w-[20%] h-full p-8 overflow-hidden border-r flex-col justify-between items-start"
            style={{
              backgroundColor: 'var(--color-todoloo-sidebar)',
              borderColor: 'var(--color-todoloo-border)'
@@ -202,7 +224,7 @@ export default function Home() {
         <div className="w-full flex flex-col justify-start items-start gap-1.5">
           {/* List Switcher */}
           <ListSwitcher />
-          
+
           <div
             className="w-full text-base font-['Geist'] font-normal cursor-pointer transition-colors duration-200 hover:opacity-70"
             style={{ color: 'var(--color-todoloo-text-secondary)' }}
@@ -214,7 +236,7 @@ export default function Home() {
               totalMinutes === 0 ? (
                 "You're done! Put the computer down"
               ) : (
-                `Free at ${completionTime}`
+                `You're done at ${completionTime}`
               )
             )}
           </div>
@@ -223,9 +245,9 @@ export default function Home() {
           <SettingsMenu />
         </div>
       </div>
-      
-      {/* Main Content - 80% width */}
-      <div className="w-[80%] h-full p-8 overflow-y-auto flex flex-col justify-start items-center gap-2.5"
+
+      {/* Main Content - full width on mobile, 80% on desktop */}
+      <div className="w-full lg:w-[80%] h-full p-4 md:p-6 lg:p-8 overflow-y-auto flex flex-col justify-start items-center gap-2.5"
            style={{ backgroundColor: 'var(--color-todoloo-main)' }}>
         
         {/* Error Display */}
@@ -269,9 +291,21 @@ export default function Home() {
           </div>
         </div>
       </div>
-      
+
+      {/* Floating Action Button - Mobile Only */}
+      <button
+        onClick={toggleCreateTask}
+        className="lg:hidden fixed bottom-6 right-6 w-14 h-14 rounded-full shadow-lg flex items-center justify-center z-50 active:scale-95 transition-transform"
+        style={{
+          background: 'linear-gradient(to right, var(--color-todoloo-gradient-start), var(--color-todoloo-gradient-end))'
+        }}
+        aria-label="New Todo"
+      >
+        <span className="text-white text-2xl font-light">+</span>
+      </button>
+
       {/* Debug Component */}
-      <SharingDebug />
+      {/* <SharingDebug /> */}
     </div>
   )
 }
