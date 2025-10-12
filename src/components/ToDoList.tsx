@@ -41,13 +41,13 @@ function ToDoListContent() {
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 8,
+        distance: 3,
       },
     }),
     useSensor(TouchSensor, {
       activationConstraint: {
-        delay: 150,
-        tolerance: 5,
+        delay: 100,
+        tolerance: 3,
       },
     }),
     useSensor(KeyboardSensor, {
@@ -99,7 +99,7 @@ function ToDoListContent() {
         console.log('[DRAG] Reordering incomplete tasks')
         const reorderedIncompleteTasks = arrayMove(incompleteTasks, oldIndex, newIndex)
         
-        // Create updated tasks array with new order values for incomplete tasks
+        // Create updated tasks array with new order values for incomplete tasks only
         const updatedTasks = tasks.map(task => {
           if (task.isCompleted) {
             // Keep completed tasks as-is
@@ -107,6 +107,11 @@ function ToDoListContent() {
           } else {
             // Find the new position in the reordered incomplete tasks
             const newPosition = reorderedIncompleteTasks.findIndex(t => t.id === task.id)
+            if (newPosition === -1) {
+              // Task not found in reordered list, keep original order
+              console.warn('[DRAG] Task not found in reordered list:', task.id)
+              return task
+            }
             return {
               ...task,
               order: newPosition
@@ -115,7 +120,6 @@ function ToDoListContent() {
         })
 
         // Update store directly - it will handle optimistic updates
-        console.log('[DRAG] Updating task order')
         await updateTaskOrder(updatedTasks)
       }
     }
@@ -304,7 +308,9 @@ function ToDoListContent() {
                style={{
                  backgroundColor: 'var(--color-todoloo-card)',
                  opacity: 1.0,
-                 transform: 'scale(1.05)'
+                 transform: 'scale(1.08) rotate(2deg)',
+                 transition: 'transform 150ms cubic-bezier(0.2, 0, 0, 1)',
+                 cursor: 'grabbing'
                }}>
             <div className="flex items-center gap-6">
               <div className="flex items-center justify-center w-8 h-8">

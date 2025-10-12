@@ -365,10 +365,17 @@ export async function fetchTaskCompletions(userId: string): Promise<TaskHistoryE
 
 // Update task order (bulk update)
 export async function updateTaskOrder(tasks: Task[]): Promise<void> {
-  const updates = tasks.map((task, index) => ({
+  // Only update incomplete tasks - completed tasks should keep their original order
+  const incompleteTasks = tasks.filter(task => !task.isCompleted)
+  
+  const updates = incompleteTasks.map(task => ({
     id: task.id,
-    order_index: index
+    order_index: task.order
   }))
+  
+  if (updates.length === 0) {
+    return
+  }
   
   // Use a transaction-like approach with Promise.all
   const updatePromises = updates.map(update => 

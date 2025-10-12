@@ -375,10 +375,10 @@ export default function SortableTaskItem({
   const style = {
     transform: CSS.Transform.toString(transform),
     transition: isDragging
-      ? 'none'
-      : transition || 'transform 150ms cubic-bezier(0.2, 0, 0, 1), opacity 150ms ease-out',
-    willChange: isDragging ? 'transform' : undefined,
-    opacity: isDragging ? 0 : 1,
+      ? 'transform 200ms cubic-bezier(0.2, 0, 0, 1), opacity 200ms ease-out'
+      : transition || 'transform 200ms cubic-bezier(0.2, 0, 0, 1), opacity 200ms ease-out',
+    willChange: isDragging ? 'transform' : 'auto',
+    opacity: isDragging ? 0.1 : 1,
   }
 
   const formatEstimatedTime = (minutes: number) => {
@@ -422,7 +422,7 @@ export default function SortableTaskItem({
             groupPosition === 'first' ? 'rounded-t-[20px]' :
             groupPosition === 'last' ? 'rounded-b-[20px]' :
             ''
-          } ${!isEditing && !task.isCompleted ? 'lg:cursor-default touch-manipulation' : ''}`}
+          } ${!isEditing && !task.isCompleted ? 'lg:cursor-default touch-manipulation hover:shadow-[4px_4px_8px_rgba(0,0,0,0.2)] transition-shadow duration-200' : ''}`}
           style={{
             ...style,
             backgroundColor: 'var(--color-todoloo-card)'
