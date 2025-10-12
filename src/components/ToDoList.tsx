@@ -175,7 +175,13 @@ function ToDoListContent() {
   }
 
   const todoTasks = localTasks.filter(task => !task.isCompleted).sort((a, b) => a.order - b.order)
-  const doneTasks = localTasks.filter(task => task.isCompleted).sort((a, b) => a.order - b.order)
+  const doneTasks = localTasks.filter(task => task.isCompleted).sort((a, b) => {
+    // Sort by completedAt, earliest first (first completed = rank 1)
+    if (!a.completedAt && !b.completedAt) return 0
+    if (!a.completedAt) return 1
+    if (!b.completedAt) return -1
+    return new Date(a.completedAt).getTime() - new Date(b.completedAt).getTime()
+  })
 
   return (
     <DndContext

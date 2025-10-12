@@ -55,7 +55,7 @@ export default function ListSwitcher() {
       <div className="relative">
         <button
           onClick={() => setShowListMenu(!showListMenu)}
-          className="w-full flex items-center justify-between gap-2 px-3 py-2 bg-white rounded-md border border-gray-200 hover:bg-gray-50 transition-colors"
+          className="w-full min-w-[260px] flex items-center justify-between gap-2 px-3 py-2 bg-white rounded-md border border-gray-200 hover:bg-gray-50 transition-colors"
         >
           <span className="text-sm font-medium text-gray-700 truncate">{getCurrentListName()}</span>
           <ChevronDown className="w-4 h-4 text-gray-500 flex-shrink-0" />
@@ -73,7 +73,7 @@ export default function ListSwitcher() {
               <button
                 key={list.ownerId}
                 onClick={() => switchToList(list.ownerId)}
-                className="w-full text-left px-4 py-2 hover:bg-gray-50 text-sm font-medium text-gray-700"
+                className="w-full text-left px-4 py-2 hover:bg-gray-50 text-sm font-medium text-gray-700 truncate"
               >
                 {list.ownerEmail}&apos;s List
               </button>
