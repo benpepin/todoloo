@@ -68,8 +68,7 @@ function ToDoListContent() {
 
     console.log('[DRAG] Drag ended:', { activeId: active.id, overId: over?.id })
 
-    // Clear active state immediately
-    setActiveId(null)
+    // Clear overId immediately but delay clearing activeId for smooth animation
     setOverId(null)
 
     if (active.id !== over?.id && over) {
@@ -123,6 +122,11 @@ function ToDoListContent() {
         await updateTaskOrder(updatedTasks)
       }
     }
+    
+    // Clear activeId after a short delay to allow smooth animation
+    setTimeout(() => {
+      setActiveId(null)
+    }, 150)
   }
 
 
@@ -309,7 +313,7 @@ function ToDoListContent() {
                  backgroundColor: 'var(--color-todoloo-card)',
                  opacity: 1.0,
                  transform: 'scale(1.08) rotate(2deg)',
-                 transition: 'transform 150ms cubic-bezier(0.2, 0, 0, 1)',
+                 transition: 'transform 200ms cubic-bezier(0.2, 0, 0, 1), opacity 200ms ease-out',
                  cursor: 'grabbing'
                }}>
             <div className="flex items-center gap-6">

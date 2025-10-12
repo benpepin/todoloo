@@ -374,9 +374,7 @@ export default function SortableTaskItem({
 
   const style = {
     transform: CSS.Transform.toString(transform),
-    transition: isDragging
-      ? 'transform 200ms cubic-bezier(0.2, 0, 0, 1), opacity 200ms ease-out'
-      : transition || 'transform 200ms cubic-bezier(0.2, 0, 0, 1), opacity 200ms ease-out',
+    transition: transition || 'transform 200ms cubic-bezier(0.2, 0, 0, 1), opacity 200ms ease-out',
     willChange: isDragging ? 'transform' : 'auto',
     opacity: isDragging ? 0.1 : 1,
   }
