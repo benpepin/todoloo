@@ -116,16 +116,23 @@ export default function SortableTaskItem({
     function handleClickOutsideTaskCard(event: MouseEvent) {
       if (isEditing && taskCardRef.current && !taskCardRef.current.contains(event.target as Node)) {
         // Save the current edits when clicking outside
-        if (editDescription.trim()) {
-          updateTaskDescription(task.id, editDescription.trim())
-          updateTaskEstimatedTime(task.id, editEstimatedMinutes)
+        const saveAndClose = async () => {
+          try {
+            if (editDescription.trim()) {
+              await updateTaskDescription(task.id, editDescription.trim())
+              await updateTaskEstimatedTime(task.id, editEstimatedMinutes)
+            }
+            setIsAnimatingOut(true)
+            setTimeout(() => {
+              clearEditingTask()
+              setShowEditButtons(false)
+              setIsAnimatingOut(false)
+            }, 150)
+          } catch (error) {
+            console.error('Failed to save task on click outside:', error)
+          }
         }
-        setIsAnimatingOut(true)
-        setTimeout(() => {
-          clearEditingTask()
-          setShowEditButtons(false)
-          setIsAnimatingOut(false)
-        }, 150)
+        saveAndClose()
       }
     }
 
@@ -143,15 +150,22 @@ export default function SortableTaskItem({
     if (isEditing && editingTaskId !== task.id) {
       // We were editing this to do but now another to do is being edited
       // Auto-save our changes
-      if (editDescription.trim()) {
-        updateTaskDescription(task.id, editDescription.trim())
-        updateTaskEstimatedTime(task.id, editEstimatedMinutes)
+      const autoSave = async () => {
+        try {
+          if (editDescription.trim()) {
+            await updateTaskDescription(task.id, editDescription.trim())
+            await updateTaskEstimatedTime(task.id, editEstimatedMinutes)
+          }
+          setIsAnimatingOut(true)
+          setTimeout(() => {
+            setShowEditButtons(false)
+            setIsAnimatingOut(false)
+          }, 150)
+        } catch (error) {
+          console.error('Failed to auto-save task:', error)
+        }
       }
-      setIsAnimatingOut(true)
-      setTimeout(() => {
-        setShowEditButtons(false)
-        setIsAnimatingOut(false)
-      }, 150)
+      autoSave()
     }
   }, [editingTaskId, task.id, isEditing, editDescription, editEstimatedMinutes, updateTaskDescription, updateTaskEstimatedTime])
 
@@ -258,17 +272,21 @@ export default function SortableTaskItem({
     setShowEditButtons(true)
   }
 
-  const handleSave = () => {
-    if (editDescription.trim()) {
-      updateTaskDescription(task.id, editDescription.trim())
-      updateTaskEstimatedTime(task.id, editEstimatedMinutes)
+  const handleSave = async () => {
+    try {
+      if (editDescription.trim()) {
+        await updateTaskDescription(task.id, editDescription.trim())
+        await updateTaskEstimatedTime(task.id, editEstimatedMinutes)
+      }
+      setIsAnimatingOut(true)
+      setTimeout(() => {
+        clearEditingTask()
+        setShowEditButtons(false)
+        setIsAnimatingOut(false)
+      }, 150)
+    } catch (error) {
+      console.error('Failed to save task:', error)
     }
-    setIsAnimatingOut(true)
-    setTimeout(() => {
-      clearEditingTask()
-      setShowEditButtons(false)
-      setIsAnimatingOut(false)
-    }, 150)
   }
 
   const handleCancel = () => {
@@ -358,9 +376,9 @@ export default function SortableTaskItem({
     transform: CSS.Transform.toString(transform),
     transition: isDragging
       ? 'none'
-      : transition || 'transform 250ms cubic-bezier(0.34, 1.56, 0.64, 1), opacity 150ms ease-out',
-    willChange: isDragging ? 'transform' : 'auto',
-    opacity: isDragging ? 0.4 : 1,
+      : transition || 'transform 150ms cubic-bezier(0.2, 0, 0, 1), opacity 150ms ease-out',
+    willChange: isDragging ? 'transform' : undefined,
+    opacity: isDragging ? 0 : 1,
   }
 
   const formatEstimatedTime = (minutes: number) => {
@@ -507,7 +525,13 @@ export default function SortableTaskItem({
                 <div className="flex items-center gap-2">
                   {task.groupId && (
                     <button
-                      onClick={() => ungroupTask(task.id)}
+                      onClick={async () => {
+                        try {
+                          await ungroupTask(task.id)
+                        } catch (error) {
+                          console.error('Failed to ungroup task:', error)
+                        }
+                      }}
                       className="h-8 px-3 text-xs font-inter cursor-pointer transition-colors flex items-center gap-1"
                       style={{
                         backgroundColor: 'transparent',

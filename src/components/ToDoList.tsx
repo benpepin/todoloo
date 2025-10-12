@@ -12,14 +12,6 @@ function ToDoListContent() {
   const { tasks, activeTaskId, deleteTask, toggleTaskCompletion, updateTaskOrder, showCreateTask, toggleCreateTask } = useToDoStore()
   const [activeId, setActiveId] = useState<string | null>(null)
   const [overId, setOverId] = useState<string | null>(null)
-  const [localTasks, setLocalTasks] = useState(tasks)
-
-  // Sync local tasks with store, but only when not dragging
-  useEffect(() => {
-    if (!activeId) {
-      setLocalTasks(tasks)
-    }
-  }, [tasks, activeId])
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -45,7 +37,7 @@ function ToDoListContent() {
     }
   }, [toggleCreateTask, showCreateTask])
 
-  
+
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -76,9 +68,13 @@ function ToDoListContent() {
 
     console.log('[DRAG] Drag ended:', { activeId: active.id, overId: over?.id })
 
+    // Clear active state immediately
+    setActiveId(null)
+    setOverId(null)
+
     if (active.id !== over?.id && over) {
-      const draggedTask = localTasks.find(t => t.id === active.id)
-      const targetTask = localTasks.find(t => t.id === over.id)
+      const draggedTask = tasks.find(t => t.id === active.id)
+      const targetTask = tasks.find(t => t.id === over.id)
 
       console.log('[DRAG] Found tasks:', {
         draggedTask: draggedTask?.description,
@@ -90,49 +86,43 @@ function ToDoListContent() {
       // Only work with incomplete tasks
       if (!draggedTask || draggedTask.isCompleted || !targetTask || targetTask.isCompleted) {
         console.log('[DRAG] Skipping - completed task or not found')
-        // Delay clearing active state to allow animation to complete
-        setTimeout(() => {
-          setActiveId(null)
-          setOverId(null)
-        }, 250)
         return
       }
 
-      const oldIndex = localTasks.findIndex((task) => task.id === active.id)
-      const newIndex = localTasks.findIndex((task) => task.id === over.id)
+      // Get incomplete tasks only for reordering
+      const incompleteTasks = tasks.filter(task => !task.isCompleted).sort((a, b) => a.order - b.order)
+      const oldIndex = incompleteTasks.findIndex((task) => task.id === active.id)
+      const newIndex = incompleteTasks.findIndex((task) => task.id === over.id)
 
       if (oldIndex !== -1 && newIndex !== -1) {
-        // Optimistically update local state immediately
-        console.log('[DRAG] Reordering tasks')
-        const reorderedTasks = arrayMove(localTasks, oldIndex, newIndex)
-        const updatedTasks = reorderedTasks.map((task, index) => ({
-          ...task,
-          order: index
-        }))
+        // Reorder only the incomplete tasks
+        console.log('[DRAG] Reordering incomplete tasks')
+        const reorderedIncompleteTasks = arrayMove(incompleteTasks, oldIndex, newIndex)
+        
+        // Create updated tasks array with new order values for incomplete tasks
+        const updatedTasks = tasks.map(task => {
+          if (task.isCompleted) {
+            // Keep completed tasks as-is
+            return task
+          } else {
+            // Find the new position in the reordered incomplete tasks
+            const newPosition = reorderedIncompleteTasks.findIndex(t => t.id === task.id)
+            return {
+              ...task,
+              order: newPosition
+            }
+          }
+        })
 
-        setLocalTasks(updatedTasks)
-
-        // Delay clearing active state to allow animation to complete
-        setTimeout(() => {
-          setActiveId(null)
-          setOverId(null)
-        }, 250)
-
-        // Update store in background
+        // Update store directly - it will handle optimistic updates
         console.log('[DRAG] Updating task order')
         await updateTaskOrder(updatedTasks)
       }
-    } else {
-      // Delay clearing active state to allow animation to complete
-      setTimeout(() => {
-        setActiveId(null)
-        setOverId(null)
-      }, 250)
     }
   }
 
 
-  if (localTasks.length === 0) {
+  if (tasks.length === 0) {
     return (
       <div className="w-full flex flex-col justify-start items-start gap-8">
         {/* Todo Section */}
@@ -149,10 +139,10 @@ function ToDoListContent() {
               </div>
             </button>
           </div>
-          
+
           {/* Task Creation Card */}
           {showCreateTask && <ToDoCard />}
-          
+
           {/* Empty state when no tasks and not creating */}
           {!showCreateTask && (
             <div className="w-full">
@@ -174,8 +164,8 @@ function ToDoListContent() {
     )
   }
 
-  const todoTasks = localTasks.filter(task => !task.isCompleted).sort((a, b) => a.order - b.order)
-  const doneTasks = localTasks.filter(task => task.isCompleted).sort((a, b) => {
+  const todoTasks = tasks.filter(task => !task.isCompleted).sort((a, b) => a.order - b.order)
+  const doneTasks = tasks.filter(task => task.isCompleted).sort((a, b) => {
     // Sort by completedAt, earliest first (first completed = rank 1)
     if (!a.completedAt && !b.completedAt) return 0
     if (!a.completedAt) return 1
@@ -206,10 +196,10 @@ function ToDoListContent() {
               </div>
             </button>
           </div>
-          
+
           {/* Task Creation Card */}
           {showCreateTask && <ToDoCard />}
-          
+
           <div className="w-full flex flex-col justify-start items-start">
             <SortableContext items={todoTasks.map(task => task.id)} strategy={verticalListSortingStrategy}>
               <div className="w-full flex flex-col">
@@ -226,7 +216,7 @@ function ToDoListContent() {
                       const groupTaskIndices = groupTasks.map(t => todoTasks.findIndex(task => task.id === t.id)).sort((a, b) => a - b)
                       const currentTaskIndex = todoTasks.findIndex(t => t.id === task.id)
                       const positionInGroup = groupTaskIndices.indexOf(currentTaskIndex)
-                      
+
                       if (positionInGroup === 0) {
                         groupPosition = 'first'
                       } else if (positionInGroup === groupTaskIndices.length - 1) {
@@ -313,7 +303,8 @@ function ToDoListContent() {
           <div className="w-full max-w-[460px] rounded-[20px] shadow-[0_12px_40px_rgba(0,0,0,0.25)] p-6"
                style={{
                  backgroundColor: 'var(--color-todoloo-card)',
-                 opacity: 0.95
+                 opacity: 1.0,
+                 transform: 'scale(1.05)'
                }}>
             <div className="flex items-center gap-6">
               <div className="flex items-center justify-center w-8 h-8">
@@ -322,7 +313,7 @@ function ToDoListContent() {
                   style={{ color: '#989999', fontSize: 28, fontFamily: 'Inter' }}
                 >
                   {(() => {
-                    const task = localTasks.find(t => t.id === activeId)
+                    const task = tasks.find(t => t.id === activeId)
                     const index = todoTasks.findIndex(t => t.id === activeId)
                     return index + 1
                   })()}
@@ -336,13 +327,13 @@ function ToDoListContent() {
                        fontFamily: 'Geist'
                      }}>
                     {(() => {
-                      const task = localTasks.find(t => t.id === activeId)
+                      const task = tasks.find(t => t.id === activeId)
                       return task?.description || ''
                     })()}
                   </p>
                   <p className="text-sm font-normal" style={{ color: 'var(--color-todoloo-text-muted)', fontFamily: 'Geist' }}>
                     {(() => {
-                      const task = localTasks.find(t => t.id === activeId)
+                      const task = tasks.find(t => t.id === activeId)
                       if (!task) return ''
                       const formatEstimatedTime = (minutes: number) => {
                         if (minutes < 60) {
@@ -362,7 +353,7 @@ function ToDoListContent() {
               <div className="flex items-center justify-center" style={{ width: 56, height: 56 }}>
                 <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center ${
                   (() => {
-                    const task = localTasks.find(t => t.id === activeId)
+                    const task = tasks.find(t => t.id === activeId)
                     return task?.isCompleted
                       ? ''
                       : 'bg-[#F9F9FD] dark:bg-gray-700 border-[#E8E6E6] dark:border-gray-600'
@@ -370,20 +361,20 @@ function ToDoListContent() {
                 }`}
                      style={{
                        backgroundColor: (() => {
-                         const task = localTasks.find(t => t.id === activeId)
+                         const task = tasks.find(t => t.id === activeId)
                          return task?.isCompleted ? 'var(--color-todoloo-gradient-start)' : undefined
                        })(),
                        borderColor: (() => {
-                         const task = localTasks.find(t => t.id === activeId)
+                         const task = tasks.find(t => t.id === activeId)
                          return task?.isCompleted ? 'var(--color-todoloo-gradient-start)' : undefined
                        })(),
                        color: (() => {
-                         const task = localTasks.find(t => t.id === activeId)
+                         const task = tasks.find(t => t.id === activeId)
                          return task?.isCompleted ? 'white' : 'var(--color-todoloo-text-primary)'
                        })()
                      }}>
                   {(() => {
-                    const task = localTasks.find(t => t.id === activeId)
+                    const task = tasks.find(t => t.id === activeId)
                     return task?.isCompleted && (
                       <Check className="w-4 h-4" />
                     )
