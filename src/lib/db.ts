@@ -288,7 +288,7 @@ export async function completeTodo(id: string, duration: number, task: Task, use
       updated_at: new Date().toISOString()
     })
     .eq('id', id)
-    .eq('user_id', userId) // Ensure user can only update their own todos
+    // Removed user_id filter to allow shared list collaborators to complete tasks
   
   if (todoError) {
     console.error('Error completing todo:', todoError)

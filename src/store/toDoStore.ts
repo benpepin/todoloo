@@ -229,7 +229,7 @@ export const useToDoStore = create<ToDoStore>()((set, get) => ({
         isCompleted: false,
         isActive: false,
         groupId
-      }, targetUserId)
+      }, targetUserId, userId) // Pass current user ID as creator
       console.log('[STORE] createTodo returned task with groupId:', newTask.groupId)
 
       // Replace optimistic task with real one

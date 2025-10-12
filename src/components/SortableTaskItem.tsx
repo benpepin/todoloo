@@ -394,10 +394,10 @@ export default function SortableTaskItem({
             taskCardRef.current = node
           }}
           className={`w-full shadow-[2px_2px_4px_rgba(0,0,0,0.15)] group ${isEditing ? 'overflow-visible' : 'overflow-hidden'} ${isActive ? 'ring-2' : ''} ${
-            isEditing 
-              ? 'p-4 md:p-6' 
-              : task.createdByName && task.createdByUserId && task.createdByUserId !== user?.id 
-                ? 'p-4 md:p-6 pb-10 md:pb-12' 
+            isEditing
+              ? 'p-4 md:p-6'
+              : task.createdByName && task.createdByUserId && task.userId !== task.createdByUserId
+                ? 'p-4 md:p-6 pb-10 md:pb-12'
                 : 'p-4 md:p-6'
           } ${
             groupPosition === 'single' ? 'rounded-[20px]' :
@@ -753,7 +753,7 @@ export default function SortableTaskItem({
           )}
           
           {/* Creator attribution - positioned absolutely at bottom right */}
-          {task.createdByName && task.createdByUserId && task.createdByUserId !== user?.id && (
+          {task.createdByName && task.createdByUserId && task.userId !== task.createdByUserId && (
             <div className="absolute bottom-3 right-4">
               <p className="text-xs font-normal" style={{ color: 'var(--color-todoloo-text-muted)', fontFamily: 'Geist' }}>
                 With love from {task.createdByName}
