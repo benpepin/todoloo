@@ -25,6 +25,8 @@ export default function Home() {
   const clearError = useToDoStore((state) => state.clearError)
   const isInitialized = useToDoStore((state) => state.isInitialized)
   const showProgressIndicator = useSettingsStore((state) => state.showProgressIndicator)
+  const getInspirationalQuote = useToDoStore((state) => state.getInspirationalQuote)
+  const cycleQuote = useToDoStore((state) => state.cycleQuote)
 
   const [showCompletionTime, setShowCompletionTime] = useState(false)
   const [migrationStatus, setMigrationStatus] = useState<string | null>(null)
@@ -224,13 +226,19 @@ export default function Home() {
           <div
             className="w-full text-base font-['Geist'] font-normal cursor-pointer transition-colors duration-200 hover:opacity-70"
             style={{ color: 'var(--color-todoloo-text-secondary)' }}
-            onClick={() => setShowCompletionTime(!showCompletionTime)}
+            onClick={() => {
+              if (totalMinutes === 0) {
+                cycleQuote()
+              } else {
+                setShowCompletionTime(!showCompletionTime)
+              }
+            }}
           >
             {showCompletionTime ? (
               getCurrentDate()
             ) : (
               totalMinutes === 0 ? (
-                "You're done! Put the computer down"
+                getInspirationalQuote()
               ) : (
                 `You're done at ${completionTime}`
               )

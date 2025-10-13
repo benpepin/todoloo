@@ -12,12 +12,24 @@ import {
   backfillUserData
 } from '@/lib/db'
 
+// Inspirational quotes for empty state
+const INSPIRATIONAL_QUOTES = [
+  "Good luck today!",
+  "You've got this!",
+  "Make today count!",
+  "One step at a time!",
+  "Today is your day!",
+  "Let's make it happen!",
+  "You're doing great!"
+]
+
 interface ToDoStore extends AppState {
   isLoading: boolean
   error: string | null
   userId: string | null
   isInitialized: boolean
   currentListOwnerId: string | null // Track which list we're viewing (for shared lists)
+  quoteIndex: number
 
   // Async methods for Supabase operations
   initializeUser: (userId: string) => Promise<void>
@@ -33,7 +45,7 @@ interface ToDoStore extends AppState {
   saveCurrentEditingTask: (description: string, estimatedMinutes: number) => Promise<void>
   groupTasks: (taskId: string, targetTaskId: string) => Promise<void>
   ungroupTask: (taskId: string) => Promise<void>
-  
+
   // Sync methods for UI state
   startTask: (id: string) => void
   stopTask: () => void
@@ -46,6 +58,8 @@ interface ToDoStore extends AppState {
   toggleCreateTask: () => void
   clearError: () => void
   clearAllTasks: () => void
+  getInspirationalQuote: () => string
+  cycleQuote: () => void
 }
 
 export const useToDoStore = create<ToDoStore>()((set, get) => ({
@@ -60,6 +74,7 @@ export const useToDoStore = create<ToDoStore>()((set, get) => ({
   userId: null,
   isInitialized: false,
   currentListOwnerId: null,
+  quoteIndex: 0,
 
   // Initialize user and backfill data
   initializeUser: async (userId: string) => {
@@ -522,6 +537,17 @@ export const useToDoStore = create<ToDoStore>()((set, get) => ({
 
   clearError: () => {
     set({ error: null })
+  },
+
+  getInspirationalQuote: () => {
+    const state = get()
+    return INSPIRATIONAL_QUOTES[state.quoteIndex]
+  },
+
+  cycleQuote: () => {
+    set((state) => ({
+      quoteIndex: (state.quoteIndex + 1) % INSPIRATIONAL_QUOTES.length
+    }))
   },
 
   clearAllTasks: () => {

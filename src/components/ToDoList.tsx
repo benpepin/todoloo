@@ -8,22 +8,10 @@ import SortableTaskItem from './SortableTaskItem'
 import ToDoCard from './ToDoCard'
 import { Check } from 'lucide-react'
 
-// Inspirational quotes for empty state
-const INSPIRATIONAL_QUOTES = [
-  "Good luck today!",
-  "You've got this!",
-  "Make today count!",
-  "One step at a time!",
-  "Today is your day!",
-  "Let's make it happen!",
-  "You're doing great!"
-]
-
 function ToDoListContent() {
   const { tasks, activeTaskId, deleteTask, toggleTaskCompletion, updateTaskOrder, showCreateTask, toggleCreateTask } = useToDoStore()
   const [activeId, setActiveId] = useState<string | null>(null)
   const [overId, setOverId] = useState<string | null>(null)
-  const [quoteIndex, setQuoteIndex] = useState(0)
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -166,29 +154,22 @@ function ToDoListContent() {
           {/* Enhanced Empty state when no tasks */}
           {!showCreateTask && (
             <div className="w-full">
-              <div className="flex flex-col items-start justify-start py-8">
-                {/* Top section with quote and date */}
-                <div className="w-full flex justify-between items-start mb-8">
-                  <div
-                    className="text-lg font-normal font-['Geist'] cursor-pointer hover:opacity-70 transition-opacity"
-                    style={{ color: 'var(--color-todoloo-text-secondary)' }}
-                    onClick={() => setQuoteIndex((prev) => (prev + 1) % INSPIRATIONAL_QUOTES.length)}
-                  >
-                    {INSPIRATIONAL_QUOTES[quoteIndex]}
-                  </div>
-                  <div
-                    className="text-lg font-normal font-['Geist']"
-                    style={{ color: 'var(--color-todoloo-text-secondary)' }}
-                  >
-                    {new Date().toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: '2-digit' })}
-                  </div>
-                </div>
-
-                {/* Card with bunny ears */}
-                <div className="w-full max-w-[460px] mx-auto relative">
-                  {/* Bunny Ears - behind the card */}
-                  <div className="absolute -top-16 left-1/2 -translate-x-1/2 z-0">
+              <div className="flex flex-col items-center justify-start py-8">
+                {/* Card with bunny ears and date */}
+                <div className="w-full max-w-[460px] relative">
+                  {/* Bunny Ears - top left corner of card */}
+                  <div className="absolute -top-12 left-0 z-0">
                     <img src="/bunnyearsfingers.png" alt="" className="w-20 h-20 object-contain" />
+                  </div>
+
+                  {/* Date in top right corner */}
+                  <div className="absolute -top-8 right-0 z-0">
+                    <div
+                      className="text-base font-normal font-['Geist']"
+                      style={{ color: 'var(--color-todoloo-text-secondary)' }}
+                    >
+                      {new Date().toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: '2-digit' })}
+                    </div>
                   </div>
 
                   {/* Card with embedded ToDoCard */}
