@@ -732,7 +732,7 @@ export default function SortableTaskItem({
                   } ${
                     task.isCompleted || isScratching
                       ? ''
-                      : 'bg-[#F9F9FD] dark:bg-gray-700 border-[#E8E6E6] dark:border-gray-600'
+                      : 'bg-[#F9F9FD] dark:bg-[#2a2a2a] border-[#E8E6E6] dark:border-[#404040]'
                   }`}
                   style={{
                     backgroundColor: (task.isCompleted || isScratching || showCheckmarkAnimation) ? 'var(--color-todoloo-gradient-start)' : undefined,
@@ -748,7 +748,7 @@ export default function SortableTaskItem({
                   onMouseLeave={(e) => {
                     if (!task.isCompleted && !isScratching) {
                       e.currentTarget.style.borderColor = ''
-                      e.currentTarget.classList.add('border-[#E8E6E6]', 'dark:border-gray-600')
+                      e.currentTarget.classList.add('border-[#E8E6E6]', 'dark:border-[#404040]')
                     }
                   }}
                 >

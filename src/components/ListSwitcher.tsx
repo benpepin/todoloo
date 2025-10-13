@@ -55,17 +55,17 @@ export default function ListSwitcher() {
       <div className="relative">
         <button
           onClick={() => setShowListMenu(!showListMenu)}
-          className="w-full min-w-[260px] flex items-center justify-between gap-2 px-3 py-2 bg-white rounded-md border border-gray-200 hover:bg-gray-50 transition-colors"
+          className="w-full min-w-[260px] flex items-center justify-between gap-2 px-3 py-2 bg-white dark:bg-[#2a2a2a] rounded-md border border-gray-200 dark:border-[#404040] hover:bg-gray-50 dark:hover:bg-[#333333] transition-colors"
         >
-          <span className="text-sm font-medium text-gray-700 truncate">{getCurrentListName()}</span>
-          <ChevronDown className="w-4 h-4 text-gray-500 flex-shrink-0" />
+          <span className="text-sm font-medium text-gray-700 dark:text-gray-200 truncate">{getCurrentListName()}</span>
+          <ChevronDown className="w-4 h-4 text-gray-500 dark:text-gray-400 flex-shrink-0" />
         </button>
 
         {showListMenu && (
-          <div className="absolute top-full mt-1 left-0 right-0 bg-white border border-gray-200 rounded-md shadow-lg z-10">
+          <div className="absolute top-full mt-1 left-0 right-0 bg-white dark:bg-[#2a2a2a] border border-gray-200 dark:border-[#404040] rounded-md shadow-lg z-10">
             <button
               onClick={() => switchToList(userId || '')}
-              className="w-full text-left px-4 py-2 hover:bg-gray-50 text-sm font-medium text-gray-700 border-b border-gray-100"
+              className="w-full text-left px-4 py-2 hover:bg-gray-50 dark:hover:bg-[#333333] text-sm font-medium text-gray-700 dark:text-gray-200 border-b border-gray-100 dark:border-[#404040]"
             >
               My List
             </button>
@@ -73,7 +73,7 @@ export default function ListSwitcher() {
               <button
                 key={list.ownerId}
                 onClick={() => switchToList(list.ownerId)}
-                className="w-full text-left px-4 py-2 hover:bg-gray-50 text-sm font-medium text-gray-700 truncate"
+                className="w-full text-left px-4 py-2 hover:bg-gray-50 dark:hover:bg-[#333333] text-sm font-medium text-gray-700 dark:text-gray-200 truncate"
               >
                 {list.ownerEmail}&apos;s List
               </button>
