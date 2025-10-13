@@ -411,10 +411,10 @@ export default function SortableTaskItem({
           }}
           className={`w-full shadow-[2px_2px_4px_rgba(0,0,0,0.15)] group ${isEditing ? 'overflow-visible' : 'overflow-hidden'} ${isActive ? 'ring-2' : ''} ${
             isEditing
-              ? 'p-4 md:p-6'
+              ? 'p-6 md:p-6'
               : task.createdByName && task.createdByUserId && task.userId !== task.createdByUserId
-                ? 'p-4 md:p-6 pb-10 md:pb-12'
-                : 'p-4 md:p-6'
+                ? 'p-6 md:p-6 pb-10 md:pb-12'
+                : 'p-6 md:p-6'
           } ${
             groupPosition === 'single' ? 'rounded-[20px]' :
             groupPosition === 'first' ? 'rounded-t-[20px]' :
@@ -581,7 +581,7 @@ export default function SortableTaskItem({
             </div>
           ) : (
             // Normal display mode - simplified design with hover states
-            <div className={`flex items-center gap-3 md:gap-6 relative ${isActive ? 'active' : ''}`}>
+            <div className={`flex items-center gap-6 relative ${isActive ? 'active' : ''}`}>
               {/* Cat Paw Scratch Animation - covers entire card */}
               {isScratching && (
                 <div
@@ -687,7 +687,7 @@ export default function SortableTaskItem({
                 )}
               </div>
                 
-              <div className="flex-1">
+              <div className="flex-1 pl-2">
                 <div
                   className="cursor-text"
                   onClick={handleEdit}
