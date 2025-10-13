@@ -73,7 +73,7 @@ export default function SettingsMenu() {
       {/* Menu Popup */}
       {isOpen && (
         <div
-          className="absolute top-full right-0 mt-2 w-64 rounded-2xl shadow-lg border overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 z-50"
+          className="absolute top-full lg:top-auto lg:bottom-full right-0 lg:right-auto lg:left-0 mt-2 lg:mt-0 lg:mb-2 w-64 rounded-2xl shadow-lg border overflow-hidden animate-in fade-in duration-200 z-50"
           style={{
             backgroundColor: 'var(--color-todoloo-card)',
             borderColor: 'var(--color-todoloo-border)',
