@@ -182,11 +182,7 @@ export default function Home() {
 
   // Show auth component if not signed in
   if (!user) {
-    return (
-      <div className="w-full h-screen flex items-center justify-center" style={{ backgroundColor: 'var(--color-todoloo-bg)' }}>
-        <Auth />
-      </div>
-    )
+    return <Auth />
   }
 
   // Sign out moved to Settings page
