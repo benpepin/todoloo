@@ -207,7 +207,8 @@ export default function Home() {
       <div className="hidden lg:flex lg:w-[20%] h-full p-8 overflow-hidden border-r flex-col justify-between items-start"
            style={{
              backgroundColor: 'var(--color-todoloo-sidebar)',
-             borderColor: 'var(--color-todoloo-border)'
+             borderColor: 'var(--color-todoloo-border)',
+             minWidth: '340px'
            }}>
         <div className="w-full flex flex-col justify-start items-start gap-1.5">
           {/* List Switcher */}
