@@ -10,7 +10,6 @@ import { getCurrentDate, getCompletionTime } from '@/utils/timeUtils'
 import { migrateLocalStorageToSupabase } from '@/lib/migrate-to-supabase'
 import { useSupabase } from '@/components/SupabaseProvider'
 import Auth from '@/components/Auth'
-import { testSharing } from '@/lib/db'
 import SharingDebug from '@/components/SharingDebug'
 import ListSwitcher from '@/components/ListSwitcher'
 
@@ -69,15 +68,6 @@ export default function Home() {
         
         // Initialize user and load tasks
         await initializeUser(user.id)
-        
-        // Add test function to window for debugging
-        if (typeof window !== 'undefined') {
-          (window as unknown as { testSharing: () => Promise<void> }).testSharing = () => testSharing(user.id)
-          console.log('🔧 Debug function available: window.testSharing()')
-        }
-        
-        // Auto-run the sharing test and show results
-        testSharing(user.id).catch(console.error)
       } catch (error) {
         console.error('Error initializing app:', error)
         setMigrationStatus('Failed to initialize app')

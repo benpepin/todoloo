@@ -39,6 +39,7 @@ interface ToDoStore extends AppState {
   deleteTask: (id: string) => Promise<void>
   toggleTaskCompletion: (id: string) => Promise<void>
   updateTaskOrder: (tasks: Task[]) => Promise<void>
+  updateTaskField: (id: string, updates: Partial<Task>, errorMessage?: string) => Promise<void>
   updateTaskActualTime: (id: string, actualMinutes: number) => Promise<void>
   updateTaskDescription: (id: string, description: string) => Promise<void>
   updateTaskEstimatedTime: (id: string, estimatedMinutes: number) => Promise<void>
@@ -114,8 +115,7 @@ export const useToDoStore = create<ToDoStore>()((set, get) => ({
       
       // Use currentListOwnerId if set, otherwise use userId (your own list)
       const targetUserId = currentListOwnerId || userId
-      console.log('[Store] loadTasks using targetUserId:', targetUserId)
-      
+
       // Use the more robust fetch function for shared lists
       const tasks = await fetchTodosDirect(targetUserId)
 
@@ -150,10 +150,8 @@ export const useToDoStore = create<ToDoStore>()((set, get) => ({
     }
 
     try {
-      console.log('[Store] switchToList called with listOwnerId:', listOwnerId, 'current userId:', userId)
       set({ isLoading: true, error: null, currentListOwnerId: listOwnerId })
       const tasks = await fetchTodosDirect(listOwnerId)
-      console.log('[Store] switchToList got tasks:', tasks.length, 'tasks')
       set({ tasks, isLoading: false })
     } catch (error) {
       console.error('Error switching list:', error)
@@ -236,7 +234,6 @@ export const useToDoStore = create<ToDoStore>()((set, get) => ({
 
     try {
       set({ error: null })
-      console.log('[STORE] addTask calling createTodo with groupId:', groupId)
       const newTask = await createTodo({
         description,
         estimatedMinutes,
@@ -245,7 +242,6 @@ export const useToDoStore = create<ToDoStore>()((set, get) => ({
         isActive: false,
         groupId
       }, targetUserId, userId) // Pass current user ID as creator
-      console.log('[STORE] createTodo returned task with groupId:', newTask.groupId)
 
       // Replace optimistic task with real one
       set((state) => ({
@@ -367,117 +363,50 @@ export const useToDoStore = create<ToDoStore>()((set, get) => ({
     }
   },
 
-  // Update task actual time
+  // Generic method to update task fields with optimistic updates
+  updateTaskField: async (id: string, updates: Partial<Task>, errorMessage: string = 'Failed to update task') => {
+    const originalTask = get().tasks.find(task => task.id === id)
+    if (!originalTask) return
+
+    // Optimistic update
+    set((state) => ({
+      tasks: state.tasks.map((task) =>
+        task.id === id ? { ...task, ...updates } : task
+      ),
+    }))
+
+    try {
+      set({ error: null })
+      await updateTodo(id, updates)
+    } catch (error) {
+      console.error(`Error updating task:`, error)
+      // Revert optimistic update
+      set((state) => ({
+        tasks: state.tasks.map(task =>
+          task.id === id ? originalTask : task
+        ),
+        error: error instanceof Error ? error.message : errorMessage
+      }))
+    }
+  },
+
+  // Convenience methods using the generic updater
   updateTaskActualTime: async (id: string, actualMinutes: number) => {
-    const originalTask = get().tasks.find(task => task.id === id)
-    if (!originalTask) return
-
-    // Optimistic update
-    set((state) => ({
-      tasks: state.tasks.map((task) =>
-        task.id === id ? { ...task, actualMinutes } : task
-      ),
-    }))
-
-    try {
-      set({ error: null })
-      await updateTodo(id, { actualMinutes })
-    } catch (error) {
-      console.error('Error updating task actual time:', error)
-      // Revert optimistic update
-      set((state) => ({
-        tasks: state.tasks.map(task => 
-          task.id === id ? originalTask : task
-        ),
-        error: error instanceof Error ? error.message : 'Failed to update task time'
-      }))
-    }
+    await get().updateTaskField(id, { actualMinutes }, 'Failed to update task time')
   },
 
-  // Update task description
   updateTaskDescription: async (id: string, description: string) => {
-    const originalTask = get().tasks.find(task => task.id === id)
-    if (!originalTask) return
-
-    // Optimistic update
-    set((state) => ({
-      tasks: state.tasks.map((task) =>
-        task.id === id ? { ...task, description } : task
-      ),
-    }))
-
-    try {
-      set({ error: null })
-      await updateTodo(id, { description })
-    } catch (error) {
-      console.error('Error updating task description:', error)
-      // Revert optimistic update
-      set((state) => ({
-        tasks: state.tasks.map(task => 
-          task.id === id ? originalTask : task
-        ),
-        error: error instanceof Error ? error.message : 'Failed to update task description'
-      }))
-    }
+    await get().updateTaskField(id, { description }, 'Failed to update task description')
   },
 
-  // Update task estimated time
   updateTaskEstimatedTime: async (id: string, estimatedMinutes: number) => {
-    const originalTask = get().tasks.find(task => task.id === id)
-    if (!originalTask) return
-
-    // Optimistic update
-    set((state) => ({
-      tasks: state.tasks.map((task) =>
-        task.id === id ? { ...task, estimatedMinutes } : task
-      ),
-    }))
-
-    try {
-      set({ error: null })
-      await updateTodo(id, { estimatedMinutes })
-    } catch (error) {
-      console.error('Error updating task estimated time:', error)
-      // Revert optimistic update
-      set((state) => ({
-        tasks: state.tasks.map(task => 
-          task.id === id ? originalTask : task
-        ),
-        error: error instanceof Error ? error.message : 'Failed to update task estimated time'
-      }))
-    }
+    await get().updateTaskField(id, { estimatedMinutes }, 'Failed to update task estimated time')
   },
 
-  // Save current editing task
   saveCurrentEditingTask: async (description: string, estimatedMinutes: number) => {
     const { editingTaskId } = get()
     if (!editingTaskId) return
-
-    const originalTask = get().tasks.find(task => task.id === editingTaskId)
-    if (!originalTask) return
-
-    // Optimistic update
-    set((state) => ({
-      tasks: state.tasks.map((task) =>
-        task.id === editingTaskId 
-          ? { ...task, description, estimatedMinutes }
-          : task
-      ),
-    }))
-
-    try {
-      set({ error: null })
-      await updateTodo(editingTaskId, { description, estimatedMinutes })
-    } catch (error) {
-      console.error('Error saving editing task:', error)
-      // Revert optimistic update
-      set((state) => ({
-        tasks: state.tasks.map(task => 
-          task.id === editingTaskId ? originalTask : task
-        ),
-        error: error instanceof Error ? error.message : 'Failed to save task changes'
-      }))
-    }
+    await get().updateTaskField(editingTaskId, { description, estimatedMinutes }, 'Failed to save task changes')
   },
 
   // Sync methods for UI state (no database operations)

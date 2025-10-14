@@ -26,124 +26,60 @@ export function useSimpleTimer(taskId?: string) {
   // Storage key for persisting timer state
   const storageKey = taskId ? `timer_${taskId}` : 'timer_default'
 
-  // Clear any corrupted timer data on mount
-  useEffect(() => {
-    if (typeof window === 'undefined') return
-    
-    // Clear any corrupted timer data from previous versions
-    try {
-      const allKeys = Object.keys(localStorage)
-      allKeys.forEach(key => {
-        if (key.startsWith('timer_') || key === 'timer_default') {
-          const value = localStorage.getItem(key)
-          if (value) {
-            try {
-              JSON.parse(value)
-            } catch {
-              console.log(`[Timer] Clearing corrupted data for key: ${key}`)
-              localStorage.removeItem(key)
-            }
-          }
-        }
-      })
-    } catch (error) {
-      console.warn('Failed to clean up corrupted timer data:', error)
-    }
-  }, [])
-
   // Load timer state from localStorage on mount
   useEffect(() => {
     if (typeof window === 'undefined') return
 
     try {
       const savedState = localStorage.getItem(storageKey)
-      console.log(`[Timer ${taskId || 'default'}] Loading from localStorage:`, savedState)
-      
-      if (savedState && savedState.trim() !== '') {
-        let parsedState: TimerState
-        try {
-          parsedState = JSON.parse(savedState)
-        } catch (parseError) {
-          console.warn(`[Timer ${taskId || 'default'}] Invalid JSON in localStorage, clearing:`, parseError)
-          localStorage.removeItem(storageKey)
-          return
+      if (!savedState?.trim()) return
+
+      const parsedState: TimerState = JSON.parse(savedState)
+      if (!parsedState || typeof parsedState !== 'object' || !parsedState.hasStarted) return
+
+      const now = Date.now()
+
+      if (parsedState.isRunning && typeof parsedState.startTime === 'number') {
+        // Timer was running - calculate current elapsed time
+        const elapsed = Math.floor((now - parsedState.startTime) / 1000)
+        stateRef.current = {
+          isRunning: true,
+          hasStarted: true,
+          startTime: parsedState.startTime,
+          pausedTime: 0,
+          lastUpdateTime: now
         }
-        
-        console.log(`[Timer ${taskId || 'default'}] Parsed state:`, parsedState)
-        
-        // Validate the parsed state has required properties
-        if (!parsedState || typeof parsedState !== 'object') {
-          console.warn(`[Timer ${taskId || 'default'}] Invalid state object, clearing localStorage`)
-          localStorage.removeItem(storageKey)
-          return
+        setSeconds(elapsed)
+        setIsRunning(true)
+        setHasStarted(true)
+      } else if (!parsedState.isRunning && typeof parsedState.pausedTime === 'number') {
+        // Timer was paused - restore paused state
+        stateRef.current = {
+          isRunning: false,
+          hasStarted: true,
+          startTime: null,
+          pausedTime: parsedState.pausedTime,
+          lastUpdateTime: now
         }
-        
-        // Restore timer state
-        if (parsedState.hasStarted) {
-          const now = Date.now()
-
-          if (parsedState.isRunning && parsedState.startTime && typeof parsedState.startTime === 'number') {
-            // Timer was running - calculate current elapsed time
-            const elapsed = Math.floor((now - parsedState.startTime) / 1000)
-            console.log(`[Timer ${taskId || 'default'}] Restoring running timer - elapsed: ${elapsed}s`)
-
-            stateRef.current = {
-              isRunning: true,
-              hasStarted: true,
-              startTime: parsedState.startTime,
-              pausedTime: 0,
-              lastUpdateTime: now
-            }
-
-            setSeconds(elapsed)
-            setIsRunning(true)
-            setHasStarted(true)
-          } else if (!parsedState.isRunning && typeof parsedState.pausedTime === 'number') {
-            // Timer was paused - restore paused state
-            console.log(`[Timer ${taskId || 'default'}] Restoring paused timer - paused at: ${parsedState.pausedTime}s`)
-
-            stateRef.current = {
-              isRunning: false,
-              hasStarted: true,
-              startTime: null,
-              pausedTime: parsedState.pausedTime,
-              lastUpdateTime: now
-            }
-
-            setSeconds(parsedState.pausedTime)
-            setIsRunning(false)
-            setHasStarted(true)
-          } else {
-            console.log(`[Timer ${taskId || 'default'}] Invalid state structure, ignoring`)
-          }
-        } else {
-          console.log(`[Timer ${taskId || 'default'}] Timer not started yet`)
-        }
-      } else {
-        console.log(`[Timer ${taskId || 'default'}] No saved state found`)
+        setSeconds(parsedState.pausedTime)
+        setIsRunning(false)
+        setHasStarted(true)
       }
     } catch (error) {
-      console.warn(`[Timer ${taskId || 'default'}] Failed to load timer state from localStorage:`, error)
-      // Clear potentially corrupted data
-      try {
-        localStorage.removeItem(storageKey)
-      } catch (clearError) {
-        console.warn('Failed to clear corrupted localStorage:', clearError)
-      }
+      // Clear corrupted data silently
+      localStorage.removeItem(storageKey)
     }
-  }, [storageKey, taskId])
+  }, [storageKey])
 
   // Save timer state to localStorage whenever it changes
   const saveState = useCallback(() => {
     if (typeof window === 'undefined') return
-
     try {
-      console.log(`[Timer ${taskId || 'default'}] Saving state:`, stateRef.current)
       localStorage.setItem(storageKey, JSON.stringify(stateRef.current))
     } catch (error) {
-      console.warn('Failed to save timer state to localStorage:', error)
+      // Silently fail if localStorage is unavailable
     }
-  }, [storageKey])
+  }, [storageKey, taskId])
 
   // Update timer display - calculate from original startTime
   const updateTimer = useCallback(() => {
@@ -270,7 +206,7 @@ export function useSimpleTimer(taskId?: string) {
     }
   }, [saveState])
 
-  const stop = useCallback(() => {
+  const clearTimer = useCallback(() => {
     stateRef.current = {
       isRunning: false,
       hasStarted: false,
@@ -281,38 +217,13 @@ export function useSimpleTimer(taskId?: string) {
     setIsRunning(false)
     setHasStarted(false)
     setSeconds(0)
-
-    // Clear the localStorage entry for this timer
     if (typeof window !== 'undefined') {
-      try {
-        localStorage.removeItem(storageKey)
-      } catch (error) {
-        console.warn('Failed to clear timer state:', error)
-      }
+      localStorage.removeItem(storageKey)
     }
   }, [storageKey])
 
-  const reset = useCallback(() => {
-    stateRef.current = {
-      isRunning: false,
-      hasStarted: false,
-      startTime: null,
-      pausedTime: 0,
-      lastUpdateTime: Date.now()
-    }
-    setIsRunning(false)
-    setHasStarted(false)
-    setSeconds(0)
-
-    // Clear the localStorage entry for this timer
-    if (typeof window !== 'undefined') {
-      try {
-        localStorage.removeItem(storageKey)
-      } catch (error) {
-        console.warn('Failed to clear timer state:', error)
-      }
-    }
-  }, [storageKey])
+  const stop = clearTimer
+  const reset = clearTimer
 
   const formatTime = (totalSeconds: number): string => {
     const hours = Math.floor(totalSeconds / 3600)
@@ -327,16 +238,8 @@ export function useSimpleTimer(taskId?: string) {
 
   // Cleanup on unmount
   useEffect(() => {
-    return () => {
-      if (typeof window !== 'undefined') {
-        try {
-          localStorage.setItem(storageKey, JSON.stringify(stateRef.current))
-        } catch (error) {
-          console.warn('Failed to save timer state on unmount:', error)
-        }
-      }
-    }
-  }, [storageKey])
+    return () => saveState()
+  }, [saveState])
 
   return {
     seconds,
