@@ -129,6 +129,15 @@ function ToDoListContent() {
     }, 150)
   }
 
+  // Calculate filtered task lists
+  const todoTasks = tasks.filter(task => !task.isCompleted).sort((a, b) => a.order - b.order)
+  const doneTasks = tasks.filter(task => task.isCompleted).sort((a, b) => {
+    // Sort by completedAt, earliest first (first completed = rank 1)
+    if (!a.completedAt && !b.completedAt) return 0
+    if (!a.completedAt) return 1
+    if (!b.completedAt) return -1
+    return new Date(a.completedAt).getTime() - new Date(b.completedAt).getTime()
+  })
 
   if (tasks.length === 0) {
     return (
@@ -184,15 +193,6 @@ function ToDoListContent() {
       </div>
     )
   }
-
-  const todoTasks = tasks.filter(task => !task.isCompleted).sort((a, b) => a.order - b.order)
-  const doneTasks = tasks.filter(task => task.isCompleted).sort((a, b) => {
-    // Sort by completedAt, earliest first (first completed = rank 1)
-    if (!a.completedAt && !b.completedAt) return 0
-    if (!a.completedAt) return 1
-    if (!b.completedAt) return -1
-    return new Date(a.completedAt).getTime() - new Date(b.completedAt).getTime()
-  })
 
   return (
     <DndContext
