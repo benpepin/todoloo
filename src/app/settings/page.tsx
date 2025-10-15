@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Settings as SettingsIcon, Clock, Users, Trash2, UserPlus, List } from 'lucide-react'
+import { Settings as SettingsIcon, Clock, Users, Trash2, UserPlus, List, Plus, X, Timer, Edit2, Check } from 'lucide-react'
 import { getCurrentDate } from '@/utils/timeUtils'
 import { useSettingsStore } from '@/store/settingsStore'
 import { useSupabase } from '@/components/SupabaseProvider'
@@ -15,9 +15,25 @@ export default function SettingsPage() {
   const router = useRouter()
   const [autoSave, setAutoSave] = useState(true)
   const [showCompleted, setShowCompleted] = useState(true)
-  const { showProgressIndicator, toggleProgressIndicator } = useSettingsStore()
+  const {
+    showProgressIndicator,
+    toggleProgressIndicator,
+    defaultMinutes,
+    setDefaultMinutes,
+    customKeywords,
+    addCustomKeyword,
+    removeCustomKeyword,
+    updateCustomKeyword
+  } = useSettingsStore()
   const { user } = useSupabase()
   const { switchToList, currentListOwnerId } = useToDoStore()
+
+  // Time estimation keyword state
+  const [newKeyword, setNewKeyword] = useState('')
+  const [newKeywordMinutes, setNewKeywordMinutes] = useState('30')
+  const [editingKeywordId, setEditingKeywordId] = useState<string | null>(null)
+  const [editKeyword, setEditKeyword] = useState('')
+  const [editKeywordMinutes, setEditKeywordMinutes] = useState('')
 
   // Sharing state
   const [sharedUsers, setSharedUsers] = useState<SharedUser[]>([])
@@ -90,6 +106,45 @@ export default function SettingsPage() {
       setShareError(error instanceof Error ? error.message : 'Failed to remove share')
     }
   }
+
+  // Time estimation handlers
+  const handleAddKeyword = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (newKeyword.trim() && newKeywordMinutes) {
+      const minutes = parseInt(newKeywordMinutes)
+      if (minutes > 0) {
+        addCustomKeyword(newKeyword.trim(), minutes)
+        setNewKeyword('')
+        setNewKeywordMinutes('30')
+      }
+    }
+  }
+
+  const handleStartEdit = (kw: { id: string, keyword: string, minutes: number }) => {
+    setEditingKeywordId(kw.id)
+    setEditKeyword(kw.keyword)
+    setEditKeywordMinutes(kw.minutes.toString())
+  }
+
+  const handleSaveEdit = (id: string) => {
+    const keyword = editKeyword.trim()
+    const minutes = parseInt(editKeywordMinutes)
+
+    if (keyword && !isNaN(minutes) && minutes > 0) {
+      updateCustomKeyword(id, keyword, minutes)
+      setEditingKeywordId(null)
+      setEditKeyword('')
+      setEditKeywordMinutes('')
+    }
+  }
+
+  const handleCancelEdit = () => {
+    setEditingKeywordId(null)
+    setEditKeyword('')
+    setEditKeywordMinutes('')
+  }
+
+  const timeOptions = [5, 10, 15, 30, 45, 60, 90, 120, 180, 240]
 
 
   return (
@@ -195,6 +250,191 @@ export default function SettingsPage() {
                            }} />
                     </button>
                   </div>
+                </div>
+              </div>
+
+              {/* Time Estimation Settings */}
+              <div className="w-full rounded-[10px] shadow-[2px_2px_4px_rgba(0,0,0,0.15)] p-6"
+                   style={{ backgroundColor: 'var(--color-todoloo-card)' }}>
+                <div className="flex items-center gap-3 mb-4">
+                  <Timer className="w-5 h-5" style={{ color: 'var(--color-todoloo-text-secondary)' }} />
+                  <h2 className="text-lg font-['Geist'] font-medium" style={{ color: 'var(--color-todoloo-text-secondary)' }}>Time Estimation</h2>
+                </div>
+
+                {/* Default Time Selector */}
+                <div className="mb-6">
+                  <p className="text-sm font-['Geist'] font-medium mb-2" style={{ color: 'var(--color-todoloo-text-primary)' }}>
+                    Default Estimated Time
+                  </p>
+                  <p className="text-xs font-['Geist'] mb-3" style={{ color: 'var(--color-todoloo-text-muted)' }}>
+                    Time to suggest when no keyword matches
+                  </p>
+                  <select
+                    value={defaultMinutes}
+                    onChange={(e) => setDefaultMinutes(Number(e.target.value))}
+                    className="w-full px-3 py-2 rounded-lg border text-sm font-['Geist']"
+                    style={{
+                      backgroundColor: 'var(--color-todoloo-bg)',
+                      borderColor: 'var(--color-todoloo-border)',
+                      color: 'var(--color-todoloo-text-primary)'
+                    }}
+                  >
+                    {timeOptions.map(minutes => (
+                      <option key={minutes} value={minutes}>
+                        {minutes < 60 ? `${minutes} minutes` : `${minutes / 60} hour${minutes > 60 ? 's' : ''}`}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Custom Keywords Manager */}
+                <div>
+                  <p className="text-sm font-['Geist'] font-medium mb-2" style={{ color: 'var(--color-todoloo-text-primary)' }}>
+                    Custom Keywords
+                  </p>
+                  <p className="text-xs font-['Geist'] mb-3" style={{ color: 'var(--color-todoloo-text-muted)' }}>
+                    Add keywords to auto-suggest specific times for your tasks
+                  </p>
+
+                  {/* Existing Keywords List */}
+                  {customKeywords.length > 0 && (
+                    <div className="space-y-2 mb-4">
+                      {customKeywords.map((kw) => (
+                        <div
+                          key={kw.id}
+                          className="flex items-center gap-2 p-3 rounded-lg"
+                          style={{ backgroundColor: 'var(--color-todoloo-muted)' }}
+                        >
+                          {editingKeywordId === kw.id ? (
+                            // Edit mode
+                            <>
+                              <div className="flex-1 flex gap-2">
+                                <input
+                                  type="text"
+                                  value={editKeyword}
+                                  onChange={(e) => setEditKeyword(e.target.value)}
+                                  className="flex-1 px-2 py-1 rounded border text-sm font-['Geist']"
+                                  style={{
+                                    backgroundColor: 'var(--color-todoloo-bg)',
+                                    borderColor: 'var(--color-todoloo-border)',
+                                    color: 'var(--color-todoloo-text-primary)'
+                                  }}
+                                  placeholder="Keyword"
+                                />
+                                <select
+                                  value={editKeywordMinutes}
+                                  onChange={(e) => setEditKeywordMinutes(e.target.value)}
+                                  className="px-2 py-1 rounded border text-sm font-['Geist']"
+                                  style={{
+                                    backgroundColor: 'var(--color-todoloo-bg)',
+                                    borderColor: 'var(--color-todoloo-border)',
+                                    color: 'var(--color-todoloo-text-primary)'
+                                  }}
+                                >
+                                  {timeOptions.map(minutes => (
+                                    <option key={minutes} value={minutes}>
+                                      {minutes < 60 ? `${minutes} min` : `${minutes / 60} hr${minutes > 60 ? 's' : ''}`}
+                                    </option>
+                                  ))}
+                                </select>
+                              </div>
+                              <button
+                                onClick={() => handleSaveEdit(kw.id)}
+                                className="p-2 rounded-lg hover:bg-opacity-10 hover:bg-green-500 transition-colors"
+                                style={{ color: 'var(--color-todoloo-gradient-start)' }}
+                                title="Save"
+                              >
+                                <Check className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={handleCancelEdit}
+                                className="p-2 rounded-lg hover:bg-opacity-10 hover:bg-red-500 transition-colors"
+                                style={{ color: 'var(--color-todoloo-text-muted)' }}
+                                title="Cancel"
+                              >
+                                <X className="w-4 h-4" />
+                              </button>
+                            </>
+                          ) : (
+                            // View mode
+                            <>
+                              <div className="flex-1">
+                                <p className="text-sm font-['Geist'] font-medium" style={{ color: 'var(--color-todoloo-text-primary)' }}>
+                                  &ldquo;{kw.keyword}&rdquo;
+                                </p>
+                                <p className="text-xs font-['Geist']" style={{ color: 'var(--color-todoloo-text-muted)' }}>
+                                  {kw.minutes < 60 ? `${kw.minutes} minutes` : `${kw.minutes / 60} hour${kw.minutes > 60 ? 's' : ''}`}
+                                </p>
+                              </div>
+                              <button
+                                onClick={() => handleStartEdit(kw)}
+                                className="p-2 rounded-lg hover:bg-opacity-10 hover:bg-blue-500 transition-colors"
+                                style={{ color: 'var(--color-todoloo-text-muted)' }}
+                                title="Edit keyword"
+                              >
+                                <Edit2 className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() => removeCustomKeyword(kw.id)}
+                                className="p-2 rounded-lg hover:bg-opacity-10 hover:bg-red-500 transition-colors"
+                                style={{ color: 'var(--color-todoloo-text-muted)' }}
+                                title="Remove keyword"
+                              >
+                                <X className="w-4 h-4" />
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Add New Keyword Form */}
+                  <form onSubmit={handleAddKeyword} className="space-y-2">
+                    <input
+                      type="text"
+                      value={newKeyword}
+                      onChange={(e) => setNewKeyword(e.target.value)}
+                      placeholder="e.g., workout, zoom call, etc."
+                      className="w-full px-3 py-2 rounded-lg border text-sm font-['Geist']"
+                      style={{
+                        backgroundColor: 'var(--color-todoloo-bg)',
+                        borderColor: 'var(--color-todoloo-border)',
+                        color: 'var(--color-todoloo-text-primary)'
+                      }}
+                    />
+                    <div className="flex gap-2">
+                      <select
+                        value={newKeywordMinutes}
+                        onChange={(e) => setNewKeywordMinutes(e.target.value)}
+                        className="flex-1 px-3 py-2 rounded-lg border text-sm font-['Geist']"
+                        style={{
+                          backgroundColor: 'var(--color-todoloo-bg)',
+                          borderColor: 'var(--color-todoloo-border)',
+                          color: 'var(--color-todoloo-text-primary)'
+                        }}
+                      >
+                        {timeOptions.map(minutes => (
+                          <option key={minutes} value={minutes}>
+                            {minutes < 60 ? `${minutes} min` : `${minutes / 60} hr${minutes > 60 ? 's' : ''}`}
+                          </option>
+                        ))}
+                      </select>
+                      <button
+                        type="submit"
+                        disabled={!newKeyword.trim()}
+                        className="px-4 py-2 rounded-lg text-sm font-['Geist'] font-medium transition-opacity flex items-center gap-2"
+                        style={{
+                          backgroundColor: 'var(--color-todoloo-gradient-start)',
+                          color: 'white',
+                          opacity: !newKeyword.trim() ? 0.5 : 1
+                        }}
+                      >
+                        <Plus className="w-4 h-4" />
+                        Add
+                      </button>
+                    </div>
+                  </form>
                 </div>
               </div>
 

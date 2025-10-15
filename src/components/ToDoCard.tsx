@@ -4,6 +4,8 @@ import { useState, useRef, useEffect } from 'react'
 import { Plus, Timer, ChevronDown, CornerDownLeft } from 'lucide-react'
 import { useToDoStore } from '@/store/toDoStore'
 import { useHistoryStore } from '@/store/historyStore'
+import { useSettingsStore } from '@/store/settingsStore'
+import { estimateTimeFromDescription } from '@/utils/timeEstimation'
 
 // Rotating placeholder text component
 function RotatingPlaceholder({ 
@@ -60,6 +62,8 @@ function ToDoCardContent() {
   const setShowCreateTask = useToDoStore((state) => state.setShowCreateTask)
   const getSimilarStats = useHistoryStore((state) => state.getSimilarStats)
 
+  // Get time estimation settings
+  const { customKeywords, defaultMinutes } = useSettingsStore()
 
   const commonTimes = [
     { label: '15 minutes', value: 15 },
@@ -67,63 +71,6 @@ function ToDoCardContent() {
     { label: '1 hour', value: 60 },
     { label: '2 hours', value: 120 },
   ]
-
-  // Smart time estimation based on to do keywords
-  const estimateTimeFromDescription = (description: string): number => {
-    const text = description.toLowerCase()
-    
-    // Specific placeholder to do matches
-    if (text.includes('walk the dog')) return 15
-    if (text.includes('call mom back')) return 120  // 2 hours - family calls can be long!
-    if (text.includes('buy socks')) return 7
-    if (text.includes('inbox zero')) return 25
-    if (text.includes('water the monsterra')) return 2  // Quick plant watering
-    if (text.includes('do laundry before i have to wear the same underwear tomorrow')) return 45
-    if (text.includes('cancel whatever i have planned for tonight')) return 8
-    if (text.includes('take out the trash')) return 3
-    if (text.includes('figure out dinner')) return 12
-    if (text.includes('update my linkedin')) return 18
-    
-    // General keyword patterns
-    // Quick to dos (2-20 mins)
-    if (text.includes('shower') || text.includes('bath')) return 20
-    if (text.includes('email') || text.includes('reply')) return 10
-    if (text.includes('call') || text.includes('phone')) return 15
-    if (text.includes('quick') || text.includes('fast')) return 10
-    if (text.includes('check') || text.includes('review')) return 15
-    if (text.includes('list') || text.includes('write')) return 10
-    if (text.includes('water') || text.includes('plant')) return 3
-    if (text.includes('trash') || text.includes('garbage')) return 3
-    if (text.includes('cancel') || text.includes('reschedule')) return 8
-    if (text.includes('inbox') || text.includes('email')) return 25
-    if (text.includes('walk') || text.includes('dog')) return 15
-    if (text.includes('buy') || text.includes('purchase') || text.includes('shop')) return 7
-    if (text.includes('laundry') || text.includes('wash')) return 45
-    if (text.includes('dinner') || text.includes('meal') || text.includes('food')) return 12
-    if (text.includes('linkedin') || text.includes('social media')) return 18
-    
-    // Medium to dos (30-60 mins)
-    if (text.includes('cook') || text.includes('meal') || text.includes('dinner')) return 45
-    if (text.includes('exercise') || text.includes('workout') || text.includes('gym')) return 60
-    if (text.includes('clean') || text.includes('tidy') || text.includes('organize')) return 30
-    if (text.includes('read') || text.includes('book') || text.includes('article')) return 45
-    if (text.includes('shopping') || text.includes('grocery') || text.includes('store')) return 60
-    if (text.includes('meeting') || text.includes('call') || text.includes('discussion')) return 30
-    
-    // Longer to dos (1-2 hours)
-    if (text.includes('project') || text.includes('work') || text.includes('coding')) return 90
-    if (text.includes('study') || text.includes('learn') || text.includes('course')) return 90
-    if (text.includes('write') || text.includes('document') || text.includes('report')) return 75
-    if (text.includes('design') || text.includes('create') || text.includes('build')) return 120
-    if (text.includes('research') || text.includes('investigate') || text.includes('analyze')) return 90
-    
-    // Very long to dos (2+ hours)
-    if (text.includes('deep') || text.includes('thorough') || text.includes('complete')) return 180
-    if (text.includes('marathon') || text.includes('all day') || text.includes('extensive')) return 240
-    
-    // Default fallback
-    return 30
-  }
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -177,12 +124,14 @@ function ToDoCardContent() {
       if (taskCount > 1 && taskCount <= 10) { // Limit to reasonable number
         setMultiplicationPreview({ baseDescription: baseDescription.trim(), count: taskCount })
         // Use base description for time estimation
-        const estimatedTime = estimateTimeFromDescription(baseDescription.trim())
+        const historicalStats = getSimilarStats(baseDescription.trim())
+        const estimatedTime = estimateTimeFromDescription(baseDescription.trim(), customKeywords, defaultMinutes, historicalStats)
         setEstimatedMinutes(estimatedTime)
       } else if (taskCount > 10) {
         setMultiplicationPreview({ baseDescription: baseDescription.trim(), count: taskCount })
         // Still estimate time but show warning
-        const estimatedTime = estimateTimeFromDescription(baseDescription.trim())
+        const historicalStats = getSimilarStats(baseDescription.trim())
+        const estimatedTime = estimateTimeFromDescription(baseDescription.trim(), customKeywords, defaultMinutes, historicalStats)
         setEstimatedMinutes(estimatedTime)
       } else {
         setMultiplicationPreview(null)
@@ -190,9 +139,10 @@ function ToDoCardContent() {
     } else {
       setMultiplicationPreview(null)
 
-      // Use keyword-based estimation
+      // Use keyword-based and historical estimation
       if (newDescription.trim()) {
-        const estimatedTime = estimateTimeFromDescription(newDescription)
+        const historicalStats = getSimilarStats(newDescription)
+        const estimatedTime = estimateTimeFromDescription(newDescription, customKeywords, defaultMinutes, historicalStats)
         setEstimatedMinutes(estimatedTime)
       }
     }
@@ -407,7 +357,8 @@ function ToDoCardContent() {
                        interval={4000}
                        className="text-base font-['Geist'] leading-tight"
                        onTextChange={(text) => {
-                         const estimatedTime = estimateTimeFromDescription(text)
+                         const historicalStats = getSimilarStats(text)
+                         const estimatedTime = estimateTimeFromDescription(text, customKeywords, defaultMinutes, historicalStats)
                          setEstimatedMinutes(estimatedTime)
                        }}
                      />

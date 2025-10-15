@@ -1,6 +1,27 @@
+import { CustomKeyword } from '@/store/settingsStore'
+import { SimilarTaskStats } from '@/types'
+
 // Smart time estimation based on task keywords
-export function estimateTimeFromDescription(description: string): number {
+export function estimateTimeFromDescription(
+  description: string,
+  customKeywords: CustomKeyword[] = [],
+  defaultMinutes: number = 30,
+  historicalStats?: SimilarTaskStats
+): number {
   const text = description.toLowerCase()
+
+  // First, check custom user keywords (highest priority)
+  for (const customKeyword of customKeywords) {
+    if (text.includes(customKeyword.keyword)) {
+      return customKeyword.minutes
+    }
+  }
+
+  // Second, check historical data if available (better than built-in keywords)
+  if (historicalStats && historicalStats.count >= 2) {
+    // Use median time from historical data if we have at least 2 similar tasks
+    return Math.round(historicalStats.medianMinutes)
+  }
 
   // Specific task matches
   const specificMatches: Record<string, number> = {
@@ -56,8 +77,8 @@ export function estimateTimeFromDescription(description: string): number {
   if (text.includes('deep') || text.includes('thorough') || text.includes('complete')) return 180
   if (text.includes('marathon') || text.includes('all day') || text.includes('extensive')) return 240
 
-  // Default fallback
-  return 30
+  // Default fallback (uses custom default if provided)
+  return defaultMinutes
 }
 
 export function formatDuration(minutes: number): string {
