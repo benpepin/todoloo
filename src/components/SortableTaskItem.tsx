@@ -205,8 +205,8 @@ export default function SortableTaskItem({
 
     // If completing the task, trigger cat paw animation
     if (isCompleting) {
-      // 30% chance for cat paw scratch
-      const showScratch = Math.random() < 0.3
+      // 90% chance for cat paw scratch
+      const showScratch = Math.random() < 0.9
 
       // Trigger checkmark animation
       setShowCheckmarkAnimation(true)
@@ -247,7 +247,7 @@ export default function SortableTaskItem({
           setShowStrikethrough(false)
           setShowCheckmarkAnimation(false)
           onToggleCompletion(task.id)
-        }, 3000)
+        }, 2500)
       } else {
         // No scratch animation - show checkmark briefly before completing
         setTimeout(() => {
@@ -263,11 +263,16 @@ export default function SortableTaskItem({
 
   const handleEdit = () => {
     // Allow editing both completed and incomplete todos
-    
+
     // If another to do is being edited, we need to save its current values
     // This will be handled by the component that's currently being edited
     // when it detects the editingTaskId change
-    
+
+    // Reset any animation states to prevent flashing
+    setIsScratching(false)
+    setShowStrikethrough(false)
+    setShowCheckmarkAnimation(false)
+
     setEditingTask(task.id)
     setShowEditButtons(true)
   }
@@ -581,13 +586,14 @@ export default function SortableTaskItem({
             </div>
           ) : (
             // Normal display mode - simplified design with hover states
-            <div className={`flex items-center gap-6 relative ${isActive ? 'active' : ''}`}>
+            <div className={`flex items-center relative ${isActive ? 'active' : ''}`}>
               {/* Cat Paw Scratch Animation - covers entire card */}
               {isScratching && (
                 <div
-                  className="absolute left-0 h-full flex items-center pointer-events-none z-20"
+                  className="absolute h-full flex items-center pointer-events-none z-20"
                   style={{
                     top: '12px',
+                    left: 0,
                     animation: 'catPawSlide 1.5s ease-in-out',
                   }}
                 >
@@ -603,7 +609,7 @@ export default function SortableTaskItem({
               )}
 
               {/* Task number or play/animated bars */}
-              <div className="flex items-center justify-center min-w-[32px]">
+              <div className="flex items-center justify-center w-[32px] mr-6">
                 {isRunning && hasStarted ? (
                   // Active task: show animated bars that fade to pause on hover
                   <div className="relative w-10 h-10 md:w-8 md:h-8 flex items-center justify-center">
@@ -687,7 +693,7 @@ export default function SortableTaskItem({
                 )}
               </div>
                 
-              <div className="flex-1 pl-2">
+              <div className="flex-1">
                 <div
                   className="cursor-text"
                   onClick={handleEdit}
