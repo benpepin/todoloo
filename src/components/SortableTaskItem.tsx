@@ -573,13 +573,13 @@ export default function SortableTaskItem({
                   </button>
                   <button
                     onClick={handleSave}
-                    className="h-8 px-3 rounded-[20px] hover:opacity-90 transition-opacity cursor-pointer"
+                    className="h-8 px-4 rounded-full hover:opacity-90 transition-opacity cursor-pointer flex items-center justify-center"
                     style={{
                       background: 'linear-gradient(to right, var(--color-todoloo-gradient-start), var(--color-todoloo-gradient-end))',
                       border: 'none'
                     }}
                   >
-                    <span className="text-white text-xs font-inter">Save</span>
+                    <span className="text-white text-xs font-medium" style={{ fontFamily: 'Geist' }}>Save</span>
                   </button>
                 </div>
               </div>
@@ -594,6 +594,7 @@ export default function SortableTaskItem({
                   style={{
                     top: '12px',
                     left: 0,
+                    transform: 'translateX(-100%)',
                     animation: 'catPawSlide 1.5s ease-in-out',
                   }}
                 >
