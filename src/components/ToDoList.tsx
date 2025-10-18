@@ -346,7 +346,7 @@ function ToDoListContent() {
                  cursor: 'grabbing'
                }}>
             <div className="flex items-center gap-6">
-              <div className="flex items-center justify-center w-8 h-8">
+              <div className="hidden lg:flex items-center justify-center w-8 h-8">
                 <span
                   className="font-normal"
                   style={{ color: '#989999', fontSize: 28, fontFamily: 'Inter' }}
