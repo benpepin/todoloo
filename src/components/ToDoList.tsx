@@ -46,8 +46,8 @@ function ToDoListContent() {
     }),
     useSensor(TouchSensor, {
       activationConstraint: {
-        delay: 500,
-        tolerance: 15,
+        delay: 150,
+        tolerance: 5,
       },
     }),
     useSensor(KeyboardSensor, {

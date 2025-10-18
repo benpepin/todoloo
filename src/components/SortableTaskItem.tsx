@@ -216,15 +216,15 @@ export default function SortableTaskItem({
         setIsScratching(true)
       }
 
-      // If completing the task while timer is running, pause it first
-      if (isRunning && hasStarted) {
-        pause() // Stop the timer from running
-      }
-
       // If completing the to do and we have timer data, save the actual time
       if (hasStarted && seconds > 0) {
         const actualMinutes = Math.round(seconds / 60) || 1 // At least 1 minute
         updateTaskActualTime(task.id, actualMinutes)
+      }
+
+      // If completing the task while timer is active, stop and clear it completely
+      if (hasStarted) {
+        stop() // Clear the timer completely (removes from localStorage)
       }
       // If completing while active, stop task tracking
       if (isActive) {
@@ -609,7 +609,7 @@ export default function SortableTaskItem({
               )}
 
               {/* Task number or play/animated bars */}
-              <div className="flex items-center justify-center w-[32px] mr-6">
+              <div className="hidden lg:flex items-center justify-center w-[32px] mr-6">
                 {isRunning && hasStarted ? (
                   // Active task: show animated bars that fade to pause on hover
                   <div className="relative w-10 h-10 md:w-8 md:h-8 flex items-center justify-center">
