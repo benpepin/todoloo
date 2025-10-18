@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { DndContext, closestCenter, KeyboardSensor, PointerSensor, TouchSensor, useSensor, useSensors, DragEndEvent, DragStartEvent, DragOverlay, DragOverEvent } from '@dnd-kit/core'
+import { DndContext, closestCenter, KeyboardSensor, MouseSensor, TouchSensor, useSensor, useSensors, DragEndEvent, DragStartEvent, DragOverlay, DragOverEvent } from '@dnd-kit/core'
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { useToDoStore } from '@/store/toDoStore'
 import SortableTaskItem from './SortableTaskItem'
@@ -39,14 +39,14 @@ function ToDoListContent() {
 
 
   const sensors = useSensors(
-    useSensor(PointerSensor, {
+    useSensor(MouseSensor, {
       activationConstraint: {
-        distance: 3,
+        distance: 8,
       },
     }),
     useSensor(TouchSensor, {
       activationConstraint: {
-        delay: 150,
+        delay: 250,
         tolerance: 5,
       },
     }),
@@ -57,9 +57,6 @@ function ToDoListContent() {
 
   const handleDragStart = (event: DragStartEvent) => {
     setActiveId(event.active.id as string)
-    // Prevent scrolling during drag on mobile
-    document.body.style.overflow = 'hidden'
-    document.body.style.touchAction = 'none'
   }
 
   const handleDragOver = (event: DragOverEvent) => {
@@ -67,9 +64,6 @@ function ToDoListContent() {
   }
 
   const handleDragCancel = () => {
-    // Re-enable scrolling if drag is cancelled
-    document.body.style.overflow = ''
-    document.body.style.touchAction = ''
     setActiveId(null)
     setOverId(null)
   }
@@ -78,10 +72,6 @@ function ToDoListContent() {
     const { active, over } = event
 
     console.log('[DRAG] Drag ended:', { activeId: active.id, overId: over?.id })
-
-    // Re-enable scrolling
-    document.body.style.overflow = ''
-    document.body.style.touchAction = ''
 
     // Clear overId immediately but delay clearing activeId for smooth animation
     setOverId(null)
