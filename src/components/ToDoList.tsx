@@ -57,16 +57,31 @@ function ToDoListContent() {
 
   const handleDragStart = (event: DragStartEvent) => {
     setActiveId(event.active.id as string)
+    // Prevent scrolling during drag on mobile
+    document.body.style.overflow = 'hidden'
+    document.body.style.touchAction = 'none'
   }
 
   const handleDragOver = (event: DragOverEvent) => {
     setOverId(event.over?.id as string || null)
   }
 
+  const handleDragCancel = () => {
+    // Re-enable scrolling if drag is cancelled
+    document.body.style.overflow = ''
+    document.body.style.touchAction = ''
+    setActiveId(null)
+    setOverId(null)
+  }
+
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event
 
     console.log('[DRAG] Drag ended:', { activeId: active.id, overId: over?.id })
+
+    // Re-enable scrolling
+    document.body.style.overflow = ''
+    document.body.style.touchAction = ''
 
     // Clear overId immediately but delay clearing activeId for smooth animation
     setOverId(null)
@@ -201,6 +216,7 @@ function ToDoListContent() {
       onDragStart={handleDragStart}
       onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
+      onDragCancel={handleDragCancel}
     >
       <div className="w-full flex flex-col justify-start items-start gap-8">
         {/* Todo Section */}
