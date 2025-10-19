@@ -53,6 +53,11 @@ export default function SettingsPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id])
 
+  // Debug custom keywords on mount
+  useEffect(() => {
+    console.log('Settings page mounted, custom keywords:', customKeywords)
+  }, [customKeywords])
+
   const loadSharedUsers = async () => {
     if (!user?.id) return
     setIsLoadingShares(true)
@@ -110,9 +115,11 @@ export default function SettingsPage() {
   // Time estimation handlers
   const handleAddKeyword = (e: React.FormEvent) => {
     e.preventDefault()
+    console.log('handleAddKeyword called with:', { newKeyword, newKeywordMinutes })
     if (newKeyword.trim() && newKeywordMinutes) {
       const minutes = parseInt(newKeywordMinutes)
       if (minutes > 0) {
+        console.log('Calling addCustomKeyword with:', newKeyword.trim(), minutes)
         addCustomKeyword(newKeyword.trim(), minutes)
         setNewKeyword('')
         setNewKeywordMinutes('30')
@@ -129,8 +136,10 @@ export default function SettingsPage() {
   const handleSaveEdit = (id: string) => {
     const keyword = editKeyword.trim()
     const minutes = parseInt(editKeywordMinutes)
+    console.log('handleSaveEdit called with:', { id, keyword, minutes })
 
     if (keyword && !isNaN(minutes) && minutes > 0) {
+      console.log('Calling updateCustomKeyword with:', id, keyword, minutes)
       updateCustomKeyword(id, keyword, minutes)
       setEditingKeywordId(null)
       setEditKeyword('')

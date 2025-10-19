@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { indexedDbStorage } from '@/storage/indexedDbStorage'
 
 export interface CustomKeyword {
   id: string
@@ -38,27 +39,35 @@ export const useSettingsStore = create<SettingsState>()(
         set({ defaultMinutes: minutes }),
 
       addCustomKeyword: (keyword: string, minutes: number) =>
-        set((state) => ({
-          customKeywords: [
-            ...state.customKeywords,
-            { id: crypto.randomUUID(), keyword: keyword.toLowerCase().trim(), minutes }
-          ]
-        })),
+        set((state) => {
+          const newKeyword = { id: crypto.randomUUID(), keyword: keyword.toLowerCase().trim(), minutes }
+          const updatedKeywords = [...state.customKeywords, newKeyword]
+          console.log('Adding custom keyword:', newKeyword)
+          console.log('Updated custom keywords:', updatedKeywords)
+          return { customKeywords: updatedKeywords }
+        }),
 
       removeCustomKeyword: (id: string) =>
-        set((state) => ({
-          customKeywords: state.customKeywords.filter(k => k.id !== id)
-        })),
+        set((state) => {
+          const updatedKeywords = state.customKeywords.filter(k => k.id !== id)
+          console.log('Removing custom keyword with id:', id)
+          console.log('Updated custom keywords:', updatedKeywords)
+          return { customKeywords: updatedKeywords }
+        }),
 
       updateCustomKeyword: (id: string, keyword: string, minutes: number) =>
-        set((state) => ({
-          customKeywords: state.customKeywords.map(k =>
+        set((state) => {
+          const updatedKeywords = state.customKeywords.map(k =>
             k.id === id ? { ...k, keyword: keyword.toLowerCase().trim(), minutes } : k
           )
-        })),
+          console.log('Updating custom keyword with id:', id, 'to:', { keyword, minutes })
+          console.log('Updated custom keywords:', updatedKeywords)
+          return { customKeywords: updatedKeywords }
+        }),
     }),
     {
       name: 'todoloo-settings',
+      storage: indexedDbStorage,
     }
   )
 )
