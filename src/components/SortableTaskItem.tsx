@@ -216,16 +216,23 @@ export default function SortableTaskItem({
         setIsScratching(true)
       }
 
+      // If completing the task while timer is active, stop and clear it completely FIRST
+      // This must happen before saving actual time to ensure timer is stopped immediately
+      if (isRunning) {
+        pause() // Pause first to capture current time
+      }
+
       // If completing the to do and we have timer data, save the actual time
       if (hasStarted && seconds > 0) {
         const actualMinutes = Math.round(seconds / 60) || 1 // At least 1 minute
         updateTaskActualTime(task.id, actualMinutes)
       }
 
-      // If completing the task while timer is active, stop and clear it completely
+      // Clear the timer completely (removes from localStorage)
       if (hasStarted) {
         stop() // Clear the timer completely (removes from localStorage)
       }
+
       // If completing while active, stop task tracking
       if (isActive) {
         stopTask()
