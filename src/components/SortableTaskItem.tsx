@@ -677,6 +677,11 @@ export default function SortableTaskItem({
                   </button>
                 </div>
               </div>
+
+              {/* Checklist Section - shown in edit mode */}
+              {showChecklist && (
+                <ChecklistSection taskId={task.id} checklistItems={task.checklistItems} isEditing={isEditing} />
+              )}
             </div>
           ) : (
             // Normal display mode - simplified design with hover states
@@ -903,7 +908,7 @@ export default function SortableTaskItem({
 
             {/* Checklist Section - only shown in normal mode */}
             {showChecklist && (
-              <ChecklistSection taskId={task.id} checklistItems={task.checklistItems} />
+              <ChecklistSection taskId={task.id} checklistItems={task.checklistItems} isEditing={isEditing} />
             )}
             </>
           )}

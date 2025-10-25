@@ -25,6 +25,7 @@ import { CSS } from '@dnd-kit/utilities'
 interface ChecklistSectionProps {
   taskId: string
   checklistItems?: ChecklistItem[]
+  isEditing?: boolean
 }
 
 interface SortableChecklistItemProps {
@@ -176,7 +177,7 @@ function SortableChecklistItem({ item, onToggle, onDelete, onUpdate }: SortableC
   )
 }
 
-export default function ChecklistSection({ taskId, checklistItems = [] }: ChecklistSectionProps) {
+export default function ChecklistSection({ taskId, checklistItems = [], isEditing = false }: ChecklistSectionProps) {
   const [newItemDescription, setNewItemDescription] = useState('')
   const [isAddingItem, setIsAddingItem] = useState(false)
   const newItemInputRef = useRef<HTMLInputElement>(null)
@@ -301,43 +302,45 @@ export default function ChecklistSection({ taskId, checklistItems = [] }: Checkl
         </SortableContext>
       </DndContext>
 
-      {/* Add new item */}
-      {isAddingItem ? (
-        <div className="flex items-center gap-3 py-2 px-3">
-          <div className="w-5 h-5 rounded border-2 flex-shrink-0" style={{ borderColor: 'var(--color-todoloo-border)' }} />
-          <input
-            ref={newItemInputRef}
-            type="text"
-            value={newItemDescription}
-            onChange={(e) => {
-              e.stopPropagation() // Prevent space bar from triggering drag
-              setNewItemDescription(e.target.value)
-            }}
-            onKeyDown={handleKeyDown}
-            onBlur={() => {
-              // If input is empty, close it
-              if (!newItemDescription.trim()) {
-                setIsAddingItem(false)
-              } else {
-                // Otherwise, add the item
-                handleAddItem()
-              }
-            }}
-            placeholder="Add item..."
-            className="flex-1 text-sm font-inter bg-transparent border-none outline-none"
-            style={{ color: 'var(--color-todoloo-text-primary)' }}
-          />
-        </div>
-      ) : (
-        <button
-          onClick={() => setIsAddingItem(true)}
-          className="flex items-center gap-2 py-2 px-3 rounded-lg transition-colors hover:bg-[var(--color-todoloo-muted)] cursor-pointer w-full"
-        >
-          <Plus className="w-4 h-4" style={{ color: 'var(--color-todoloo-text-muted)' }} />
-          <span className="text-sm font-inter" style={{ color: 'var(--color-todoloo-text-muted)' }}>
-            Add item
-          </span>
-        </button>
+      {/* Add new item - only show when editing */}
+      {isEditing && (
+        isAddingItem ? (
+          <div className="flex items-center gap-3 py-2 px-3">
+            <div className="w-5 h-5 rounded border-2 flex-shrink-0" style={{ borderColor: 'var(--color-todoloo-border)' }} />
+            <input
+              ref={newItemInputRef}
+              type="text"
+              value={newItemDescription}
+              onChange={(e) => {
+                e.stopPropagation() // Prevent space bar from triggering drag
+                setNewItemDescription(e.target.value)
+              }}
+              onKeyDown={handleKeyDown}
+              onBlur={() => {
+                // If input is empty, close it
+                if (!newItemDescription.trim()) {
+                  setIsAddingItem(false)
+                } else {
+                  // Otherwise, add the item
+                  handleAddItem()
+                }
+              }}
+              placeholder="Add item..."
+              className="flex-1 text-sm font-inter bg-transparent border-none outline-none"
+              style={{ color: 'var(--color-todoloo-text-primary)' }}
+            />
+          </div>
+        ) : (
+          <button
+            onClick={() => setIsAddingItem(true)}
+            className="flex items-center gap-2 py-2 px-3 rounded-lg transition-colors hover:bg-[var(--color-todoloo-muted)] cursor-pointer w-full"
+          >
+            <Plus className="w-4 h-4" style={{ color: 'var(--color-todoloo-text-muted)' }} />
+            <span className="text-sm font-inter" style={{ color: 'var(--color-todoloo-text-muted)' }}>
+              Add item
+            </span>
+          </button>
+        )
       )}
     </div>
   )
