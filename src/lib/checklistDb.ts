@@ -209,20 +209,16 @@ export async function deleteChecklistItem(id: string): Promise<void> {
  */
 export async function updateChecklistItemOrder(items: ChecklistItem[]): Promise<void> {
   try {
-    // Update each item's order in the database
-    const updates = items.map((item, index) => ({
-      id: item.id,
-      order_index: index
-    }))
-
-    const { error } = await supabase
-      .from('checklist_items')
-      .upsert(updates)
-
-    if (error) {
-      console.error('Error updating checklist item order:', error)
-      throw new Error(error.message)
-    }
+    // Update each item individually instead of using upsert
+    // This avoids RLS issues with bulk operations
+    await Promise.all(
+      items.map((item, index) =>
+        supabase
+          .from('checklist_items')
+          .update({ order_index: index })
+          .eq('id', item.id)
+      )
+    )
 
     // Also update in IndexedDB
     await Promise.all(items.map((item, index) =>

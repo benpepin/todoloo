@@ -43,7 +43,7 @@ interface ToDoStore extends AppState {
   initializeUser: (userId: string) => Promise<void>
   loadTasks: () => Promise<void>
   switchToList: (listOwnerId: string) => Promise<void>
-  addTask: (description: string, estimatedMinutes: number, groupId?: string) => Promise<void>
+  addTask: (description: string, estimatedMinutes: number, groupId?: string) => Promise<Task | undefined>
   deleteTask: (id: string) => Promise<void>
   toggleTaskCompletion: (id: string) => Promise<void>
   updateTaskOrder: (tasks: Task[]) => Promise<void>
@@ -223,7 +223,7 @@ export const useToDoStore = create<ToDoStore>()((set, get) => ({
     const { userId, currentListOwnerId } = get()
     if (!userId) {
       set({ error: 'User not authenticated' })
-      return
+      return undefined
     }
 
     // Use currentListOwnerId to create task in the right list
@@ -301,10 +301,12 @@ export const useToDoStore = create<ToDoStore>()((set, get) => ({
 
       // Replace optimistic task with real one
       set((state) => ({
-        tasks: state.tasks.map(task => 
+        tasks: state.tasks.map(task =>
           task.id === optimisticTask.id ? { ...newTask, order: optimisticTask.order } : task
         )
       }))
+
+      return optimisticTask
     } catch (error) {
       console.error('Error creating task:', error)
       // Remove optimistic task on failure
@@ -312,6 +314,7 @@ export const useToDoStore = create<ToDoStore>()((set, get) => ({
         tasks: state.tasks.filter(task => task.id !== optimisticTask.id),
         error: error instanceof Error ? error.message : 'Failed to create task'
       }))
+      return undefined
     }
   },
 

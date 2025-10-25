@@ -49,10 +49,9 @@ function ToDoListContent() {
         delay: 250,
         tolerance: 5,
       },
-    }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
     })
+    // Keyboard sensor disabled to prevent space bar from triggering drag when typing in checklist items
+    // Users can still drag with mouse/touch via the drag handle
   )
 
   const handleDragStart = (event: DragStartEvent) => {
