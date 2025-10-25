@@ -3,13 +3,14 @@
 import { useState, useRef, useEffect } from 'react'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { Check, GripVertical, Timer, ChevronDown, Play, Pause, Unlink } from 'lucide-react'
+import { Check, GripVertical, Timer, ChevronDown, Play, Pause, Unlink, MoreHorizontal } from 'lucide-react'
 import { Task } from '@/types'
 import { useToDoStore } from '@/store/toDoStore'
 import { useSimpleTimer } from '@/hooks/useSimpleTimer'
 import { useSupabase } from './SupabaseProvider'
 import AnimatedBorder from './AnimatedBorder'
 import { AnimatedBars } from './AnimatedBars'
+import ChecklistSection from './ChecklistSection'
 
 interface SortableTaskItemProps {
   task: Task
@@ -32,6 +33,7 @@ export default function SortableTaskItem({
   const [editDescription, setEditDescription] = useState(task.description)
   const [editEstimatedMinutes, setEditEstimatedMinutes] = useState(task.estimatedMinutes)
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+  const [isOptionsDropdownOpen, setIsOptionsDropdownOpen] = useState(false)
   const [customMinutes, setCustomMinutes] = useState('')
   const customTimeTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const [, setShowEditButtons] = useState(false)
@@ -39,9 +41,11 @@ export default function SortableTaskItem({
   const [isScratching, setIsScratching] = useState(false)
   const [showStrikethrough, setShowStrikethrough] = useState(false)
   const [showCheckmarkAnimation, setShowCheckmarkAnimation] = useState(false)
+  const [showChecklist, setShowChecklist] = useState(false)
 
   const descriptionInputRef = useRef<HTMLInputElement>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
+  const optionsDropdownRef = useRef<HTMLDivElement>(null)
   const taskCardRef = useRef<HTMLDivElement>(null)
   
   const commonTimes = [
@@ -61,6 +65,7 @@ export default function SortableTaskItem({
   const stopTask = useToDoStore((state) => state.stopTask)
   const activeTaskId = useToDoStore((state) => state.activeTaskId)
   const ungroupTask = useToDoStore((state) => state.ungroupTask)
+  const loadChecklistItems = useToDoStore((state) => state.loadChecklistItems)
   
   const isEditing = editingTaskId === task.id
   const isActive = activeTaskId === task.id
@@ -81,6 +86,13 @@ export default function SortableTaskItem({
     setEditDescription(task.description)
     setEditEstimatedMinutes(task.estimatedMinutes)
   }, [task.description, task.estimatedMinutes])
+
+  // Show checklist if task has checklist items
+  useEffect(() => {
+    if (task.checklistItems && task.checklistItems.length > 0) {
+      setShowChecklist(true)
+    }
+  }, [task.checklistItems])
 
   // Focus input when editing starts
   useEffect(() => {
@@ -110,6 +122,20 @@ export default function SortableTaskItem({
       document.removeEventListener('mousedown', handleClickOutside)
     }
   }, [customMinutes, task.id, updateTaskEstimatedTime])
+
+  // Handle click outside options dropdown
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (optionsDropdownRef.current && !optionsDropdownRef.current.contains(event.target as Node)) {
+        setIsOptionsDropdownOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [])
 
   // Handle click outside to do card to save edits
   useEffect(() => {
@@ -384,6 +410,18 @@ export default function SortableTaskItem({
     }
   }
 
+  const handleAddChecklist = async () => {
+    setIsOptionsDropdownOpen(false)
+
+    // If checklist items haven't been loaded yet, load them
+    if (!task.checklistItems) {
+      await loadChecklistItems(task.id)
+    }
+
+    // Show the checklist section
+    setShowChecklist(true)
+  }
+
   const style = {
     transform: CSS.Transform.toString(transform),
     transition: transition || 'transform 200ms cubic-bezier(0.2, 0, 0, 1), opacity 200ms ease-out',
@@ -464,72 +502,121 @@ export default function SortableTaskItem({
               </div>
               
               <div className="flex justify-between items-end">
-                <div className="relative" ref={dropdownRef}>
-                  <button
-                    type="button"
-                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                    className="h-8 px-3 rounded-[20px] border flex items-center gap-1 transition-colors cursor-pointer"
-                    style={{
-                      borderColor: 'var(--color-todoloo-border)',
-                      backgroundColor: isDropdownOpen ? 'var(--color-todoloo-muted)' : 'var(--color-todoloo-card)'
-                    }}
-                    onMouseEnter={(e) => {
-                      if (!isDropdownOpen) {
-                        e.currentTarget.style.backgroundColor = 'var(--color-todoloo-muted)'
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if (!isDropdownOpen) {
-                        e.currentTarget.style.backgroundColor = 'var(--color-todoloo-card)'
-                      }
-                    }}
-                  >
-                    <Timer className="w-3.5 h-3.5" style={{ color: 'var(--color-todoloo-text-secondary)' }} />
-                    <span className="text-xs font-inter" style={{ color: 'var(--color-todoloo-text-secondary)', transform: 'translateY(1px)' }}>
-                      {formatEstimatedTime(editEstimatedMinutes)}
-                    </span>
-                    <ChevronDown className={`w-3 h-3 transition-transform translate-y-px ${isDropdownOpen ? 'rotate-180' : ''}`} 
-                                 style={{ color: 'var(--color-todoloo-text-secondary)' }} />
-                  </button>
-                  
-                  {isDropdownOpen && (
-                    <div className="absolute top-9 left-0 w-48 bg-[#FEFFFF] rounded-[20px] border border-[#D9D9D9] shadow-[0px_4px_54px_rgba(0,0,0,0.05)] p-2 z-10">
-                      <div className="space-y-1">
-                        {commonTimes.map((time) => (
+                <div className="flex items-center gap-2">
+                  <div className="relative" ref={dropdownRef}>
+                    <button
+                      type="button"
+                      onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                      className="h-8 px-3 rounded-[20px] border flex items-center gap-1 transition-colors cursor-pointer"
+                      style={{
+                        borderColor: 'var(--color-todoloo-border)',
+                        backgroundColor: isDropdownOpen ? 'var(--color-todoloo-muted)' : 'var(--color-todoloo-card)'
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!isDropdownOpen) {
+                          e.currentTarget.style.backgroundColor = 'var(--color-todoloo-muted)'
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!isDropdownOpen) {
+                          e.currentTarget.style.backgroundColor = 'var(--color-todoloo-card)'
+                        }
+                      }}
+                    >
+                      <Timer className="w-3.5 h-3.5" style={{ color: 'var(--color-todoloo-text-secondary)' }} />
+                      <span className="text-xs font-inter" style={{ color: 'var(--color-todoloo-text-secondary)', transform: 'translateY(1px)' }}>
+                        {formatEstimatedTime(editEstimatedMinutes)}
+                      </span>
+                      <ChevronDown className={`w-3 h-3 transition-transform translate-y-px ${isDropdownOpen ? 'rotate-180' : ''}`}
+                                   style={{ color: 'var(--color-todoloo-text-secondary)' }} />
+                    </button>
+
+                    {isDropdownOpen && (
+                      <div className="absolute top-9 left-0 w-48 bg-[#FEFFFF] rounded-[20px] border border-[#D9D9D9] shadow-[0px_4px_54px_rgba(0,0,0,0.05)] p-2 z-10">
+                        <div className="space-y-1">
+                          {commonTimes.map((time) => (
+                            <button
+                              key={time.value}
+                              type="button"
+                              onClick={() => handleTimeSelect(time.value)}
+                              className="w-full text-left px-3 py-2 text-xs text-[#696969] font-inter hover:bg-[#F5F5F5] rounded-[10px] transition-colors cursor-pointer"
+                            >
+                              {time.label}
+                            </button>
+                          ))}
+                          <div className="border-t border-[#E6E6E6] my-1"></div>
+                          <form onSubmit={handleCustomTimeSubmit} className="px-3 py-2">
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="number"
+                                value={customMinutes}
+                                onChange={handleCustomTimeChange}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') {
+                                    e.preventDefault()
+                                    handleCustomTimeSubmit(e)
+                                  }
+                                }}
+                                onBlur={handleCustomTimeBlur}
+                                placeholder="Custom"
+                                min="1"
+                                max="999"
+                                className="flex-1 text-xs text-[#2D1B1B] font-inter bg-transparent border-none outline-none placeholder:text-[#989999]"
+                              />
+                              <span className="text-xs text-[#696969] font-inter">minutes</span>
+                            </div>
+                          </form>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Ellipsis Options Menu */}
+                  <div className="relative" ref={optionsDropdownRef}>
+                    <button
+                      type="button"
+                      onClick={() => setIsOptionsDropdownOpen(!isOptionsDropdownOpen)}
+                      className="h-8 w-8 rounded-[20px] border flex items-center justify-center transition-colors cursor-pointer"
+                      style={{
+                        borderColor: 'var(--color-todoloo-border)',
+                        backgroundColor: isOptionsDropdownOpen ? 'var(--color-todoloo-muted)' : 'var(--color-todoloo-card)'
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!isOptionsDropdownOpen) {
+                          e.currentTarget.style.backgroundColor = 'var(--color-todoloo-muted)'
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!isOptionsDropdownOpen) {
+                          e.currentTarget.style.backgroundColor = 'var(--color-todoloo-card)'
+                        }
+                      }}
+                      aria-label="More options"
+                    >
+                      <MoreHorizontal className="w-4 h-4" style={{ color: 'var(--color-todoloo-text-secondary)' }} />
+                    </button>
+
+                    {isOptionsDropdownOpen && (
+                      <div className="absolute top-9 left-0 w-48 bg-[#FEFFFF] rounded-[20px] border border-[#D9D9D9] shadow-[0px_4px_54px_rgba(0,0,0,0.05)] p-2 z-10">
+                        <div className="space-y-1">
                           <button
-                            key={time.value}
                             type="button"
-                            onClick={() => handleTimeSelect(time.value)}
+                            onClick={() => {
+                              if (showChecklist) {
+                                setShowChecklist(false)
+                              } else {
+                                handleAddChecklist()
+                              }
+                              setIsOptionsDropdownOpen(false)
+                            }}
                             className="w-full text-left px-3 py-2 text-xs text-[#696969] font-inter hover:bg-[#F5F5F5] rounded-[10px] transition-colors cursor-pointer"
                           >
-                            {time.label}
+                            {showChecklist ? 'Hide Checklist' : 'Add Checklist'}
                           </button>
-                        ))}
-                        <div className="border-t border-[#E6E6E6] my-1"></div>
-                        <form onSubmit={handleCustomTimeSubmit} className="px-3 py-2">
-                          <div className="flex items-center gap-2">
-                            <input
-                              type="number"
-                              value={customMinutes}
-                              onChange={handleCustomTimeChange}
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter') {
-                                  e.preventDefault()
-                                  handleCustomTimeSubmit(e)
-                                }
-                              }}
-                              onBlur={handleCustomTimeBlur}
-                              placeholder="Custom"
-                              min="1"
-                              max="999"
-                              className="flex-1 text-xs text-[#2D1B1B] font-inter bg-transparent border-none outline-none placeholder:text-[#989999]"
-                            />
-                            <span className="text-xs text-[#696969] font-inter">minutes</span>
-                          </div>
-                        </form>
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
                 
                 <div className="flex items-center gap-2">
@@ -593,6 +680,7 @@ export default function SortableTaskItem({
             </div>
           ) : (
             // Normal display mode - simplified design with hover states
+            <>
             <div className={`flex items-center relative ${isActive ? 'active' : ''}`}>
               {/* Cat Paw Scratch Animation - covers entire card */}
               {isScratching && (
@@ -766,6 +854,32 @@ export default function SortableTaskItem({
                     }
                   }}
                 >
+                  {/* Progress pie chart for checklist items */}
+                  {!task.isCompleted && !isScratching && !showCheckmarkAnimation && task.checklistItems && task.checklistItems.length > 0 && (() => {
+                    const completed = task.checklistItems.filter(item => item.isCompleted).length
+                    const total = task.checklistItems.length
+                    const percentage = (completed / total) * 100
+                    const radius = 14 // for w-8 h-8 (32px)
+                    const circumference = 2 * Math.PI * radius
+                    const offset = circumference - (percentage / 100) * circumference
+
+                    return (
+                      <svg className="absolute inset-0 w-full h-full -rotate-90" style={{ overflow: 'visible' }}>
+                        <circle
+                          cx="50%"
+                          cy="50%"
+                          r={radius}
+                          fill="none"
+                          stroke="var(--color-todoloo-gradient-start)"
+                          strokeWidth="2"
+                          strokeDasharray={circumference}
+                          strokeDashoffset={offset}
+                          style={{ transition: 'stroke-dashoffset 0.3s ease' }}
+                        />
+                      </svg>
+                    )
+                  })()}
+
                   {(task.isCompleted || isScratching || showCheckmarkAnimation) && (
                     <>
                       <Check
@@ -786,8 +900,14 @@ export default function SortableTaskItem({
                 </button>
               </div>
             </div>
+
+            {/* Checklist Section - only shown in normal mode */}
+            {showChecklist && (
+              <ChecklistSection taskId={task.id} checklistItems={task.checklistItems} />
+            )}
+            </>
           )}
-          
+
           {/* Creator attribution - positioned absolutely at bottom right */}
           {task.createdByName && task.createdByUserId && task.userId !== task.createdByUserId && (
             <div className="absolute bottom-3 right-4">

@@ -1,16 +1,24 @@
 import { create } from 'zustand'
-import { Task, AppState } from '@/types'
+import { Task, AppState, ChecklistItem } from '@/types'
 import { useHistoryStore } from './historyStore'
-import { 
-  fetchTodos, 
+import {
+  fetchTodos,
   fetchTodosDirect,
-  createTodo, 
-  updateTodo, 
-  deleteTodo, 
-  completeTodo, 
+  createTodo,
+  updateTodo,
+  deleteTodo,
+  completeTodo,
   updateTaskOrder as updateTaskOrderDb,
   backfillUserData
 } from '@/lib/db'
+import {
+  fetchChecklistItems,
+  createChecklistItem,
+  updateChecklistItem,
+  deleteChecklistItem,
+  toggleChecklistItemCompletion,
+  updateChecklistItemOrder
+} from '@/lib/checklistDb'
 
 // Inspirational quotes for empty state
 const INSPIRATIONAL_QUOTES = [
@@ -47,6 +55,14 @@ interface ToDoStore extends AppState {
   groupTasks: (taskId: string, targetTaskId: string) => Promise<void>
   ungroupTask: (taskId: string) => Promise<void>
 
+  // Checklist methods
+  loadChecklistItems: (taskId: string) => Promise<void>
+  addChecklistItem: (taskId: string, description: string) => Promise<void>
+  updateChecklistItemField: (id: string, updates: Partial<ChecklistItem>) => Promise<void>
+  deleteChecklistItem: (id: string) => Promise<void>
+  toggleChecklistItemCompletion: (id: string) => Promise<void>
+  updateChecklistItemOrder: (taskId: string, items: ChecklistItem[]) => Promise<void>
+
   // Sync methods for UI state
   startTask: (id: string) => void
   stopTask: () => void
@@ -81,23 +97,36 @@ export const useToDoStore = create<ToDoStore>()((set, get) => ({
   initializeUser: async (userId: string) => {
     try {
       set({ isLoading: true, error: null, userId })
-      
+
       // Backfill existing data to this user
       await backfillUserData(userId)
-      
+
       // Load tasks for this user
       const tasks = await fetchTodos(userId)
-      
-      set({ 
-        tasks, 
-        isLoading: false, 
-        isInitialized: true 
+
+      // Load checklist items for each task
+      const tasksWithChecklists = await Promise.all(
+        tasks.map(async (task) => {
+          try {
+            const checklistItems = await fetchChecklistItems(task.id)
+            return { ...task, checklistItems }
+          } catch (error) {
+            console.error(`Failed to load checklist items for task ${task.id}:`, error)
+            return task
+          }
+        })
+      )
+
+      set({
+        tasks: tasksWithChecklists,
+        isLoading: false,
+        isInitialized: true
       })
     } catch (error) {
       console.error('Error initializing user:', error)
-      set({ 
+      set({
         error: error instanceof Error ? error.message : 'Failed to initialize user',
-        isLoading: false 
+        isLoading: false
       })
     }
   },
@@ -112,25 +141,38 @@ export const useToDoStore = create<ToDoStore>()((set, get) => ({
 
     try {
       set({ isLoading: true, error: null })
-      
+
       // Use currentListOwnerId if set, otherwise use userId (your own list)
       const targetUserId = currentListOwnerId || userId
 
       // Use the more robust fetch function for shared lists
       const tasks = await fetchTodosDirect(targetUserId)
 
+      // Load checklist items for each task
+      const tasksWithChecklists = await Promise.all(
+        tasks.map(async (task) => {
+          try {
+            const checklistItems = await fetchChecklistItems(task.id)
+            return { ...task, checklistItems }
+          } catch (error) {
+            console.error(`Failed to load checklist items for task ${task.id}:`, error)
+            return task
+          }
+        })
+      )
+
       // Update currentListOwnerId if it wasn't set before
       if (!currentListOwnerId) {
         // Determine if we're viewing a shared list
         // If we have tasks and they all belong to someone else, we're viewing their shared list
         let newCurrentListOwnerId = userId
-        if (tasks.length > 0 && tasks[0].userId && tasks[0].userId !== userId) {
+        if (tasksWithChecklists.length > 0 && tasksWithChecklists[0].userId && tasksWithChecklists[0].userId !== userId) {
           // We're viewing someone else's shared list
-          newCurrentListOwnerId = tasks[0].userId
+          newCurrentListOwnerId = tasksWithChecklists[0].userId
         }
-        set({ tasks, isLoading: false, currentListOwnerId: newCurrentListOwnerId })
+        set({ tasks: tasksWithChecklists, isLoading: false, currentListOwnerId: newCurrentListOwnerId })
       } else {
-        set({ tasks, isLoading: false })
+        set({ tasks: tasksWithChecklists, isLoading: false })
       }
     } catch (error) {
       console.error('Error loading tasks:', error)
@@ -152,7 +194,21 @@ export const useToDoStore = create<ToDoStore>()((set, get) => ({
     try {
       set({ isLoading: true, error: null, currentListOwnerId: listOwnerId })
       const tasks = await fetchTodosDirect(listOwnerId)
-      set({ tasks, isLoading: false })
+
+      // Load checklist items for each task
+      const tasksWithChecklists = await Promise.all(
+        tasks.map(async (task) => {
+          try {
+            const checklistItems = await fetchChecklistItems(task.id)
+            return { ...task, checklistItems }
+          } catch (error) {
+            console.error(`Failed to load checklist items for task ${task.id}:`, error)
+            return task
+          }
+        })
+      )
+
+      set({ tasks: tasksWithChecklists, isLoading: false })
     } catch (error) {
       console.error('Error switching list:', error)
       set({
@@ -554,6 +610,261 @@ export const useToDoStore = create<ToDoStore>()((set, get) => ({
         tasks: state.tasks,
         error: error instanceof Error ? error.message : 'Failed to ungroup task'
       })
+    }
+  },
+
+  // Load checklist items for a task
+  loadChecklistItems: async (taskId: string) => {
+    try {
+      set({ error: null })
+      const checklistItems = await fetchChecklistItems(taskId)
+
+      // Update the task with checklist items
+      set((state) => ({
+        tasks: state.tasks.map(task =>
+          task.id === taskId ? { ...task, checklistItems } : task
+        )
+      }))
+    } catch (error) {
+      console.error('Error loading checklist items:', error)
+      set({
+        error: error instanceof Error ? error.message : 'Failed to load checklist items'
+      })
+    }
+  },
+
+  // Add a new checklist item
+  addChecklistItem: async (taskId: string, description: string) => {
+    const task = get().tasks.find(t => t.id === taskId)
+    if (!task) return
+
+    const existingItems = task.checklistItems || []
+    const nextOrder = existingItems.length
+
+    // Optimistic item
+    const optimisticItem: ChecklistItem = {
+      id: crypto.randomUUID(),
+      taskId,
+      description,
+      isCompleted: false,
+      order: nextOrder,
+      createdAt: new Date()
+    }
+
+    // Optimistic update
+    set((state) => ({
+      tasks: state.tasks.map(t =>
+        t.id === taskId
+          ? { ...t, checklistItems: [...(t.checklistItems || []), optimisticItem] }
+          : t
+      )
+    }))
+
+    try {
+      set({ error: null })
+      const newItem = await createChecklistItem(taskId, description, nextOrder)
+
+      // Replace optimistic item with real one
+      set((state) => ({
+        tasks: state.tasks.map(t =>
+          t.id === taskId
+            ? {
+                ...t,
+                checklistItems: (t.checklistItems || []).map(item =>
+                  item.id === optimisticItem.id ? newItem : item
+                )
+              }
+            : t
+        )
+      }))
+    } catch (error) {
+      console.error('Error adding checklist item:', error)
+      // Remove optimistic item on failure
+      set((state) => ({
+        tasks: state.tasks.map(t =>
+          t.id === taskId
+            ? {
+                ...t,
+                checklistItems: (t.checklistItems || []).filter(
+                  item => item.id !== optimisticItem.id
+                )
+              }
+            : t
+        ),
+        error: error instanceof Error ? error.message : 'Failed to add checklist item'
+      }))
+    }
+  },
+
+  // Update a checklist item
+  updateChecklistItemField: async (id: string, updates: Partial<ChecklistItem>) => {
+    // Find which task contains this checklist item
+    const task = get().tasks.find(t =>
+      t.checklistItems?.some(item => item.id === id)
+    )
+    if (!task) return
+
+    const originalItem = task.checklistItems?.find(item => item.id === id)
+    if (!originalItem) return
+
+    // Optimistic update
+    set((state) => ({
+      tasks: state.tasks.map(t =>
+        t.id === task.id
+          ? {
+              ...t,
+              checklistItems: (t.checklistItems || []).map(item =>
+                item.id === id ? { ...item, ...updates } : item
+              )
+            }
+          : t
+      )
+    }))
+
+    try {
+      set({ error: null })
+      await updateChecklistItem(id, updates)
+    } catch (error) {
+      console.error('Error updating checklist item:', error)
+      // Revert on failure
+      set((state) => ({
+        tasks: state.tasks.map(t =>
+          t.id === task.id
+            ? {
+                ...t,
+                checklistItems: (t.checklistItems || []).map(item =>
+                  item.id === id ? originalItem : item
+                )
+              }
+            : t
+        ),
+        error: error instanceof Error ? error.message : 'Failed to update checklist item'
+      }))
+    }
+  },
+
+  // Delete a checklist item
+  deleteChecklistItem: async (id: string) => {
+    // Find which task contains this checklist item
+    const task = get().tasks.find(t =>
+      t.checklistItems?.some(item => item.id === id)
+    )
+    if (!task) return
+
+    const itemToDelete = task.checklistItems?.find(item => item.id === id)
+    if (!itemToDelete) return
+
+    // Optimistic update
+    set((state) => ({
+      tasks: state.tasks.map(t =>
+        t.id === task.id
+          ? {
+              ...t,
+              checklistItems: (t.checklistItems || []).filter(item => item.id !== id)
+            }
+          : t
+      )
+    }))
+
+    try {
+      set({ error: null })
+      await deleteChecklistItem(id)
+    } catch (error) {
+      console.error('Error deleting checklist item:', error)
+      // Restore on failure
+      set((state) => ({
+        tasks: state.tasks.map(t =>
+          t.id === task.id
+            ? {
+                ...t,
+                checklistItems: [...(t.checklistItems || []), itemToDelete].sort(
+                  (a, b) => a.order - b.order
+                )
+              }
+            : t
+        ),
+        error: error instanceof Error ? error.message : 'Failed to delete checklist item'
+      }))
+    }
+  },
+
+  // Toggle checklist item completion
+  toggleChecklistItemCompletion: async (id: string) => {
+    // Find which task contains this checklist item
+    const task = get().tasks.find(t =>
+      t.checklistItems?.some(item => item.id === id)
+    )
+    if (!task) return
+
+    const item = task.checklistItems?.find(item => item.id === id)
+    if (!item) return
+
+    // Optimistic update
+    set((state) => ({
+      tasks: state.tasks.map(t =>
+        t.id === task.id
+          ? {
+              ...t,
+              checklistItems: (t.checklistItems || []).map(checklistItem =>
+                checklistItem.id === id
+                  ? { ...checklistItem, isCompleted: !checklistItem.isCompleted }
+                  : checklistItem
+              )
+            }
+          : t
+      )
+    }))
+
+    try {
+      set({ error: null })
+      await toggleChecklistItemCompletion(id)
+    } catch (error) {
+      console.error('Error toggling checklist item:', error)
+      // Revert on failure
+      set((state) => ({
+        tasks: state.tasks.map(t =>
+          t.id === task.id
+            ? {
+                ...t,
+                checklistItems: (t.checklistItems || []).map(checklistItem =>
+                  checklistItem.id === id ? item : checklistItem
+                )
+              }
+            : t
+        ),
+        error:
+          error instanceof Error ? error.message : 'Failed to toggle checklist item'
+      }))
+    }
+  },
+
+  // Update checklist item order
+  updateChecklistItemOrder: async (taskId: string, items: ChecklistItem[]) => {
+    const task = get().tasks.find(t => t.id === taskId)
+    if (!task) return
+
+    const originalItems = task.checklistItems
+
+    // Optimistic update
+    set((state) => ({
+      tasks: state.tasks.map(t =>
+        t.id === taskId ? { ...t, checklistItems: items } : t
+      )
+    }))
+
+    try {
+      set({ error: null })
+      await updateChecklistItemOrder(items)
+    } catch (error) {
+      console.error('Error updating checklist item order:', error)
+      // Revert on failure
+      set((state) => ({
+        tasks: state.tasks.map(t =>
+          t.id === taskId ? { ...t, checklistItems: originalItems } : t
+        ),
+        error:
+          error instanceof Error ? error.message : 'Failed to update checklist item order'
+      }))
     }
   },
 }))

@@ -1,3 +1,12 @@
+export interface ChecklistItem {
+  id: string
+  taskId: string  // Parent task ID
+  description: string
+  isCompleted: boolean
+  order: number
+  createdAt: Date
+}
+
 export interface Task {
   id: string
   description: string
@@ -13,6 +22,7 @@ export interface Task {
   groupId?: string // ID to group related tasks together
   createdByUserId?: string // The user who created this task
   createdByName?: string // Display name of the creator (enriched from DB)
+  checklistItems?: ChecklistItem[]  // Optional array of checklist items
 }
 
 export interface AppState {
