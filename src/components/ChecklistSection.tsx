@@ -94,6 +94,14 @@ function SortableChecklistItem({ item, onToggle, onDelete, onUpdate }: SortableC
       <button
         className="opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing p-1"
         tabIndex={0}
+        onPointerDown={(e) => {
+          // Stop propagation to prevent parent task card from being selected
+          e.stopPropagation()
+        }}
+        onMouseDown={(e) => {
+          // Stop propagation to prevent parent task card from being selected
+          e.stopPropagation()
+        }}
         {...attributes}
         {...listeners}
       >
@@ -130,7 +138,10 @@ function SortableChecklistItem({ item, onToggle, onDelete, onUpdate }: SortableC
           ref={inputRef}
           type="text"
           value={editValue}
-          onChange={(e) => setEditValue(e.target.value)}
+          onChange={(e) => {
+            e.stopPropagation() // Prevent space bar from triggering drag
+            setEditValue(e.target.value)
+          }}
           onKeyDown={handleKeyDown}
           onBlur={handleSave}
           className="flex-1 text-sm font-inter bg-transparent border-none outline-none"
@@ -298,7 +309,10 @@ export default function ChecklistSection({ taskId, checklistItems = [] }: Checkl
             ref={newItemInputRef}
             type="text"
             value={newItemDescription}
-            onChange={(e) => setNewItemDescription(e.target.value)}
+            onChange={(e) => {
+              e.stopPropagation() // Prevent space bar from triggering drag
+              setNewItemDescription(e.target.value)
+            }}
             onKeyDown={handleKeyDown}
             onBlur={() => {
               // If input is empty, close it

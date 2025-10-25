@@ -1,21 +1,37 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { Plus, Timer, ChevronDown, CornerDownLeft } from 'lucide-react'
+import { Plus, Timer, ChevronDown, CornerDownLeft, MoreHorizontal, Check, X, GripVertical } from 'lucide-react'
 import { useToDoStore } from '@/store/toDoStore'
 import { useHistoryStore } from '@/store/historyStore'
 import { useSettingsStore } from '@/store/settingsStore'
 import { estimateTimeFromDescription } from '@/utils/timeEstimation'
+import type { ChecklistItem } from '@/types'
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core'
+import {
+  arrayMove,
+  SortableContext,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
 
 // Rotating placeholder text component
-function RotatingPlaceholder({ 
-  texts, 
-  interval = 2000, 
+function RotatingPlaceholder({
+  texts,
+  interval = 2000,
   className = "",
   onTextChange
-}: { 
-  texts: string[], 
-  interval?: number, 
+}: {
+  texts: string[],
+  interval?: number,
   className?: string,
   onTextChange?: (text: string) => void
 }) {
@@ -40,7 +56,7 @@ function RotatingPlaceholder({
   }, [texts.length, interval, currentIndex, texts, onTextChange])
 
   return (
-    <span 
+    <span
       className={`transition-opacity duration-500 ease-in-out ${
         isVisible ? 'opacity-100' : 'opacity-0'
       } ${className}`}
@@ -50,15 +66,267 @@ function RotatingPlaceholder({
   )
 }
 
+// Temporary Checklist component for new todos (before they're created)
+interface TempChecklistSectionProps {
+  items: ChecklistItem[]
+  onAddItem: (description: string) => void
+  onDeleteItem: (id: string) => void
+  onToggleItem: (id: string) => void
+  onUpdateItem: (id: string, description: string) => void
+  onReorder: (reorderedItems: ChecklistItem[]) => void
+}
+
+interface SortableTempChecklistItemProps {
+  item: ChecklistItem
+  onToggle: (id: string) => void
+  onDelete: (id: string) => void
+  onUpdate: (id: string, description: string) => void
+}
+
+function SortableTempChecklistItem({ item, onToggle, onDelete, onUpdate }: SortableTempChecklistItemProps) {
+  const [isEditing, setIsEditing] = useState(false)
+  const [editValue, setEditValue] = useState(item.description)
+  const inputRef = useRef<HTMLInputElement>(null)
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: item.id })
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  }
+
+  useEffect(() => {
+    if (isEditing && inputRef.current) {
+      inputRef.current.focus()
+    }
+  }, [isEditing])
+
+  const handleSave = () => {
+    if (editValue.trim()) {
+      onUpdate(item.id, editValue.trim())
+    }
+    setIsEditing(false)
+  }
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    e.stopPropagation()
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      handleSave()
+    } else if (e.key === 'Escape') {
+      e.preventDefault()
+      setEditValue(item.description)
+      setIsEditing(false)
+    }
+  }
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="group flex items-center gap-3 py-2 px-3 rounded-lg transition-colors hover:bg-[var(--color-todoloo-muted)]"
+      tabIndex={-1}
+      onKeyDown={(e) => e.stopPropagation()}
+    >
+      <button
+        className="opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing p-1"
+        tabIndex={0}
+        onPointerDown={(e) => e.stopPropagation()}
+        onMouseDown={(e) => e.stopPropagation()}
+        {...attributes}
+        {...listeners}
+      >
+        <GripVertical className="w-3.5 h-3.5" style={{ color: 'var(--color-todoloo-text-muted)' }} />
+      </button>
+
+      <button
+        onClick={() => onToggle(item.id)}
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === ' ' || e.key === 'Enter') {
+            e.preventDefault()
+            e.stopPropagation()
+            onToggle(item.id)
+          }
+        }}
+        className={`w-5 h-5 rounded border-2 flex items-center justify-center cursor-pointer transition-all duration-150 flex-shrink-0 ${
+          !item.isCompleted ? 'hover:scale-90' : ''
+        }`}
+        style={{
+          backgroundColor: item.isCompleted ? 'var(--color-todoloo-gradient-start)' : 'transparent',
+          borderColor: item.isCompleted ? 'var(--color-todoloo-gradient-start)' : 'var(--color-todoloo-border)',
+          color: item.isCompleted ? 'white' : 'transparent'
+        }}
+      >
+        {item.isCompleted && <Check className="w-3 h-3" />}
+      </button>
+
+      {isEditing ? (
+        <input
+          ref={inputRef}
+          type="text"
+          value={editValue}
+          onChange={(e) => setEditValue(e.target.value)}
+          onKeyDown={handleKeyDown}
+          onBlur={handleSave}
+          className="flex-1 text-sm font-inter bg-transparent border-none outline-none"
+          style={{ color: 'var(--color-todoloo-text-secondary)' }}
+        />
+      ) : (
+        <span
+          className={`flex-1 text-sm font-inter cursor-text ${item.isCompleted ? 'line-through' : ''}`}
+          style={{
+            color: item.isCompleted ? 'var(--color-todoloo-text-muted)' : 'var(--color-todoloo-text-secondary)'
+          }}
+          onClick={(e) => {
+            e.stopPropagation()
+            setIsEditing(true)
+          }}
+        >
+          {item.description}
+        </span>
+      )}
+
+      <button
+        onClick={() => onDelete(item.id)}
+        className="opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer p-1 rounded hover:bg-[var(--color-todoloo-border)]"
+        aria-label="Delete checklist item"
+      >
+        <X className="w-3.5 h-3.5" style={{ color: 'var(--color-todoloo-text-muted)' }} />
+      </button>
+    </div>
+  )
+}
+
+function TempChecklistSection({ items, onAddItem, onDeleteItem, onToggleItem, onUpdateItem, onReorder }: TempChecklistSectionProps) {
+  const [newItemDescription, setNewItemDescription] = useState('')
+  const [isAddingItem, setIsAddingItem] = useState(false)
+  const newItemInputRef = useRef<HTMLInputElement>(null)
+
+  const sensors = useSensors(useSensor(PointerSensor))
+
+  useEffect(() => {
+    if (isAddingItem && newItemInputRef.current) {
+      newItemInputRef.current.focus()
+    }
+  }, [isAddingItem])
+
+  const handleAddItem = () => {
+    if (!newItemDescription.trim()) {
+      setIsAddingItem(false)
+      return
+    }
+
+    onAddItem(newItemDescription.trim())
+    setNewItemDescription('')
+    if (newItemInputRef.current) {
+      newItemInputRef.current.focus()
+    }
+  }
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      handleAddItem()
+    } else if (e.key === 'Escape') {
+      e.preventDefault()
+      setNewItemDescription('')
+      setIsAddingItem(false)
+    }
+  }
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event
+
+    if (over && active.id !== over.id) {
+      const oldIndex = items.findIndex((item) => item.id === active.id)
+      const newIndex = items.findIndex((item) => item.id === over.id)
+      const reorderedItems = arrayMove(items, oldIndex, newIndex).map((item, index) => ({
+        ...item,
+        order: index
+      }))
+      onReorder(reorderedItems)
+    }
+  }
+
+  return (
+    <div className="mt-4 space-y-2">
+      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+        <SortableContext items={items.map(item => item.id)} strategy={verticalListSortingStrategy}>
+          <div className="space-y-1">
+            {items.map((item) => (
+              <SortableTempChecklistItem
+                key={item.id}
+                item={item}
+                onToggle={onToggleItem}
+                onDelete={onDeleteItem}
+                onUpdate={onUpdateItem}
+              />
+            ))}
+          </div>
+        </SortableContext>
+      </DndContext>
+
+      {isAddingItem ? (
+        <div className="flex items-center gap-3 py-2 px-3">
+          <div className="w-5 h-5 rounded border-2 flex-shrink-0" style={{ borderColor: 'var(--color-todoloo-border)' }} />
+          <input
+            ref={newItemInputRef}
+            type="text"
+            value={newItemDescription}
+            onChange={(e) => {
+              e.stopPropagation() // Prevent space bar from triggering drag
+              setNewItemDescription(e.target.value)
+            }}
+            onKeyDown={handleKeyDown}
+            onBlur={() => {
+              if (!newItemDescription.trim()) {
+                setIsAddingItem(false)
+              } else {
+                handleAddItem()
+              }
+            }}
+            placeholder="Add item..."
+            className="flex-1 text-sm font-inter bg-transparent border-none outline-none"
+            style={{ color: 'var(--color-todoloo-text-primary)' }}
+          />
+        </div>
+      ) : (
+        <button
+          onClick={() => setIsAddingItem(true)}
+          className="flex items-center gap-2 py-2 px-3 rounded-lg transition-colors hover:bg-[var(--color-todoloo-muted)] cursor-pointer w-full"
+        >
+          <Plus className="w-4 h-4" style={{ color: 'var(--color-todoloo-text-muted)' }} />
+          <span className="text-sm font-inter" style={{ color: 'var(--color-todoloo-text-muted)' }}>
+            Add item
+          </span>
+        </button>
+      )}
+    </div>
+  )
+}
+
 function ToDoCardContent() {
   const [description, setDescription] = useState('')
   const [estimatedMinutes, setEstimatedMinutes] = useState(30)
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [customMinutes, setCustomMinutes] = useState('')
   const [multiplicationPreview, setMultiplicationPreview] = useState<{baseDescription: string, count: number} | null>(null)
+  const [isOptionsDropdownOpen, setIsOptionsDropdownOpen] = useState(false)
+  const [showChecklist, setShowChecklist] = useState(false)
+  const [tempChecklistItems, setTempChecklistItems] = useState<ChecklistItem[]>([])
   const dropdownRef = useRef<HTMLDivElement>(null)
+  const optionsDropdownRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const addTask = useToDoStore((state) => state.addTask)
+  const addChecklistItem = useToDoStore((state) => state.addChecklistItem)
   const setShowCreateTask = useToDoStore((state) => state.setShowCreateTask)
   const getSimilarStats = useHistoryStore((state) => state.getSimilarStats)
 
@@ -82,6 +350,10 @@ function ToDoCardContent() {
           setCustomMinutes('')
         }
         setIsDropdownOpen(false)
+      }
+
+      if (optionsDropdownRef.current && !optionsDropdownRef.current.contains(event.target as Node)) {
+        setIsOptionsDropdownOpen(false)
       }
     }
 
@@ -148,7 +420,7 @@ function ToDoCardContent() {
     }
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (description.trim()) {
       console.log('handleSubmit called with:', description)
@@ -188,19 +460,33 @@ function ToDoCardContent() {
               // Create multiple tasks with the current group ID
               for (let i = 0; i < taskCount; i++) {
                 const numberedDescription = `${baseDescription.trim()} (${i + 1})`
-                addTask(numberedDescription, estimatedMinutes, groupId)
+                const newTask = await addTask(numberedDescription, estimatedMinutes, groupId)
+                // Add checklist items if any
+                if (tempChecklistItems.length > 0 && newTask) {
+                  for (const item of tempChecklistItems) {
+                    await addChecklistItem(newTask.id, item.description)
+                  }
+                }
               }
             }
           } else {
             // Create single task in the current group
             console.log('Adding task to group:', groupId, taskDescription)
-            addTask(taskDescription, estimatedMinutes, groupId)
+            const newTask = await addTask(taskDescription, estimatedMinutes, groupId)
+            // Add checklist items if any
+            if (tempChecklistItems.length > 0 && newTask) {
+              for (const item of tempChecklistItems) {
+                await addChecklistItem(newTask.id, item.description)
+              }
+            }
           }
 
           // Reset for next task but keep the card open and group active
           setDescription('')
           setMultiplicationPreview(null)
           setEstimatedMinutes(30)
+          setTempChecklistItems([])
+          setShowChecklist(false)
 
           // Re-focus input for next task
           setTimeout(() => {
@@ -217,7 +503,13 @@ function ToDoCardContent() {
         if (currentGroupId) {
           // This task is part of the current group
           console.log('Adding task to group:', currentGroupId, description.trim())
-          addTask(description.trim(), estimatedMinutes, currentGroupId)
+          const newTask = await addTask(description.trim(), estimatedMinutes, currentGroupId)
+          // Add checklist items if any
+          if (tempChecklistItems.length > 0 && newTask) {
+            for (const item of tempChecklistItems) {
+              await addChecklistItem(newTask.id, item.description)
+            }
+          }
 
           // Clear the group ID since user didn't end with "and"
           // This closes the group - user is done adding to it
@@ -225,6 +517,8 @@ function ToDoCardContent() {
 
           setDescription('')
           setEstimatedMinutes(30)
+          setTempChecklistItems([])
+          setShowChecklist(false)
           setShowCreateTask(false) // Close the card since group is complete
           return
         }
@@ -246,17 +540,31 @@ function ToDoCardContent() {
         // Create multiple to dos
         for (let i = 0; i < taskCount; i++) {
           const taskDescription = taskCount > 1 ? `${baseDescription.trim()} (${i + 1})` : baseDescription.trim()
-          addTask(taskDescription, estimatedMinutes)
+          const newTask = await addTask(taskDescription, estimatedMinutes)
+          // Add checklist items if any
+          if (tempChecklistItems.length > 0 && newTask) {
+            for (const item of tempChecklistItems) {
+              await addChecklistItem(newTask.id, item.description)
+            }
+          }
         }
       } else {
         // Single to do (no group)
-        addTask(description.trim(), estimatedMinutes)
+        const newTask = await addTask(description.trim(), estimatedMinutes)
+        // Add checklist items if any
+        if (tempChecklistItems.length > 0 && newTask) {
+          for (const item of tempChecklistItems) {
+            await addChecklistItem(newTask.id, item.description)
+          }
+        }
       }
 
       // Clear any ongoing group when creating a standalone task
       delete (window as Window & { __currentGroupId?: string }).__currentGroupId
       setDescription('')
       setEstimatedMinutes(30)
+      setTempChecklistItems([])
+      setShowChecklist(false)
       setShowCreateTask(false) // Close the create to do card after adding
     }
   }
@@ -317,6 +625,44 @@ function ToDoCardContent() {
     const hours = Math.floor(minutes / 60)
     const remainingMinutes = minutes % 60
     return remainingMinutes > 0 ? `${hours} hour${hours !== 1 ? 's' : ''} ${remainingMinutes}m` : `${hours} hour${hours !== 1 ? 's' : ''}`
+  }
+
+  const handleAddChecklist = () => {
+    setShowChecklist(!showChecklist)
+    setIsOptionsDropdownOpen(false)
+  }
+
+  // Temporary checklist item handlers (stored locally until task is created)
+  const handleAddTempChecklistItem = (description: string) => {
+    const newItem: ChecklistItem = {
+      id: crypto.randomUUID(),
+      taskId: '', // Will be set when task is created
+      description,
+      isCompleted: false,
+      order: tempChecklistItems.length,
+      createdAt: new Date()
+    }
+    setTempChecklistItems([...tempChecklistItems, newItem])
+  }
+
+  const handleDeleteTempChecklistItem = (id: string) => {
+    setTempChecklistItems(tempChecklistItems.filter(item => item.id !== id))
+  }
+
+  const handleToggleTempChecklistItem = (id: string) => {
+    setTempChecklistItems(tempChecklistItems.map(item =>
+      item.id === id ? { ...item, isCompleted: !item.isCompleted } : item
+    ))
+  }
+
+  const handleUpdateTempChecklistItem = (id: string, description: string) => {
+    setTempChecklistItems(tempChecklistItems.map(item =>
+      item.id === id ? { ...item, description } : item
+    ))
+  }
+
+  const handleReorderTempChecklistItems = (reorderedItems: ChecklistItem[]) => {
+    setTempChecklistItems(reorderedItems)
   }
 
   return (
@@ -429,74 +775,126 @@ function ToDoCardContent() {
             </div>
           ) : null
         })()} */}
-        
+
+        {/* Temporary Checklist Section (for new todos) */}
+        {showChecklist && (
+          <TempChecklistSection
+            items={tempChecklistItems}
+            onAddItem={handleAddTempChecklistItem}
+            onDeleteItem={handleDeleteTempChecklistItem}
+            onToggleItem={handleToggleTempChecklistItem}
+            onUpdateItem={handleUpdateTempChecklistItem}
+            onReorder={handleReorderTempChecklistItems}
+          />
+        )}
+
         <div className="flex justify-between items-end">
-          <div className="relative" ref={dropdownRef}>
-            <button
-              type="button"
-              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              className={`h-8 px-3 rounded-[20px] border flex items-center gap-1 transition-colors cursor-pointer`}
-              style={{
-                borderColor: 'var(--color-todoloo-border)',
-                backgroundColor: isDropdownOpen ? 'var(--color-todoloo-muted)' : 'var(--color-todoloo-card)',
-              }}
-              onMouseEnter={(e) => {
-                if (!isDropdownOpen) {
-                  e.currentTarget.style.backgroundColor = 'var(--color-todoloo-muted)'
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (!isDropdownOpen) {
-                  e.currentTarget.style.backgroundColor = 'var(--color-todoloo-card)'
-                }
-              }}
-            >
-              <Timer className="w-3.5 h-3.5" style={{ color: 'var(--color-todoloo-text-secondary)' }} />
-              <span className="text-xs font-inter" style={{ color: 'var(--color-todoloo-text-secondary)', transform: 'translateY(1px)' }}>
-                {formatEstimatedTime(estimatedMinutes)}
-              </span>
-              <ChevronDown className={`w-3 h-3 transition-transform translate-y-px ${isDropdownOpen ? 'rotate-180' : ''}`} 
-                           style={{ color: 'var(--color-todoloo-text-secondary)' }} />
-            </button>
-            
-            {isDropdownOpen && (
-              <div className="absolute top-9 left-0 w-48 bg-[#FEFFFF] rounded-[20px] border border-[#D9D9D9] shadow-[0px_4px_54px_rgba(0,0,0,0.05)] p-2 z-10">
-                <div className="space-y-1">
-                  {commonTimes.map((time) => (
-                    <button
-                      key={time.value}
-                      type="button"
-                      onClick={() => handleTimeSelect(time.value)}
-                      className="w-full text-left px-3 py-2 text-xs text-[#696969] font-inter hover:bg-[#F5F5F5] rounded-[10px] transition-colors cursor-pointer"
-                    >
-                      {time.label}
-                    </button>
-                  ))}
-                  <div className="border-t border-[#E6E6E6] my-1"></div>
-                  <form onSubmit={handleCustomTimeSubmit} className="px-3 py-2">
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="number"
-                        value={customMinutes}
-                        onChange={(e) => setCustomMinutes(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
-                            e.preventDefault()
-                            handleCustomTimeSubmit(e)
-                          }
-                        }}
-                        onBlur={handleCustomTimeBlur}
-                        placeholder="Custom"
-                        min="1"
-                        max="999"
-                        className="flex-1 text-xs text-[#2D1B1B] font-inter bg-transparent border-none outline-none placeholder:text-[#989999]"
-                      />
-                      <span className="text-xs text-[#696969] font-inter">minutes</span>
-                    </div>
-                  </form>
+          <div className="flex items-center gap-2">
+            {/* Timer Dropdown */}
+            <div className="relative" ref={dropdownRef}>
+              <button
+                type="button"
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                className={`h-8 px-3 rounded-[20px] border flex items-center gap-1 transition-colors cursor-pointer`}
+                style={{
+                  borderColor: 'var(--color-todoloo-border)',
+                  backgroundColor: isDropdownOpen ? 'var(--color-todoloo-muted)' : 'var(--color-todoloo-card)',
+                }}
+                onMouseEnter={(e) => {
+                  if (!isDropdownOpen) {
+                    e.currentTarget.style.backgroundColor = 'var(--color-todoloo-muted)'
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isDropdownOpen) {
+                    e.currentTarget.style.backgroundColor = 'var(--color-todoloo-card)'
+                  }
+                }}
+              >
+                <Timer className="w-3.5 h-3.5" style={{ color: 'var(--color-todoloo-text-secondary)' }} />
+                <span className="text-xs font-inter" style={{ color: 'var(--color-todoloo-text-secondary)', transform: 'translateY(1px)' }}>
+                  {formatEstimatedTime(estimatedMinutes)}
+                </span>
+                <ChevronDown className={`w-3 h-3 transition-transform translate-y-px ${isDropdownOpen ? 'rotate-180' : ''}`}
+                             style={{ color: 'var(--color-todoloo-text-secondary)' }} />
+              </button>
+
+              {isDropdownOpen && (
+                <div className="absolute top-9 left-0 w-48 bg-[#FEFFFF] rounded-[20px] border border-[#D9D9D9] shadow-[0px_4px_54px_rgba(0,0,0,0.05)] p-2 z-10">
+                  <div className="space-y-1">
+                    {commonTimes.map((time) => (
+                      <button
+                        key={time.value}
+                        type="button"
+                        onClick={() => handleTimeSelect(time.value)}
+                        className="w-full text-left px-3 py-2 text-xs text-[#696969] font-inter hover:bg-[#F5F5F5] rounded-[10px] transition-colors cursor-pointer"
+                      >
+                        {time.label}
+                      </button>
+                    ))}
+                    <div className="border-t border-[#E6E6E6] my-1"></div>
+                    <form onSubmit={handleCustomTimeSubmit} className="px-3 py-2">
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="number"
+                          value={customMinutes}
+                          onChange={(e) => setCustomMinutes(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault()
+                              handleCustomTimeSubmit(e)
+                            }
+                          }}
+                          onBlur={handleCustomTimeBlur}
+                          placeholder="Custom"
+                          min="1"
+                          max="999"
+                          className="flex-1 text-xs text-[#2D1B1B] font-inter bg-transparent border-none outline-none placeholder:text-[#989999]"
+                        />
+                        <span className="text-xs text-[#696969] font-inter">minutes</span>
+                      </div>
+                    </form>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
+
+            {/* Ellipsis Menu */}
+            <div className="relative" ref={optionsDropdownRef}>
+              <button
+                type="button"
+                onClick={() => setIsOptionsDropdownOpen(!isOptionsDropdownOpen)}
+                className={`h-8 w-8 rounded-[20px] border flex items-center justify-center transition-colors cursor-pointer`}
+                style={{
+                  borderColor: 'var(--color-todoloo-border)',
+                  backgroundColor: isOptionsDropdownOpen ? 'var(--color-todoloo-muted)' : 'var(--color-todoloo-card)',
+                }}
+                onMouseEnter={(e) => {
+                  if (!isOptionsDropdownOpen) {
+                    e.currentTarget.style.backgroundColor = 'var(--color-todoloo-muted)'
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isOptionsDropdownOpen) {
+                    e.currentTarget.style.backgroundColor = 'var(--color-todoloo-card)'
+                  }
+                }}
+              >
+                <MoreHorizontal className="w-4 h-4" style={{ color: 'var(--color-todoloo-text-secondary)' }} />
+              </button>
+
+              {isOptionsDropdownOpen && (
+                <div className="absolute top-9 left-0 w-48 bg-[#FEFFFF] rounded-[20px] border border-[#D9D9D9] shadow-[0px_4px_54px_rgba(0,0,0,0.05)] p-2 z-10">
+                  <button
+                    type="button"
+                    onClick={handleAddChecklist}
+                    className="w-full text-left px-3 py-2 text-xs text-[#696969] font-inter hover:bg-[#F5F5F5] rounded-[10px] transition-colors cursor-pointer"
+                  >
+                    {showChecklist ? 'Hide Checklist' : 'Add Checklist'}
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
           
           <div className="flex items-center gap-2">
