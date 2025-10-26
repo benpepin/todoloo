@@ -306,7 +306,19 @@ export const useToDoStore = create<ToDoStore>()((set, get) => ({
         )
       }))
 
-      return optimisticTask
+      // Load checklist items for the newly created task
+      try {
+        const checklistItems = await fetchChecklistItems(newTask.id)
+        set((state) => ({
+          tasks: state.tasks.map(task =>
+            task.id === newTask.id ? { ...task, checklistItems } : task
+          )
+        }))
+      } catch (error) {
+        console.error(`Failed to load checklist items for new task ${newTask.id}:`, error)
+      }
+
+      return newTask
     } catch (error) {
       console.error('Error creating task:', error)
       // Remove optimistic task on failure
