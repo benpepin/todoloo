@@ -12,6 +12,7 @@ import { useSupabase } from '@/components/SupabaseProvider'
 import Auth from '@/components/Auth'
 import SharingDebug from '@/components/SharingDebug'
 import ListSwitcher from '@/components/ListSwitcher'
+import { PersonalLists } from '@/components/PersonalLists'
 
 export default function Home() {
   const { user, loading: authLoading } = useSupabase()
@@ -204,16 +205,26 @@ export default function Home() {
       </div>
 
       {/* Desktop Sidebar - hidden on mobile/tablet */}
-      <div className="hidden lg:flex lg:w-[20%] h-full p-8 overflow-hidden border-r flex-col justify-between items-start"
+      <div className="hidden lg:flex lg:w-[20%] h-full p-8 border-r flex-col items-start"
            style={{
              backgroundColor: 'var(--color-todoloo-sidebar)',
              borderColor: 'var(--color-todoloo-border)',
              minWidth: '340px'
            }}>
-        <div className="w-full flex flex-col justify-start items-start gap-1.5">
-          {/* List Switcher */}
+        {/* Top Section: Dropdown */}
+        <div className="w-full mb-6">
           <ListSwitcher />
+        </div>
 
+        {/* Middle Section: Personal Lists (Centered Vertically) */}
+        <div className="flex-1 w-full flex items-center justify-center overflow-y-auto">
+          <div className="w-full">
+            <PersonalLists />
+          </div>
+        </div>
+
+        {/* Bottom Section: Quote/Completion Time & Settings */}
+        <div className="w-full flex flex-col gap-4">
           <div
             className="w-full text-base font-['Geist'] font-normal cursor-pointer transition-colors duration-200 hover:opacity-70"
             style={{ color: 'var(--color-todoloo-text-secondary)' }}
@@ -235,8 +246,6 @@ export default function Home() {
               )
             )}
           </div>
-        </div>
-        <div className="w-full flex justify-start">
           <SettingsMenu />
         </div>
       </div>

@@ -19,6 +19,7 @@ export interface Task {
   completedAt?: Date
   order: number
   userId?: string // The owner of this task (for shared lists)
+  listId?: string // The list this task belongs to
   groupId?: string // ID to group related tasks together
   createdByUserId?: string // The user who created this task
   createdByName?: string // Display name of the creator (enriched from DB)
@@ -63,4 +64,13 @@ export interface SharedUser {
   email: string
   permission: 'read' | 'write'
   sharedAt: Date
+}
+
+export interface List {
+  id: string
+  userId: string
+  name: string
+  order: number
+  createdAt: Date
+  updatedAt: Date
 }

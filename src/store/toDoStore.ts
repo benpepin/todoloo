@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { Task, AppState, ChecklistItem } from '@/types'
+import { Task, AppState, ChecklistItem, List } from '@/types'
 import { useHistoryStore } from './historyStore'
 import {
   fetchTodos,
@@ -9,7 +9,13 @@ import {
   deleteTodo,
   completeTodo,
   updateTaskOrder as updateTaskOrderDb,
-  backfillUserData
+  backfillUserData,
+  getUserLists,
+  createList as createListDb,
+  updateList as updateListDb,
+  deleteList as deleteListDb,
+  fetchTodosByList,
+  reorderLists as reorderListsDb
 } from '@/lib/db'
 import {
   fetchChecklistItems,
@@ -39,6 +45,10 @@ interface ToDoStore extends AppState {
   currentListOwnerId: string | null // Track which list we're viewing (for shared lists)
   quoteIndex: number
 
+  // List management state
+  lists: List[]
+  currentListId: string | null
+
   // Async methods for Supabase operations
   initializeUser: (userId: string) => Promise<void>
   loadTasks: () => Promise<void>
@@ -54,6 +64,14 @@ interface ToDoStore extends AppState {
   saveCurrentEditingTask: (description: string, estimatedMinutes: number) => Promise<void>
   groupTasks: (taskId: string, targetTaskId: string) => Promise<void>
   ungroupTask: (taskId: string) => Promise<void>
+
+  // List management methods
+  loadLists: () => Promise<void>
+  createList: (name: string) => Promise<void>
+  updateListName: (listId: string, name: string) => Promise<void>
+  deleteList: (listId: string) => Promise<void>
+  switchToPersonalList: (listId: string) => Promise<void>
+  reorderLists: (lists: List[]) => Promise<void>
 
   // Checklist methods
   loadChecklistItems: (taskId: string) => Promise<void>
@@ -93,6 +111,10 @@ export const useToDoStore = create<ToDoStore>()((set, get) => ({
   currentListOwnerId: null,
   quoteIndex: 0,
 
+  // List management state
+  lists: [],
+  currentListId: null,
+
   // Initialize user and backfill data
   initializeUser: async (userId: string) => {
     try {
@@ -101,8 +123,19 @@ export const useToDoStore = create<ToDoStore>()((set, get) => ({
       // Backfill existing data to this user
       await backfillUserData(userId)
 
-      // Load tasks for this user
-      const tasks = await fetchTodos(userId)
+      // Load user's personal lists
+      const lists = await getUserLists(userId)
+
+      // If user has lists, set the first list as current; otherwise currentListId stays null
+      const currentListId = lists.length > 0 ? lists[0].id : null
+
+      // Load tasks - either from the current list or all tasks if no lists
+      let tasks: Task[] = []
+      if (currentListId) {
+        tasks = await fetchTodosByList(currentListId)
+      } else {
+        tasks = await fetchTodos(userId)
+      }
 
       // Load checklist items for each task
       const tasksWithChecklists = await Promise.all(
@@ -118,6 +151,8 @@ export const useToDoStore = create<ToDoStore>()((set, get) => ({
       )
 
       set({
+        lists,
+        currentListId,
         tasks: tasksWithChecklists,
         isLoading: false,
         isInitialized: true
@@ -133,7 +168,7 @@ export const useToDoStore = create<ToDoStore>()((set, get) => ({
 
   // Load tasks from Supabase
   loadTasks: async () => {
-    const { userId, currentListOwnerId } = get()
+    const { userId, currentListOwnerId, currentListId } = get()
     if (!userId) {
       set({ error: 'User not authenticated' })
       return
@@ -142,11 +177,20 @@ export const useToDoStore = create<ToDoStore>()((set, get) => ({
     try {
       set({ isLoading: true, error: null })
 
-      // Use currentListOwnerId if set, otherwise use userId (your own list)
-      const targetUserId = currentListOwnerId || userId
+      let tasks: Task[] = []
 
-      // Use the more robust fetch function for shared lists
-      const tasks = await fetchTodosDirect(targetUserId)
+      // Priority: shared list > personal list > all user tasks
+      if (currentListOwnerId) {
+        // Viewing a shared list (from another user)
+        const targetUserId = currentListOwnerId
+        tasks = await fetchTodosDirect(targetUserId)
+      } else if (currentListId) {
+        // Viewing a personal list
+        tasks = await fetchTodosByList(currentListId)
+      } else {
+        // Fallback: load all tasks for the user
+        tasks = await fetchTodos(userId)
+      }
 
       // Load checklist items for each task
       const tasksWithChecklists = await Promise.all(
@@ -162,7 +206,7 @@ export const useToDoStore = create<ToDoStore>()((set, get) => ({
       )
 
       // Update currentListOwnerId if it wasn't set before
-      if (!currentListOwnerId) {
+      if (!currentListOwnerId && !currentListId) {
         // Determine if we're viewing a shared list
         // If we have tasks and they all belong to someone else, we're viewing their shared list
         let newCurrentListOwnerId = userId
@@ -183,7 +227,7 @@ export const useToDoStore = create<ToDoStore>()((set, get) => ({
     }
   },
 
-  // Switch to a different list (your own or a shared list)
+  // Switch to a different user's shared list (loads their lists and switches to first one)
   switchToList: async (listOwnerId: string) => {
     const { userId } = get()
     if (!userId) {
@@ -193,7 +237,21 @@ export const useToDoStore = create<ToDoStore>()((set, get) => ({
 
     try {
       set({ isLoading: true, error: null, currentListOwnerId: listOwnerId })
-      const tasks = await fetchTodosDirect(listOwnerId)
+
+      // Load the target user's personal lists
+      const lists = await getUserLists(listOwnerId)
+
+      // If they have lists, switch to their first list
+      // Otherwise, fall back to loading all their tasks
+      let tasks: Task[] = []
+      let currentListId: string | null = null
+
+      if (lists.length > 0) {
+        currentListId = lists[0].id
+        tasks = await fetchTodosByList(currentListId)
+      } else {
+        tasks = await fetchTodosDirect(listOwnerId)
+      }
 
       // Load checklist items for each task
       const tasksWithChecklists = await Promise.all(
@@ -208,7 +266,12 @@ export const useToDoStore = create<ToDoStore>()((set, get) => ({
         })
       )
 
-      set({ tasks: tasksWithChecklists, isLoading: false })
+      set({
+        tasks: tasksWithChecklists,
+        lists,
+        currentListId,
+        isLoading: false
+      })
     } catch (error) {
       console.error('Error switching list:', error)
       set({
@@ -220,7 +283,7 @@ export const useToDoStore = create<ToDoStore>()((set, get) => ({
 
   // Add new task with optimistic update
   addTask: async (description: string, estimatedMinutes: number, groupId?: string) => {
-    const { userId, currentListOwnerId } = get()
+    const { userId, currentListOwnerId, currentListId } = get()
     if (!userId) {
       set({ error: 'User not authenticated' })
       return undefined
@@ -297,7 +360,7 @@ export const useToDoStore = create<ToDoStore>()((set, get) => ({
         isCompleted: false,
         isActive: false,
         groupId
-      }, targetUserId, userId) // Pass current user ID as creator
+      }, targetUserId, userId, currentListId || undefined) // Pass current user ID as creator and list ID
 
       // Replace optimistic task with real one
       set((state) => ({
@@ -880,6 +943,166 @@ export const useToDoStore = create<ToDoStore>()((set, get) => ({
         error:
           error instanceof Error ? error.message : 'Failed to update checklist item order'
       }))
+    }
+  },
+
+  // ============ LIST MANAGEMENT METHODS ============
+
+  // Load user's lists
+  loadLists: async () => {
+    const { userId } = get()
+    if (!userId) return
+
+    try {
+      const lists = await getUserLists(userId)
+      set({ lists })
+    } catch (error) {
+      console.error('Error loading lists:', error)
+      set({
+        error: error instanceof Error ? error.message : 'Failed to load lists'
+      })
+    }
+  },
+
+  // Create a new list
+  createList: async (name: string) => {
+    const { userId } = get()
+    if (!userId) return
+
+    try {
+      set({ error: null })
+      const newList = await createListDb(userId, name)
+
+      set((state) => ({
+        lists: [...state.lists, newList]
+      }))
+
+      // If this is the first list, automatically switch to it
+      const { lists } = get()
+      if (lists.length === 1) {
+        await get().switchToPersonalList(newList.id)
+      }
+    } catch (error) {
+      console.error('Error creating list:', error)
+      set({
+        error: error instanceof Error ? error.message : 'Failed to create list'
+      })
+    }
+  },
+
+  // Update list name
+  updateListName: async (listId: string, name: string) => {
+    const originalLists = get().lists
+
+    // Optimistic update
+    set((state) => ({
+      lists: state.lists.map(list =>
+        list.id === listId ? { ...list, name } : list
+      )
+    }))
+
+    try {
+      set({ error: null })
+      await updateListDb(listId, { name })
+    } catch (error) {
+      console.error('Error updating list name:', error)
+      // Revert on failure
+      set({
+        lists: originalLists,
+        error: error instanceof Error ? error.message : 'Failed to update list name'
+      })
+    }
+  },
+
+  // Delete a list
+  deleteList: async (listId: string) => {
+    const { lists, currentListId } = get()
+    const originalLists = lists
+
+    // Optimistic update
+    const newLists = lists.filter(list => list.id !== listId)
+    set({ lists: newLists })
+
+    try {
+      set({ error: null })
+      await deleteListDb(listId)
+
+      // If we deleted the current list, switch to the first available list
+      if (currentListId === listId && newLists.length > 0) {
+        await get().switchToPersonalList(newLists[0].id)
+      } else if (newLists.length === 0) {
+        // No lists left, clear current list and tasks
+        set({ currentListId: null, tasks: [] })
+      }
+    } catch (error) {
+      console.error('Error deleting list:', error)
+      // Revert on failure
+      set({
+        lists: originalLists,
+        error: error instanceof Error ? error.message : 'Failed to delete list'
+      })
+    }
+  },
+
+  // Switch to a personal list (not a shared list)
+  switchToPersonalList: async (listId: string) => {
+    const { userId, currentListOwnerId } = get()
+
+    try {
+      set({ isLoading: true, error: null, currentListId: listId, currentListOwnerId: null })
+
+      // If we were viewing someone else's lists, reload our own lists
+      if (currentListOwnerId && currentListOwnerId !== userId && userId) {
+        const lists = await getUserLists(userId)
+        set({ lists })
+      }
+
+      const tasks = await fetchTodosByList(listId)
+
+      // Load checklist items for each task
+      const tasksWithChecklists = await Promise.all(
+        tasks.map(async (task) => {
+          try {
+            const checklistItems = await fetchChecklistItems(task.id)
+            return { ...task, checklistItems }
+          } catch (error) {
+            console.error(`Failed to load checklist items for task ${task.id}:`, error)
+            return task
+          }
+        })
+      )
+
+      set({ tasks: tasksWithChecklists, isLoading: false })
+    } catch (error) {
+      console.error('Error switching to personal list:', error)
+      set({
+        error: error instanceof Error ? error.message : 'Failed to switch to list',
+        isLoading: false
+      })
+    }
+  },
+
+  // Reorder lists
+  reorderLists: async (lists: List[]) => {
+    const originalLists = get().lists
+
+    // Optimistic update
+    set({ lists })
+
+    try {
+      set({ error: null })
+      const listUpdates = lists.map((list, index) => ({
+        id: list.id,
+        order: index
+      }))
+      await reorderListsDb(listUpdates)
+    } catch (error) {
+      console.error('Error reordering lists:', error)
+      // Revert on failure
+      set({
+        lists: originalLists,
+        error: error instanceof Error ? error.message : 'Failed to reorder lists'
+      })
     }
   },
 }))

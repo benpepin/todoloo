@@ -1,5 +1,5 @@
 import { supabase } from './supabase-browser'
-import { Task, TaskHistoryEntry, ListShare, SharedUser } from '@/types'
+import { Task, TaskHistoryEntry, ListShare, SharedUser, List } from '@/types'
 
 // Database types (snake_case for Supabase)
 interface DbTask {
@@ -36,8 +36,17 @@ interface DbListShare {
   permission: 'read' | 'write'
 }
 
+interface DbList {
+  id: string
+  created_at: string
+  updated_at: string
+  user_id: string
+  name: string
+  order: number
+}
+
 // Convert between camelCase (app) and snake_case (database)
-function dbTaskToTask(dbTask: DbTask & { user_id?: string }): Task {
+function dbTaskToTask(dbTask: DbTask & { user_id?: string; list_id?: string }): Task {
   return {
     id: dbTask.id,
     description: dbTask.title, // Map title to description for consistency
@@ -49,8 +58,20 @@ function dbTaskToTask(dbTask: DbTask & { user_id?: string }): Task {
     completedAt: dbTask.completed_at ? new Date(dbTask.completed_at) : undefined,
     order: dbTask.order_index,
     userId: dbTask.user_id, // Include user_id for shared list detection
+    listId: dbTask.list_id, // Include list_id
     groupId: dbTask.group_id,
     createdByUserId: dbTask.created_by_user_id
+  }
+}
+
+function dbListToList(dbList: DbList): List {
+  return {
+    id: dbList.id,
+    userId: dbList.user_id,
+    name: dbList.name,
+    order: dbList.order,
+    createdAt: new Date(dbList.created_at),
+    updatedAt: new Date(dbList.updated_at)
   }
 }
 
@@ -138,12 +159,13 @@ export const fetchTodosDirect = (userId: string) => fetchTodos(userId, true)
 export async function createTodo(
   task: Omit<Task, 'id' | 'createdAt' | 'order'>,
   userId: string,
-  createdByUserId?: string
+  createdByUserId?: string,
+  listId?: string
 ): Promise<Task> {
   const currentUser = await supabase.auth.getUser()
   const actualCreatorId = createdByUserId || currentUser.data.user?.id || userId
 
-  const dbTask = {
+  const dbTask: any = {
     title: task.description,
     description: task.description,
     is_completed: task.isCompleted,
@@ -155,6 +177,10 @@ export async function createTodo(
     user_id: userId,
     group_id: task.groupId,
     created_by_user_id: actualCreatorId
+  }
+
+  if (listId) {
+    dbTask.list_id = listId
   }
 
   const { data, error } = await supabase
@@ -517,5 +543,139 @@ export async function updateSharePermission(
   if (error) {
     console.error('Error updating share permission:', error)
     throw new Error(`Failed to update permission: ${error.message}`)
+  }
+}
+
+// ============ LIST MANAGEMENT FUNCTIONS ============
+
+// Fetch all lists for a user
+export async function getUserLists(userId: string): Promise<List[]> {
+  const { data, error } = await supabase
+    .from('lists')
+    .select('*')
+    .eq('user_id', userId)
+    .order('order', { ascending: true })
+
+  if (error) {
+    console.error('Error fetching lists:', error)
+    throw new Error(`Failed to fetch lists: ${error.message}`)
+  }
+
+  return data?.map(dbListToList) || []
+}
+
+// Create a new list
+export async function createList(userId: string, name: string): Promise<List> {
+  // Get the current max order for this user
+  const { data: existingLists } = await supabase
+    .from('lists')
+    .select('order')
+    .eq('user_id', userId)
+    .order('order', { ascending: false })
+    .limit(1)
+
+  const maxOrder = existingLists?.[0]?.order ?? -1
+  const newOrder = maxOrder + 1
+
+  const { data, error } = await supabase
+    .from('lists')
+    .insert([{
+      user_id: userId,
+      name: name,
+      order: newOrder
+    }])
+    .select()
+    .single()
+
+  if (error) {
+    console.error('Error creating list:', error)
+    throw new Error(`Failed to create list: ${error.message}`)
+  }
+
+  return dbListToList(data)
+}
+
+// Update a list (rename or reorder)
+export async function updateList(listId: string, updates: Partial<{ name: string; order: number }>): Promise<List> {
+  const dbUpdates: Partial<DbList> = {}
+
+  if (updates.name !== undefined) {
+    dbUpdates.name = updates.name
+  }
+  if (updates.order !== undefined) {
+    dbUpdates.order = updates.order
+  }
+
+  const { data, error } = await supabase
+    .from('lists')
+    .update(dbUpdates)
+    .eq('id', listId)
+    .select()
+    .single()
+
+  if (error) {
+    console.error('Error updating list:', error)
+    throw new Error(`Failed to update list: ${error.message}`)
+  }
+
+  return dbListToList(data)
+}
+
+// Delete a list and all its todos
+export async function deleteList(listId: string): Promise<void> {
+  // Delete all todos in this list first (CASCADE should handle this, but being explicit)
+  const { error: todosError } = await supabase
+    .from('todos')
+    .delete()
+    .eq('list_id', listId)
+
+  if (todosError) {
+    console.error('Error deleting todos from list:', todosError)
+    // Continue anyway, CASCADE will handle it
+  }
+
+  const { error } = await supabase
+    .from('lists')
+    .delete()
+    .eq('id', listId)
+
+  if (error) {
+    console.error('Error deleting list:', error)
+    throw new Error(`Failed to delete list: ${error.message}`)
+  }
+}
+
+// Fetch todos for a specific list
+export async function fetchTodosByList(listId: string): Promise<Task[]> {
+  const { data, error } = await supabase
+    .from('todos')
+    .select('*, user_id, list_id, group_id, created_by_user_id')
+    .eq('list_id', listId)
+    .order('created_at', { ascending: false })
+
+  if (error) {
+    throw new Error(`Failed to fetch todos for list: ${error.message}`)
+  }
+
+  const mapped = data?.map(dbTaskToTask) || []
+  return enrichTasksWithCreatorNames(mapped)
+}
+
+// Reorder lists (update multiple list orders at once)
+export async function reorderLists(listUpdates: { id: string; order: number }[]): Promise<void> {
+  // Update each list's order
+  const updates = listUpdates.map(({ id, order }) =>
+    supabase
+      .from('lists')
+      .update({ order })
+      .eq('id', id)
+  )
+
+  const results = await Promise.all(updates)
+
+  const errors = results.filter(r => r.error)
+  if (errors.length > 0) {
+    console.error('Error reordering lists:', errors)
+    throw new Error('Failed to reorder some lists')
   }
 }
