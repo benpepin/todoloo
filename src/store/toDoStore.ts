@@ -72,6 +72,7 @@ interface ToDoStore extends AppState {
   deleteList: (listId: string) => Promise<void>
   switchToPersonalList: (listId: string) => Promise<void>
   reorderLists: (lists: List[]) => Promise<void>
+  moveTaskToList: (taskId: string, targetListId: string) => Promise<void>
 
   // Checklist methods
   loadChecklistItems: (taskId: string) => Promise<void>
@@ -1102,6 +1103,32 @@ export const useToDoStore = create<ToDoStore>()((set, get) => ({
       set({
         lists: originalLists,
         error: error instanceof Error ? error.message : 'Failed to reorder lists'
+      })
+    }
+  },
+
+  // Move a task to a different list
+  moveTaskToList: async (taskId: string, targetListId: string) => {
+    const task = get().tasks.find(t => t.id === taskId)
+    if (!task) return
+
+    const originalTasks = get().tasks
+
+    // Optimistically remove the task from the current view
+    set((state) => ({
+      tasks: state.tasks.filter(t => t.id !== taskId)
+    }))
+
+    try {
+      set({ error: null })
+      // Update the task's list_id in the database
+      await updateTodo(taskId, { listId: targetListId })
+    } catch (error) {
+      console.error('Error moving task to list:', error)
+      // Revert on failure
+      set({
+        tasks: originalTasks,
+        error: error instanceof Error ? error.message : 'Failed to move task to list'
       })
     }
   },

@@ -78,11 +78,6 @@ export default function ListSwitcher() {
   return (
     <div className="w-full mb-6" ref={menuRef}>
       <div className="relative">
-        {/* Label */}
-        <label className="block text-xs font-semibold text-[var(--color-todoloo-text-muted)] uppercase tracking-wide mb-2 px-1">
-          My Lists
-        </label>
-
         {/* Dropdown Button */}
         <button
           onClick={() => setShowListMenu(!showListMenu)}

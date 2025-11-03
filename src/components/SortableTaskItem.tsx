@@ -34,6 +34,7 @@ export default function SortableTaskItem({
   const [editEstimatedMinutes, setEditEstimatedMinutes] = useState(task.estimatedMinutes)
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [isOptionsDropdownOpen, setIsOptionsDropdownOpen] = useState(false)
+  const [showMoveToSubmenu, setShowMoveToSubmenu] = useState(false)
   const [customMinutes, setCustomMinutes] = useState('')
   const customTimeTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const [, setShowEditButtons] = useState(false)
@@ -66,6 +67,9 @@ export default function SortableTaskItem({
   const activeTaskId = useToDoStore((state) => state.activeTaskId)
   const ungroupTask = useToDoStore((state) => state.ungroupTask)
   const loadChecklistItems = useToDoStore((state) => state.loadChecklistItems)
+  const lists = useToDoStore((state) => state.lists)
+  const moveTaskToList = useToDoStore((state) => state.moveTaskToList)
+  const currentListId = useToDoStore((state) => state.currentListId)
   
   const isEditing = editingTaskId === task.id
   const isActive = activeTaskId === task.id
@@ -613,6 +617,46 @@ export default function SortableTaskItem({
                           >
                             {showChecklist ? 'Hide Checklist' : 'Add Checklist'}
                           </button>
+
+                          {lists.length > 1 && (
+                            <div className="relative">
+                              <button
+                                type="button"
+                                onMouseEnter={() => setShowMoveToSubmenu(true)}
+                                onMouseLeave={() => setShowMoveToSubmenu(false)}
+                                className="w-full text-left px-3 py-2 text-xs text-[#696969] font-inter hover:bg-[#F5F5F5] rounded-[10px] transition-colors cursor-pointer flex items-center justify-between"
+                              >
+                                Move to...
+                                <ChevronDown className="w-3 h-3 -rotate-90" />
+                              </button>
+
+                              {showMoveToSubmenu && (
+                                <div
+                                  className="absolute left-full top-0 ml-1 w-40 bg-[#FEFFFF] rounded-[20px] border border-[#D9D9D9] shadow-[0px_4px_54px_rgba(0,0,0,0.05)] p-2 z-20"
+                                  onMouseEnter={() => setShowMoveToSubmenu(true)}
+                                  onMouseLeave={() => setShowMoveToSubmenu(false)}
+                                >
+                                  {lists
+                                    .filter(list => list.id !== currentListId)
+                                    .map(list => (
+                                      <button
+                                        key={list.id}
+                                        type="button"
+                                        onClick={async () => {
+                                          await moveTaskToList(task.id, list.id)
+                                          setIsOptionsDropdownOpen(false)
+                                          setShowMoveToSubmenu(false)
+                                        }}
+                                        className="w-full text-left px-3 py-2 text-xs text-[#696969] font-inter hover:bg-[#F5F5F5] rounded-[10px] transition-colors cursor-pointer"
+                                      >
+                                        {list.name}
+                                      </button>
+                                    ))
+                                  }
+                                </div>
+                              )}
+                            </div>
+                          )}
                         </div>
                       </div>
                     )}

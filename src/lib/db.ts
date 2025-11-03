@@ -200,8 +200,8 @@ export async function createTodo(
 
 // Update todo
 export async function updateTodo(id: string, updates: Partial<Task>): Promise<Task> {
-  const dbUpdates: Partial<DbTask> = {}
-  
+  const dbUpdates: any = {}
+
   if (updates.description !== undefined) {
     dbUpdates.title = updates.description
     dbUpdates.description = updates.description
@@ -220,6 +220,9 @@ export async function updateTodo(id: string, updates: Partial<Task>): Promise<Ta
   }
   if (updates.order !== undefined) {
     dbUpdates.order_index = updates.order
+  }
+  if (updates.listId !== undefined) {
+    dbUpdates.list_id = updates.listId
   }
   if (updates.groupId !== undefined) {
     dbUpdates.group_id = updates.groupId

@@ -27,10 +27,9 @@ export default function Home() {
   const showProgressIndicator = useSettingsStore((state) => state.showProgressIndicator)
   const getInspirationalQuote = useToDoStore((state) => state.getInspirationalQuote)
   const cycleQuote = useToDoStore((state) => state.cycleQuote)
-
   const [showCompletionTime, setShowCompletionTime] = useState(false)
   const [migrationStatus, setMigrationStatus] = useState<string | null>(null)
-  
+
   // Calculate total time for incomplete to dos
   const totalMinutes = tasks
     .filter(task => !task.isCompleted)

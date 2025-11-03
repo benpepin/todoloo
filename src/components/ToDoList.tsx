@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { DndContext, closestCenter, KeyboardSensor, MouseSensor, TouchSensor, useSensor, useSensors, DragEndEvent, DragStartEvent, DragOverlay, DragOverEvent } from '@dnd-kit/core'
+import { DndContext, closestCenter, KeyboardSensor, MouseSensor, TouchSensor, useSensor, useSensors, DragEndEvent, DragStartEvent, DragOverlay, DragOverEvent, pointerWithin, rectIntersection, getFirstCollision } from '@dnd-kit/core'
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { useToDoStore } from '@/store/toDoStore'
 import SortableTaskItem from './SortableTaskItem'
@@ -9,7 +9,7 @@ import ToDoCard from './ToDoCard'
 import { Check } from 'lucide-react'
 
 function ToDoListContent() {
-  const { tasks, activeTaskId, deleteTask, toggleTaskCompletion, updateTaskOrder, showCreateTask, toggleCreateTask } = useToDoStore()
+  const { tasks, activeTaskId, deleteTask, toggleTaskCompletion, updateTaskOrder, showCreateTask, toggleCreateTask, moveTaskToList } = useToDoStore()
   const [activeId, setActiveId] = useState<string | null>(null)
   const [overId, setOverId] = useState<string | null>(null)
 
@@ -70,12 +70,29 @@ function ToDoListContent() {
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event
 
-    console.log('[DRAG] Drag ended:', { activeId: active.id, overId: over?.id })
+    console.log('[DRAG] Drag ended:', { activeId: active.id, overId: over?.id, overData: over?.data })
 
     // Clear overId immediately but delay clearing activeId for smooth animation
     setOverId(null)
 
-    if (active.id !== over?.id && over) {
+    if (!over) return
+
+    // Check if dropped on a list (sidebar)
+    if (over.data?.current?.type === 'list') {
+      const taskId = active.id as string
+      const targetListId = over.data.current.listId as string
+
+      console.log('[DRAG] Moving task to list:', { taskId, targetListId })
+
+      await moveTaskToList(taskId, targetListId)
+
+      // Clear active ID after animation
+      setTimeout(() => setActiveId(null), 200)
+      return
+    }
+
+    // Otherwise, handle reordering within the same list
+    if (active.id !== over?.id) {
       const draggedTask = tasks.find(t => t.id === active.id)
       const targetTask = tasks.find(t => t.id === over.id)
 
@@ -101,7 +118,7 @@ function ToDoListContent() {
         // Reorder only the incomplete tasks
         console.log('[DRAG] Reordering incomplete tasks')
         const reorderedIncompleteTasks = arrayMove(incompleteTasks, oldIndex, newIndex)
-        
+
         // Create updated tasks array with new order values for incomplete tasks only
         const updatedTasks = tasks.map(task => {
           if (task.isCompleted) {
@@ -198,10 +215,30 @@ function ToDoListContent() {
     )
   }
 
+  // Custom collision detection that prioritizes list drops over task reordering
+  const customCollisionDetection = (args: any) => {
+    // First, check for rectangle intersection with all droppable areas
+    const rectCollisions = rectIntersection(args)
+
+    // Filter for list droppable areas (they have IDs starting with 'list-')
+    const listCollisions = rectCollisions.filter((collision: any) =>
+      String(collision.id).startsWith('list-')
+    )
+
+    // If we found a list collision, use it (prioritize lists)
+    if (listCollisions.length > 0) {
+      console.log('[COLLISION] Found list collision:', listCollisions[0].id)
+      return listCollisions
+    }
+
+    // Otherwise, fall back to standard collision detection for task reordering
+    return closestCenter(args)
+  }
+
   return (
     <DndContext
       sensors={sensors}
-      collisionDetection={closestCenter}
+      collisionDetection={customCollisionDetection}
       onDragStart={handleDragStart}
       onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
