@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { DndContext, closestCenter, KeyboardSensor, MouseSensor, TouchSensor, useSensor, useSensors, DragEndEvent, DragStartEvent, DragOverlay, DragOverEvent, pointerWithin, rectIntersection, getFirstCollision } from '@dnd-kit/core'
+import { DndContext, closestCenter, KeyboardSensor, MouseSensor, TouchSensor, useSensor, useSensors, DragEndEvent, DragStartEvent, DragOverlay, DragOverEvent, pointerWithin, rectIntersection, getFirstCollision, CollisionDetection, Collision } from '@dnd-kit/core'
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { useToDoStore } from '@/store/toDoStore'
 import SortableTaskItem from './SortableTaskItem'
@@ -216,12 +216,12 @@ function ToDoListContent() {
   }
 
   // Custom collision detection that prioritizes list drops over task reordering
-  const customCollisionDetection = (args: any) => {
+  const customCollisionDetection: CollisionDetection = (args) => {
     // First, check for rectangle intersection with all droppable areas
     const rectCollisions = rectIntersection(args)
 
     // Filter for list droppable areas (they have IDs starting with 'list-')
-    const listCollisions = rectCollisions.filter((collision: any) =>
+    const listCollisions = rectCollisions.filter((collision) =>
       String(collision.id).startsWith('list-')
     )
 

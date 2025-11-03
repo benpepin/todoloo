@@ -165,7 +165,7 @@ export async function createTodo(
   const currentUser = await supabase.auth.getUser()
   const actualCreatorId = createdByUserId || currentUser.data.user?.id || userId
 
-  const dbTask: any = {
+  const dbTask: Record<string, unknown> = {
     title: task.description,
     description: task.description,
     is_completed: task.isCompleted,
@@ -200,7 +200,7 @@ export async function createTodo(
 
 // Update todo
 export async function updateTodo(id: string, updates: Partial<Task>): Promise<Task> {
-  const dbUpdates: any = {}
+  const dbUpdates: Record<string, unknown> = {}
 
   if (updates.description !== undefined) {
     dbUpdates.title = updates.description
