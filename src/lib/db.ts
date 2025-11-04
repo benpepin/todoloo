@@ -682,3 +682,111 @@ export async function reorderLists(listUpdates: { id: string; order: number }[])
     throw new Error('Failed to reorder some lists')
   }
 }
+
+// ============ USER SETTINGS FUNCTIONS ============
+
+export interface UserSettings {
+  id: string
+  userId: string
+  showProgressIndicator: boolean
+  defaultMinutes: number
+  customKeywords: Array<{ id: string; keyword: string; minutes: number }>
+  createdAt: Date
+  updatedAt: Date
+}
+
+interface DbUserSettings {
+  id: string
+  user_id: string
+  show_progress_indicator: boolean
+  default_minutes: number
+  custom_keywords: Array<{ id: string; keyword: string; minutes: number }>
+  created_at: string
+  updated_at: string
+}
+
+function dbUserSettingsToUserSettings(dbSettings: DbUserSettings): UserSettings {
+  return {
+    id: dbSettings.id,
+    userId: dbSettings.user_id,
+    showProgressIndicator: dbSettings.show_progress_indicator,
+    defaultMinutes: dbSettings.default_minutes,
+    customKeywords: dbSettings.custom_keywords || [],
+    createdAt: new Date(dbSettings.created_at),
+    updatedAt: new Date(dbSettings.updated_at)
+  }
+}
+
+// Get user settings, creating default settings if they don't exist
+export async function getUserSettings(userId: string): Promise<UserSettings> {
+  const { data, error } = await supabase
+    .from('user_settings')
+    .select('*')
+    .eq('user_id', userId)
+    .single()
+
+  // If settings don't exist, create them
+  if (error && error.code === 'PGRST116') {
+    return createUserSettings(userId)
+  }
+
+  if (error) {
+    console.error('Error fetching user settings:', error)
+    throw new Error(`Failed to fetch user settings: ${error.message}`)
+  }
+
+  return dbUserSettingsToUserSettings(data)
+}
+
+// Create default settings for a user
+async function createUserSettings(userId: string): Promise<UserSettings> {
+  const { data, error } = await supabase
+    .from('user_settings')
+    .insert([{
+      user_id: userId,
+      show_progress_indicator: true,
+      default_minutes: 30,
+      custom_keywords: []
+    }])
+    .select()
+    .single()
+
+  if (error) {
+    console.error('Error creating user settings:', error)
+    throw new Error(`Failed to create user settings: ${error.message}`)
+  }
+
+  return dbUserSettingsToUserSettings(data)
+}
+
+// Update user settings
+export async function updateUserSettings(
+  userId: string,
+  updates: Partial<Omit<UserSettings, 'id' | 'userId' | 'createdAt' | 'updatedAt'>>
+): Promise<UserSettings> {
+  const dbUpdates: Partial<DbUserSettings> = {}
+
+  if (updates.showProgressIndicator !== undefined) {
+    dbUpdates.show_progress_indicator = updates.showProgressIndicator
+  }
+  if (updates.defaultMinutes !== undefined) {
+    dbUpdates.default_minutes = updates.defaultMinutes
+  }
+  if (updates.customKeywords !== undefined) {
+    dbUpdates.custom_keywords = updates.customKeywords
+  }
+
+  const { data, error } = await supabase
+    .from('user_settings')
+    .update(dbUpdates)
+    .eq('user_id', userId)
+    .select()
+    .single()
+
+  if (error) {
+    console.error('Error updating user settings:', error)
+    throw new Error(`Failed to update user settings: ${error.message}`)
+  }
+
+  return dbUserSettingsToUserSettings(data)
+}

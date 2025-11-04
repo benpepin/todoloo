@@ -1,118 +1,75 @@
-import { get, set, del, clear, keys } from 'idb-keyval'
+import { get, set, del } from 'idb-keyval'
+import type { PersistStorage } from 'zustand/middleware'
 
 // Check if we're in a browser environment
 const isBrowser = typeof window !== 'undefined'
 
-// Fallback to localStorage if IndexedDB is not available
-const getStorageMethod = () => {
-  if (!isBrowser) return 'none'
-  if (typeof indexedDB !== 'undefined') return 'indexeddb'
-  return 'localstorage'
-}
-
-const storageMethod = getStorageMethod()
-
-// localStorage fallback implementation
-const localStorageStorage = {
-  getItem: async (name: string) => {
+// Create a storage adapter that works with Zustand's persist middleware
+// Zustand expects synchronous-like interface but supports promises
+export const indexedDbStorage: PersistStorage<any> = {
+  getItem: (name: string) => {
     if (!isBrowser) return null
-    try {
-      const value = localStorage.getItem(name)
-      return value ? JSON.parse(value) : null
-    } catch (error) {
-      console.error('localStorage getItem error:', error)
-      return null
-    }
+
+    return (async () => {
+      try {
+        // Try IndexedDB first
+        const value = await get(name)
+        if (value !== undefined) {
+          return value
+        }
+
+        // Fallback to localStorage if IndexedDB returns undefined
+        const localValue = localStorage.getItem(name)
+        return localValue ? JSON.parse(localValue) : null
+      } catch (error) {
+        console.error('IndexedDB getItem error, falling back to localStorage:', error)
+        try {
+          const localValue = localStorage.getItem(name)
+          return localValue ? JSON.parse(localValue) : null
+        } catch (localError) {
+          console.error('localStorage getItem error:', localError)
+          return null
+        }
+      }
+    })()
   },
-  setItem: async (name: string, value: unknown): Promise<void> => {
+
+  setItem: (name: string, value: any) => {
     if (!isBrowser) return
-    try {
-      localStorage.setItem(name, JSON.stringify(value))
-    } catch (error) {
-      console.error('localStorage setItem error:', error)
-    }
+
+    return (async () => {
+      try {
+        // Store directly in IndexedDB (no need to stringify)
+        await set(name, value)
+
+        // Also save to localStorage as backup (need to stringify)
+        localStorage.setItem(name, JSON.stringify(value))
+      } catch (error) {
+        console.error('IndexedDB setItem error, falling back to localStorage:', error)
+        try {
+          localStorage.setItem(name, JSON.stringify(value))
+        } catch (localError) {
+          console.error('localStorage setItem error:', localError)
+        }
+      }
+    })()
   },
-  removeItem: async (name: string): Promise<void> => {
+
+  removeItem: (name: string) => {
     if (!isBrowser) return
-    try {
-      localStorage.removeItem(name)
-    } catch (error) {
-      console.error('localStorage removeItem error:', error)
-    }
-  },
-  clear: async (): Promise<void> => {
-    if (!isBrowser) return
-    try {
-      localStorage.clear()
-    } catch (error) {
-      console.error('localStorage clear error:', error)
-    }
-  },
-  getAllKeys: async (): Promise<string[]> => {
-    if (!isBrowser) return []
-    try {
-      return Object.keys(localStorage)
-    } catch (error) {
-      console.error('localStorage getAllKeys error:', error)
-      return []
-    }
+
+    return (async () => {
+      try {
+        await del(name)
+        localStorage.removeItem(name)
+      } catch (error) {
+        console.error('IndexedDB removeItem error:', error)
+        try {
+          localStorage.removeItem(name)
+        } catch (localError) {
+          console.error('localStorage removeItem error:', localError)
+        }
+      }
+    })()
   }
 }
-
-// IndexedDB implementation
-const indexedDbStorageImpl = {
-  getItem: async (name: string) => {
-    if (!isBrowser) return null
-    try {
-      const value = await get(name)
-      return value || null
-    } catch (error) {
-      console.error('IndexedDB getItem error:', error)
-      // Fallback to localStorage on IndexedDB error
-      return await localStorageStorage.getItem(name)
-    }
-  },
-  setItem: async (name: string, value: unknown): Promise<void> => {
-    if (!isBrowser) return
-    try {
-      await set(name, value)
-    } catch (error) {
-      console.error('IndexedDB setItem error:', error)
-      // Fallback to localStorage on IndexedDB error
-      await localStorageStorage.setItem(name, value)
-    }
-  },
-  removeItem: async (name: string): Promise<void> => {
-    if (!isBrowser) return
-    try {
-      await del(name)
-    } catch (error) {
-      console.error('IndexedDB removeItem error:', error)
-      // Fallback to localStorage on IndexedDB error
-      await localStorageStorage.removeItem(name)
-    }
-  },
-  clear: async (): Promise<void> => {
-    if (!isBrowser) return
-    try {
-      await clear()
-    } catch (error) {
-      console.error('IndexedDB clear error:', error)
-      // Fallback to localStorage on IndexedDB error
-      await localStorageStorage.clear()
-    }
-  },
-  getAllKeys: async (): Promise<string[]> => {
-    if (!isBrowser) return []
-    try {
-      return await keys()
-    } catch (error) {
-      console.error('IndexedDB getAllKeys error:', error)
-      // Fallback to localStorage on IndexedDB error
-      return await localStorageStorage.getAllKeys()
-    }
-  }
-}
-
-// Export the appropriate storage implementation
-export const indexedDbStorage = storageMethod === 'indexeddb' ? indexedDbStorageImpl : localStorageStorage

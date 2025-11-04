@@ -23,7 +23,9 @@ export default function SettingsPage() {
     customKeywords,
     addCustomKeyword,
     removeCustomKeyword,
-    updateCustomKeyword
+    updateCustomKeyword,
+    loadSettings,
+    isLoaded
   } = useSettingsStore()
   const { user } = useSupabase()
   const { switchToList, currentListOwnerId } = useToDoStore()
@@ -44,9 +46,10 @@ export default function SettingsPage() {
   const [shareSuccess, setShareSuccess] = useState('')
   const [isLoadingShares, setIsLoadingShares] = useState(false)
 
-  // Load shared users on mount
+  // Load settings and shared users on mount
   useEffect(() => {
     if (user?.id) {
+      loadSettings(user.id)
       loadSharedUsers()
       loadSharedLists()
     }
@@ -55,8 +58,8 @@ export default function SettingsPage() {
 
   // Debug custom keywords on mount
   useEffect(() => {
-    console.log('Settings page mounted, custom keywords:', customKeywords)
-  }, [customKeywords])
+    console.log('Settings loaded:', { isLoaded, customKeywords, defaultMinutes, showProgressIndicator })
+  }, [isLoaded, customKeywords, defaultMinutes, showProgressIndicator])
 
   const loadSharedUsers = async () => {
     if (!user?.id) return
@@ -113,14 +116,16 @@ export default function SettingsPage() {
   }
 
   // Time estimation handlers
-  const handleAddKeyword = (e: React.FormEvent) => {
+  const handleAddKeyword = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!user?.id) return
+
     console.log('handleAddKeyword called with:', { newKeyword, newKeywordMinutes })
     if (newKeyword.trim() && newKeywordMinutes) {
       const minutes = parseInt(newKeywordMinutes)
       if (minutes > 0) {
         console.log('Calling addCustomKeyword with:', newKeyword.trim(), minutes)
-        addCustomKeyword(newKeyword.trim(), minutes)
+        await addCustomKeyword(newKeyword.trim(), minutes, user.id)
         setNewKeyword('')
         setNewKeywordMinutes('30')
       }
@@ -133,14 +138,16 @@ export default function SettingsPage() {
     setEditKeywordMinutes(kw.minutes.toString())
   }
 
-  const handleSaveEdit = (id: string) => {
+  const handleSaveEdit = async (id: string) => {
+    if (!user?.id) return
+
     const keyword = editKeyword.trim()
     const minutes = parseInt(editKeywordMinutes)
     console.log('handleSaveEdit called with:', { id, keyword, minutes })
 
     if (keyword && !isNaN(minutes) && minutes > 0) {
       console.log('Calling updateCustomKeyword with:', id, keyword, minutes)
-      updateCustomKeyword(id, keyword, minutes)
+      await updateCustomKeyword(id, keyword, minutes, user.id)
       setEditingKeywordId(null)
       setEditKeyword('')
       setEditKeywordMinutes('')
@@ -247,7 +254,8 @@ export default function SettingsPage() {
                       <p className="text-xs font-['Geist']" style={{ color: 'var(--color-todoloo-text-muted)' }}>Display carnival horse race for completed todos</p>
                     </div>
                     <button
-                      onClick={toggleProgressIndicator}
+                      onClick={() => user?.id && toggleProgressIndicator(user.id)}
+                      disabled={!user?.id}
                       className="w-12 h-6 rounded-full transition-colors"
                       style={{
                         backgroundColor: showProgressIndicator ? 'var(--color-todoloo-gradient-start)' : 'var(--color-todoloo-border)'
@@ -280,7 +288,8 @@ export default function SettingsPage() {
                   </p>
                   <select
                     value={defaultMinutes}
-                    onChange={(e) => setDefaultMinutes(Number(e.target.value))}
+                    onChange={(e) => user?.id && setDefaultMinutes(Number(e.target.value), user.id)}
+                    disabled={!user?.id}
                     className="w-full px-3 py-2 rounded-lg border text-sm font-['Geist']"
                     style={{
                       backgroundColor: 'var(--color-todoloo-bg)',
@@ -384,7 +393,8 @@ export default function SettingsPage() {
                                 <Edit2 className="w-4 h-4" />
                               </button>
                               <button
-                                onClick={() => removeCustomKeyword(kw.id)}
+                                onClick={() => user?.id && removeCustomKeyword(kw.id, user.id)}
+                                disabled={!user?.id}
                                 className="p-2 rounded-lg hover:bg-opacity-10 hover:bg-red-500 transition-colors"
                                 style={{ color: 'var(--color-todoloo-text-muted)' }}
                                 title="Remove keyword"
