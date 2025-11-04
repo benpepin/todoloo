@@ -9,6 +9,7 @@ export interface CustomKeyword {
 
 interface SettingsState {
   showProgressIndicator: boolean
+  showShoppingCartProgress: boolean
   defaultMinutes: number
   customKeywords: CustomKeyword[]
   isLoaded: boolean
@@ -17,6 +18,7 @@ interface SettingsState {
   // Actions
   loadSettings: (userId: string) => Promise<void>
   toggleProgressIndicator: (userId: string) => Promise<void>
+  toggleShoppingCartProgress: (userId: string) => Promise<void>
   setShowProgressIndicator: (show: boolean, userId: string) => Promise<void>
   setDefaultMinutes: (minutes: number, userId: string) => Promise<void>
   addCustomKeyword: (keyword: string, minutes: number, userId: string) => Promise<void>
@@ -27,6 +29,7 @@ interface SettingsState {
 export const useSettingsStore = create<SettingsState>((set, get) => ({
   // Default values
   showProgressIndicator: true,
+  showShoppingCartProgress: true,
   defaultMinutes: 30,
   customKeywords: [],
   isLoaded: false,
@@ -38,6 +41,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       const settings = await getUserSettings(userId)
       set({
         showProgressIndicator: settings.showProgressIndicator,
+        showShoppingCartProgress: settings.showShoppingCartProgress,
         defaultMinutes: settings.defaultMinutes,
         customKeywords: settings.customKeywords,
         isLoaded: true,
@@ -66,6 +70,24 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       console.error('Error updating progress indicator:', error)
       // Rollback on error
       set({ showProgressIndicator: currentValue })
+    }
+  },
+
+  // Toggle shopping cart progress
+  toggleShoppingCartProgress: async (userId: string) => {
+    const currentValue = get().showShoppingCartProgress
+    const newValue = !currentValue
+
+    // Optimistic update
+    set({ showShoppingCartProgress: newValue })
+
+    try {
+      await updateUserSettings(userId, { showShoppingCartProgress: newValue })
+      console.log('Shopping cart progress toggled to:', newValue)
+    } catch (error) {
+      console.error('Error updating shopping cart progress:', error)
+      // Rollback on error
+      set({ showShoppingCartProgress: currentValue })
     }
   },
 

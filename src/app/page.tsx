@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import ToDoList from '@/components/ToDoList'
 import HorseRaceProgress from '@/components/HorseRaceProgress'
+import ShoppingCartProgress from '@/components/ShoppingCartProgress'
 import SettingsMenu from '@/components/SettingsMenu'
 import { useToDoStore } from '@/store/toDoStore'
 import { useSettingsStore } from '@/store/settingsStore'
@@ -24,7 +25,10 @@ export default function Home() {
   const error = useToDoStore((state) => state.error)
   const clearError = useToDoStore((state) => state.clearError)
   const isInitialized = useToDoStore((state) => state.isInitialized)
+  const lists = useToDoStore((state) => state.lists)
+  const currentListId = useToDoStore((state) => state.currentListId)
   const showProgressIndicator = useSettingsStore((state) => state.showProgressIndicator)
+  const showShoppingCartProgress = useSettingsStore((state) => state.showShoppingCartProgress)
   const getInspirationalQuote = useToDoStore((state) => state.getInspirationalQuote)
   const cycleQuote = useToDoStore((state) => state.cycleQuote)
   const [showCompletionTime, setShowCompletionTime] = useState(false)
@@ -34,12 +38,17 @@ export default function Home() {
   const totalMinutes = tasks
     .filter(task => !task.isCompleted)
     .reduce((total, task) => total + task.estimatedMinutes, 0)
-  
+
   const completionTime = totalMinutes > 0 ? getCompletionTime(totalMinutes) : null
 
   // Get active task from store
   const activeTaskId = useToDoStore((state) => state.activeTaskId)
   const activeTask = tasks.find(task => task.id === activeTaskId)
+
+  // Determine if current list is a shopping list
+  const currentList = lists.find(list => list.id === currentListId)
+  const isShoppingList = currentList ?
+    /shopping|groceries|grocery/i.test(currentList.name) : false
 
   // Initialize app when user changes
   useEffect(() => {
@@ -287,8 +296,9 @@ export default function Home() {
 
         <div className="w-full flex justify-center items-center gap-0.75">
           <div className="w-full max-w-[460px] flex flex-col justify-start items-start gap-8">
-            {/* Horse Race Progress Indicator */}
-            {showProgressIndicator && <HorseRaceProgress />}
+            {/* Progress Indicator - Shopping Cart for shopping lists, Horse for others */}
+            {showProgressIndicator && isShoppingList && showShoppingCartProgress && <ShoppingCartProgress />}
+            {showProgressIndicator && !isShoppingList && <HorseRaceProgress />}
 
             <ToDoList />
           </div>

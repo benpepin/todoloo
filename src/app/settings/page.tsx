@@ -18,6 +18,8 @@ export default function SettingsPage() {
   const {
     showProgressIndicator,
     toggleProgressIndicator,
+    showShoppingCartProgress,
+    toggleShoppingCartProgress,
     defaultMinutes,
     setDefaultMinutes,
     customKeywords,
@@ -264,6 +266,25 @@ export default function SettingsPage() {
                       <div className="w-5 h-5 bg-white rounded-full transition-transform"
                            style={{
                              transform: showProgressIndicator ? 'translateX(24px)' : 'translateX(2px)'
+                           }} />
+                    </button>
+                  </div>
+                  <div className="flex items-center justify-between pt-4">
+                    <div>
+                      <p className="text-sm font-['Geist'] font-medium" style={{ color: 'var(--color-todoloo-text-primary)' }}>Show shopping cart progress</p>
+                      <p className="text-xs font-['Geist']" style={{ color: 'var(--color-todoloo-text-muted)' }}>Display shopping cart for shopping-related lists</p>
+                    </div>
+                    <button
+                      onClick={() => user?.id && toggleShoppingCartProgress(user.id)}
+                      disabled={!user?.id}
+                      className="w-12 h-6 rounded-full transition-colors"
+                      style={{
+                        backgroundColor: showShoppingCartProgress ? 'var(--color-todoloo-gradient-start)' : 'var(--color-todoloo-border)'
+                      }}
+                    >
+                      <div className="w-5 h-5 bg-white rounded-full transition-transform"
+                           style={{
+                             transform: showShoppingCartProgress ? 'translateX(24px)' : 'translateX(2px)'
                            }} />
                     </button>
                   </div>

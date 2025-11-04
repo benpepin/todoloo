@@ -689,6 +689,7 @@ export interface UserSettings {
   id: string
   userId: string
   showProgressIndicator: boolean
+  showShoppingCartProgress: boolean
   defaultMinutes: number
   customKeywords: Array<{ id: string; keyword: string; minutes: number }>
   createdAt: Date
@@ -699,6 +700,7 @@ interface DbUserSettings {
   id: string
   user_id: string
   show_progress_indicator: boolean
+  show_shopping_cart_progress: boolean
   default_minutes: number
   custom_keywords: Array<{ id: string; keyword: string; minutes: number }>
   created_at: string
@@ -710,6 +712,7 @@ function dbUserSettingsToUserSettings(dbSettings: DbUserSettings): UserSettings 
     id: dbSettings.id,
     userId: dbSettings.user_id,
     showProgressIndicator: dbSettings.show_progress_indicator,
+    showShoppingCartProgress: dbSettings.show_shopping_cart_progress,
     defaultMinutes: dbSettings.default_minutes,
     customKeywords: dbSettings.custom_keywords || [],
     createdAt: new Date(dbSettings.created_at),
@@ -745,6 +748,7 @@ async function createUserSettings(userId: string): Promise<UserSettings> {
     .insert([{
       user_id: userId,
       show_progress_indicator: true,
+      show_shopping_cart_progress: true,
       default_minutes: 30,
       custom_keywords: []
     }])
@@ -768,6 +772,9 @@ export async function updateUserSettings(
 
   if (updates.showProgressIndicator !== undefined) {
     dbUpdates.show_progress_indicator = updates.showProgressIndicator
+  }
+  if (updates.showShoppingCartProgress !== undefined) {
+    dbUpdates.show_shopping_cart_progress = updates.showShoppingCartProgress
   }
   if (updates.defaultMinutes !== undefined) {
     dbUpdates.default_minutes = updates.defaultMinutes
