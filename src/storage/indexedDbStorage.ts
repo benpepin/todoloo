@@ -6,6 +6,7 @@ const isBrowser = typeof window !== 'undefined'
 
 // Create a storage adapter that works with Zustand's persist middleware
 // Zustand expects synchronous-like interface but supports promises
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const indexedDbStorage: PersistStorage<any> = {
   getItem: (name: string) => {
     if (!isBrowser) return null
@@ -34,6 +35,7 @@ export const indexedDbStorage: PersistStorage<any> = {
     })()
   },
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   setItem: (name: string, value: any) => {
     if (!isBrowser) return
 
