@@ -153,10 +153,11 @@ export default function Home() {
           event.preventDefault()
           toggleCreateTask()
         }
-        
+
         // Handle number keys (1-9) to create that many to dos
+        // Only if no modifier keys are pressed (to avoid interfering with browser shortcuts like Cmd+1 for tab switching)
         const num = parseInt(event.key)
-        if (num >= 1 && num <= 9) {
+        if (num >= 1 && num <= 9 && !event.metaKey && !event.ctrlKey && !event.altKey && !event.shiftKey) {
           event.preventDefault()
           for (let i = 0; i < num; i++) {
             addTask(`To Do ${i + 1}`, 15) // Default 15 minutes
