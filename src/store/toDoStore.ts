@@ -1047,15 +1047,19 @@ export const useToDoStore = create<ToDoStore>()((set, get) => ({
 
   // Switch to a personal list (not a shared list)
   switchToPersonalList: async (listId: string) => {
-    const { userId, currentListOwnerId } = get()
+    const { userId, currentListOwnerId, lists } = get()
 
     try {
-      set({ isLoading: true, error: null, currentListId: listId, currentListOwnerId: null })
+      // Find which user owns this list
+      const targetList = lists.find(l => l.id === listId)
+      const listOwnerId = targetList?.userId || userId || null
 
-      // If we were viewing someone else's lists, reload our own lists
-      if (currentListOwnerId && currentListOwnerId !== userId && userId) {
-        const lists = await getUserLists(userId)
-        set({ lists })
+      set({ isLoading: true, error: null, currentListId: listId, currentListOwnerId: listOwnerId })
+
+      // If we're switching to a different user's lists, reload their lists
+      if (currentListOwnerId && currentListOwnerId !== listOwnerId && listOwnerId) {
+        const newLists = await getUserLists(listOwnerId)
+        set({ lists: newLists })
       }
 
       const tasks = await fetchTodosByList(listId)
