@@ -154,6 +154,7 @@ export const useToDoStore = create<ToDoStore>()((set, get) => ({
       set({
         lists,
         currentListId,
+        currentListOwnerId: userId, // Explicitly set to userId when initializing own lists
         tasks: tasksWithChecklists,
         isLoading: false,
         isInitialized: true
@@ -1052,7 +1053,15 @@ export const useToDoStore = create<ToDoStore>()((set, get) => ({
     try {
       // Find which user owns this list
       const targetList = lists.find(l => l.id === listId)
-      const listOwnerId = targetList?.userId || userId || null
+
+      // Defensive check: ensure the list exists
+      if (!targetList) {
+        console.error('Target list not found:', listId)
+        set({ error: 'List not found' })
+        return
+      }
+
+      const listOwnerId = targetList.userId || userId || null
 
       set({ isLoading: true, error: null, currentListId: listId, currentListOwnerId: listOwnerId })
 

@@ -67,6 +67,8 @@ function DroppableListItem({
       ) : (
         // Display mode
         <div
+          onClick={onSwitch}
+          onDoubleClick={onEdit}
           className={`
             w-full px-3 py-2.5 text-left text-[15px] font-medium rounded-lg
             transition-all duration-150 ease-out cursor-pointer
@@ -79,7 +81,7 @@ function DroppableListItem({
           `}
         >
           <div className="flex items-center justify-between">
-            <span onClick={onSwitch} onDoubleClick={onEdit} className="flex-1">
+            <span className="flex-1">
               {listName}
             </span>
             {isActive && canDelete && (

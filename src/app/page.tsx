@@ -54,7 +54,7 @@ export default function Home() {
   useEffect(() => {
     const initializeApp = async () => {
       if (authLoading) return // Wait for auth to load
-      
+
       if (!user) {
         // No user - clear any existing data and reset store
         setMigrationStatus(null)
@@ -67,16 +67,16 @@ export default function Home() {
         if (!isInitialized) {
           const migrationResult = await migrateLocalStorageToSupabase()
           setMigrationStatus(migrationResult.message)
-          
+
           if (migrationResult.success) {
             console.log('Migration:', migrationResult.message)
           } else {
             console.error('Migration failed:', migrationResult.message)
           }
         }
-        
+
         // Initialize user and load tasks
-        await initializeUser(user.id)
+        await useToDoStore.getState().initializeUser(user.id)
       } catch (error) {
         console.error('Error initializing app:', error)
         setMigrationStatus('Failed to initialize app')
@@ -84,7 +84,7 @@ export default function Home() {
     }
 
     initializeApp()
-  }, [user, authLoading, isInitialized, initializeUser])
+  }, [user, authLoading, isInitialized])
 
   // Update document title with active task
   useEffect(() => {
