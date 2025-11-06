@@ -106,12 +106,15 @@ function DroppableListItem({
 }
 
 export function PersonalLists() {
-  const { lists, currentListId, switchToPersonalList, createList, updateListName, deleteList } = useToDoStore()
+  const { lists, currentListId, currentListOwnerId, currentListOwnerPermission, userId, switchToPersonalList, createList, updateListName, deleteList } = useToDoStore()
   const [isAddingList, setIsAddingList] = useState(false)
   const [newListName, setNewListName] = useState('')
   const [editingListId, setEditingListId] = useState<string | null>(null)
   const [editingName, setEditingName] = useState('')
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
+
+  // Can add lists if viewing own lists OR have write permission on shared user's lists
+  const canAddList = !currentListOwnerId || currentListOwnerId === userId || currentListOwnerPermission === 'write'
 
   const handleCreateList = async () => {
     if (newListName.trim()) {
@@ -168,48 +171,50 @@ export function PersonalLists() {
           </div>
         ))}
 
-        {/* Add New List Button (shows on hover) */}
-        {isAddingList ? (
-          <input
-            type="text"
-            value={newListName}
-            onChange={(e) => setNewListName(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') handleCreateList()
-              if (e.key === 'Escape') {
-                setIsAddingList(false)
-                setNewListName('')
-              }
-            }}
-            onBlur={() => {
-              if (!newListName.trim()) {
-                setIsAddingList(false)
-              } else {
-                handleCreateList()
-              }
-            }}
-            placeholder="List name"
-            autoFocus
-            className="w-full px-3 py-2.5 text-[15px] font-medium rounded-lg
-              bg-white dark:bg-[#2a2a2a]
-              border border-gray-300 dark:border-[#404040]
-              text-[var(--color-todoloo-text-primary)]
-              placeholder:text-[var(--color-todoloo-text-muted)]
-              focus:outline-none focus:ring-2 focus:ring-gray-400 dark:focus:ring-gray-500"
-          />
-        ) : (
-          <button
-            onClick={() => setIsAddingList(true)}
-            className={`
-              w-full px-3 py-2.5 text-left text-[15px] font-medium rounded-lg
-              text-[var(--color-todoloo-text-muted)] hover:text-[var(--color-todoloo-text-secondary)]
-              hover:bg-gray-50 dark:hover:bg-[#2d2d2d]
-              transition-all duration-150 ease-out
-              ${hoveredIndex !== null ? 'opacity-100' : 'opacity-0'}
-            `}
-          >
-            + Add Another List
-          </button>
+        {/* Add New List Button (shows on hover) - only if user has permission */}
+        {canAddList && (
+          isAddingList ? (
+            <input
+              type="text"
+              value={newListName}
+              onChange={(e) => setNewListName(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleCreateList()
+                if (e.key === 'Escape') {
+                  setIsAddingList(false)
+                  setNewListName('')
+                }
+              }}
+              onBlur={() => {
+                if (!newListName.trim()) {
+                  setIsAddingList(false)
+                } else {
+                  handleCreateList()
+                }
+              }}
+              placeholder="List name"
+              autoFocus
+              className="w-full px-3 py-2.5 text-[15px] font-medium rounded-lg
+                bg-white dark:bg-[#2a2a2a]
+                border border-gray-300 dark:border-[#404040]
+                text-[var(--color-todoloo-text-primary)]
+                placeholder:text-[var(--color-todoloo-text-muted)]
+                focus:outline-none focus:ring-2 focus:ring-gray-400 dark:focus:ring-gray-500"
+            />
+          ) : (
+            <button
+              onClick={() => setIsAddingList(true)}
+              className={`
+                w-full px-3 py-2.5 text-left text-[15px] font-medium rounded-lg
+                text-[var(--color-todoloo-text-muted)] hover:text-[var(--color-todoloo-text-secondary)]
+                hover:bg-gray-50 dark:hover:bg-[#2d2d2d]
+                transition-all duration-150 ease-out
+                ${hoveredIndex !== null ? 'opacity-100' : 'opacity-0'}
+              `}
+            >
+              + Add Another List
+            </button>
+          )
         )}
       </div>
     </div>

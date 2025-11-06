@@ -43,6 +43,7 @@ interface ToDoStore extends AppState {
   userId: string | null
   isInitialized: boolean
   currentListOwnerId: string | null // Track which list we're viewing (for shared lists)
+  currentListOwnerPermission: 'read' | 'write' | null // Track permission level for current shared list
   quoteIndex: number
 
   // List management state
@@ -110,6 +111,7 @@ export const useToDoStore = create<ToDoStore>()((set, get) => ({
   userId: null,
   isInitialized: false,
   currentListOwnerId: null,
+  currentListOwnerPermission: null,
   quoteIndex: 0,
 
   // List management state
@@ -240,6 +242,15 @@ export const useToDoStore = create<ToDoStore>()((set, get) => ({
     try {
       set({ isLoading: true, error: null, currentListOwnerId: listOwnerId })
 
+      // Get permission level if viewing someone else's list
+      let permission: 'read' | 'write' | null = null
+      if (listOwnerId !== userId) {
+        const { getSharedLists } = await import('@/lib/db')
+        const sharedLists = await getSharedLists(userId)
+        const sharedList = sharedLists.find(l => l.ownerId === listOwnerId)
+        permission = sharedList?.permission || null
+      }
+
       // Load the target user's personal lists
       const lists = await getUserLists(listOwnerId)
 
@@ -272,6 +283,7 @@ export const useToDoStore = create<ToDoStore>()((set, get) => ({
         tasks: tasksWithChecklists,
         lists,
         currentListId,
+        currentListOwnerPermission: permission,
         isLoading: false
       })
     } catch (error) {
@@ -967,13 +979,16 @@ export const useToDoStore = create<ToDoStore>()((set, get) => ({
   },
 
   // Create a new list
-  createList: async (name: string) => {
-    const { userId } = get()
+  createList: async (name: string, targetUserId?: string) => {
+    const { userId, currentListOwnerId } = get()
     if (!userId) return
+
+    // If targetUserId is not provided, use currentListOwnerId (if viewing shared user) or own userId
+    const listOwnerId = targetUserId || currentListOwnerId || userId
 
     try {
       set({ error: null })
-      const newList = await createListDb(userId, name)
+      const newList = await createListDb(listOwnerId, name)
 
       set((state) => ({
         lists: [...state.lists, newList]
@@ -1063,7 +1078,16 @@ export const useToDoStore = create<ToDoStore>()((set, get) => ({
 
       const listOwnerId = targetList.userId || userId || null
 
-      set({ isLoading: true, error: null, currentListId: listId, currentListOwnerId: listOwnerId })
+      // Get permission level if viewing someone else's list
+      let permission: 'read' | 'write' | null = null
+      if (listOwnerId && listOwnerId !== userId) {
+        const { getSharedLists } = await import('@/lib/db')
+        const sharedLists = await getSharedLists(userId!)
+        const sharedList = sharedLists.find(l => l.ownerId === listOwnerId)
+        permission = sharedList?.permission || null
+      }
+
+      set({ isLoading: true, error: null, currentListId: listId, currentListOwnerId: listOwnerId, currentListOwnerPermission: permission })
 
       // If we're switching to a different user's lists, reload their lists
       if (currentListOwnerId && currentListOwnerId !== listOwnerId && listOwnerId) {
