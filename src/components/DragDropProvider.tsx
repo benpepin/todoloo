@@ -2,7 +2,6 @@
 
 import { ReactNode } from 'react'
 import { DndContext, closestCenter, MouseSensor, TouchSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core'
-import { useToDoStore } from '@/store/toDoStore'
 
 interface DragDropProviderProps {
   children: ReactNode

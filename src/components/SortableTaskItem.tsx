@@ -1,13 +1,13 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
+import Image from 'next/image'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { Check, GripVertical, Timer, ChevronDown, Play, Pause, Unlink, MoreHorizontal } from 'lucide-react'
 import { Task } from '@/types'
 import { useToDoStore } from '@/store/toDoStore'
 import { useSimpleTimer } from '@/hooks/useSimpleTimer'
-import { useSupabase } from './SupabaseProvider'
 import AnimatedBorder from './AnimatedBorder'
 import { AnimatedBars } from './AnimatedBars'
 import ChecklistSection from './ChecklistSection'
@@ -17,7 +17,6 @@ interface SortableTaskItemProps {
   taskIndex: number
   onDelete: (id: string) => void
   onToggleCompletion: (id: string) => void
-  isTaskActive: boolean
   groupPosition?: 'single' | 'first' | 'middle' | 'last'
 }
 
@@ -26,10 +25,8 @@ export default function SortableTaskItem({
   taskIndex,
   onDelete,
   onToggleCompletion,
-  isTaskActive,
   groupPosition = 'single'
 }: SortableTaskItemProps) {
-  const { user } = useSupabase()
   const [editDescription, setEditDescription] = useState(task.description)
   const [editEstimatedMinutes, setEditEstimatedMinutes] = useState(task.estimatedMinutes)
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
@@ -82,7 +79,6 @@ export default function SortableTaskItem({
     transform,
     transition,
     isDragging,
-    isOver,
   } = useSortable({ id: task.id })
 
   // Update local state when to do changes
@@ -443,7 +439,7 @@ export default function SortableTaskItem({
   }
 
   return (
-    <AnimatedBorder isActive={isActive}>
+    <AnimatedBorder>
       <div className="relative w-full group max-w-[460px]">
         {/* Drag Handle - Positioned absolutely to not affect card width, hidden on mobile */}
         <button
@@ -742,9 +738,11 @@ export default function SortableTaskItem({
                     animation: 'catPawSlide 1.5s ease-in-out',
                   }}
                 >
-                  <img
+                  <Image
                     src="/catpaw.png"
                     alt="cat paw"
+                    width={288}
+                    height={200}
                     className="w-72 h-auto"
                     style={{
                       animation: 'catPawScratch 0.6s ease-in-out 0.3s'

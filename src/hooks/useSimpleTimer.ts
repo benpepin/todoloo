@@ -65,7 +65,7 @@ export function useSimpleTimer(taskId?: string) {
         setIsRunning(false)
         setHasStarted(true)
       }
-    } catch (error) {
+    } catch {
       // Clear corrupted data silently
       localStorage.removeItem(storageKey)
     }
@@ -76,10 +76,10 @@ export function useSimpleTimer(taskId?: string) {
     if (typeof window === 'undefined') return
     try {
       localStorage.setItem(storageKey, JSON.stringify(stateRef.current))
-    } catch (error) {
+    } catch {
       // Silently fail if localStorage is unavailable
     }
-  }, [storageKey, taskId])
+  }, [storageKey])
 
   // Update timer display - calculate from original startTime
   const updateTimer = useCallback(() => {

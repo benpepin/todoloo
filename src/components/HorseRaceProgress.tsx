@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Image from 'next/image'
 import { useToDoStore } from '@/store/toDoStore'
 
 export default function HorseRaceProgress() {
@@ -102,7 +103,7 @@ export default function HorseRaceProgress() {
             height: 100
           }}
         >
-          <img
+          <Image
             src="/horse.png"
             alt="Horse and jockey"
             width={95}

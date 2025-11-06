@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Image from 'next/image'
 import { useToDoStore } from '@/store/toDoStore'
 
 export default function ShoppingCartProgress() {
@@ -113,7 +114,7 @@ export default function ShoppingCartProgress() {
             height: 100
           }}
         >
-          <img
+          <Image
             src={getCartImage()}
             alt="Shopping cart"
             width={95}

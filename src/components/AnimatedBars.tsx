@@ -1,10 +1,6 @@
 import { motion } from 'motion/react';
 
-interface AnimatedBarsProps {
-  color?: string;
-}
-
-export function AnimatedBars({ color = '#1DB954' }: AnimatedBarsProps) {
+export function AnimatedBars() {
   // Colorful candy-like balls with varied sizes and heights
   const balls = [
     { delay: 0, x: -14, height: 28, size: 9, color: '#FF6B9D' },      // Pink

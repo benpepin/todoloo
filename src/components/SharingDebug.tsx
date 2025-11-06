@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import { useSupabase } from './SupabaseProvider'
-import { getSharedLists } from '@/lib/db'
 
 export default function SharingDebug() {
   const [debugInfo, setDebugInfo] = useState<string[]>([])
@@ -100,7 +99,7 @@ export default function SharingDebug() {
     }
 
     runDebug()
-  }, [user?.id])
+  }, [user?.id, supabase])
 
   if (!isVisible) {
     return (

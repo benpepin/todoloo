@@ -49,7 +49,7 @@ function SettingsBackupContent() {
       URL.revokeObjectURL(url)
 
       setMessage({ type: 'success', text: 'Backup exported successfully!' })
-    } catch (error) {
+    } catch {
       setMessage({ type: 'error', text: 'Failed to export backup' })
     }
   }
@@ -71,7 +71,7 @@ function SettingsBackupContent() {
         // Note: In a real implementation, you'd want to merge/validate this data
         // For now, we'll just show a message that import is not fully implemented
         setMessage({ type: 'info', text: 'Import functionality coming soon. For now, use export to backup your data.' })
-      } catch (error) {
+      } catch {
         setMessage({ type: 'error', text: 'Invalid backup file' })
       }
     }

@@ -19,23 +19,6 @@ interface DbTask {
   created_by_user_id?: string
 }
 
-interface DbTaskCompletion {
-  id: string
-  todo_id: string
-  completed_at: string
-  duration: number
-  task_title: string
-  tags?: string[]
-}
-
-interface DbListShare {
-  id: string
-  created_at: string
-  list_owner_id: string
-  shared_with_user_id: string
-  permission: 'read' | 'write'
-}
-
 interface DbList {
   id: string
   created_at: string
@@ -72,21 +55,6 @@ function dbListToList(dbList: DbList): List {
     order: dbList.order,
     createdAt: new Date(dbList.created_at),
     updatedAt: new Date(dbList.updated_at)
-  }
-}
-
-function taskToDbTask(task: Task): Partial<DbTask> {
-  return {
-    id: task.id,
-    title: task.description, // Map description to title
-    description: task.description,
-    is_completed: task.isCompleted,
-    completed_at: task.completedAt?.toISOString(),
-    estimated_duration: task.estimatedMinutes,
-    actual_duration: task.actualMinutes,
-    started_at: undefined, // Will be handled separately
-    order_index: task.order,
-    tags: [] // TODO: Add tags support later
   }
 }
 

@@ -591,7 +591,7 @@ export const useToDoStore = create<ToDoStore>()((set, get) => ({
   },
 
   resumeTask: () => {
-    set((state) => ({
+    set(() => ({
       isTrackingMode: true,
     }))
   },

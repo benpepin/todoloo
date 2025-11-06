@@ -11,7 +11,6 @@ import { getCurrentDate, getCompletionTime } from '@/utils/timeUtils'
 import { migrateLocalStorageToSupabase } from '@/lib/migrate-to-supabase'
 import { useSupabase } from '@/components/SupabaseProvider'
 import Auth from '@/components/Auth'
-import SharingDebug from '@/components/SharingDebug'
 import ListSwitcher from '@/components/ListSwitcher'
 import { PersonalLists } from '@/components/PersonalLists'
 
@@ -20,7 +19,6 @@ export default function Home() {
   const toggleCreateTask = useToDoStore((state) => state.toggleCreateTask)
   const tasks = useToDoStore((state) => state.tasks)
   const addTask = useToDoStore((state) => state.addTask)
-  const initializeUser = useToDoStore((state) => state.initializeUser)
   const isLoading = useToDoStore((state) => state.isLoading)
   const error = useToDoStore((state) => state.error)
   const clearError = useToDoStore((state) => state.clearError)

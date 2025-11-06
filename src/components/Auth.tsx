@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 import { useSupabase } from './SupabaseProvider'
 
 export default function Auth() {
@@ -86,7 +87,7 @@ export default function Auth() {
         <div className="w-full max-w-md relative">
           {/* Bunny Ears - behind the card */}
           <div className="absolute -top-16 left-1/2 -translate-x-1/2 z-0">
-            <img src="/bunnyearsfingers.png" alt="" className="w-20 h-20 object-contain" />
+            <Image src="/bunnyearsfingers.png" alt="" width={80} height={80} className="object-contain" />
           </div>
 
           <div className="bg-white rounded-lg p-8 shadow-lg border border-gray-200 relative z-10">

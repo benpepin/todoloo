@@ -1,16 +1,18 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { DndContext, closestCenter, KeyboardSensor, MouseSensor, TouchSensor, useSensor, useSensors, DragEndEvent, DragStartEvent, DragOverlay, DragOverEvent, pointerWithin, rectIntersection, getFirstCollision, CollisionDetection, Collision } from '@dnd-kit/core'
-import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable'
+import Image from 'next/image'
+import { DndContext, closestCenter, MouseSensor, TouchSensor, useSensor, useSensors, DragEndEvent, DragStartEvent, DragOverlay, DragOverEvent, CollisionDetection, rectIntersection } from '@dnd-kit/core'
+import { arrayMove, SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { useToDoStore } from '@/store/toDoStore'
 import SortableTaskItem from './SortableTaskItem'
 import ToDoCard from './ToDoCard'
 import { Check } from 'lucide-react'
 
 function ToDoListContent() {
-  const { tasks, activeTaskId, deleteTask, toggleTaskCompletion, updateTaskOrder, showCreateTask, toggleCreateTask, moveTaskToList } = useToDoStore()
+  const { tasks, deleteTask, toggleTaskCompletion, updateTaskOrder, showCreateTask, toggleCreateTask, moveTaskToList } = useToDoStore()
   const [activeId, setActiveId] = useState<string | null>(null)
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [overId, setOverId] = useState<string | null>(null)
 
   useEffect(() => {
@@ -190,7 +192,7 @@ function ToDoListContent() {
               <div className="w-full max-w-[460px] relative">
                 {/* Bunny Ears - top left corner of card with pop-up animation */}
                 <div className="absolute -top-12 left-0 z-0 animate-[slideUp_0.4s_ease-out_0.2s_both]">
-                  <img src="/bunnyearsfingers.png" alt="" className="w-20 h-20 object-contain" />
+                  <Image src="/bunnyearsfingers.png" alt="" width={80} height={80} className="object-contain" />
                 </div>
 
                 {/* Date in top right corner with fade-in */}
@@ -269,8 +271,6 @@ function ToDoListContent() {
                 {todoTasks.map((task, index) => {
                   // Determine group position
                   let groupPosition: 'single' | 'first' | 'middle' | 'last' = 'single'
-                  const prevTask = index > 0 ? todoTasks[index - 1] : null
-                  const isPartOfPreviousGroup = prevTask && task.groupId && prevTask.groupId === task.groupId
 
                   if (task.groupId) {
                     const groupTasks = todoTasks.filter(t => t.groupId === task.groupId)
@@ -297,7 +297,6 @@ function ToDoListContent() {
                         taskIndex={index + 1}
                         onDelete={deleteTask}
                         onToggleCompletion={toggleTaskCompletion}
-                        isTaskActive={activeTaskId === task.id}
                         groupPosition={groupPosition}
                       />
                     </div>
@@ -321,8 +320,6 @@ function ToDoListContent() {
                   {doneTasks.map((task, index) => {
                     // Determine group position
                     let groupPosition: 'single' | 'first' | 'middle' | 'last' = 'single'
-                    const prevTask = index > 0 ? doneTasks[index - 1] : null
-                    const isPartOfPreviousGroup = prevTask && task.groupId && prevTask.groupId === task.groupId
 
                     if (task.groupId) {
                       const groupTasks = doneTasks.filter(t => t.groupId === task.groupId)
@@ -341,16 +338,14 @@ function ToDoListContent() {
                     return (
                       <div
                         key={task.id}
-                        className={isPartOfPreviousGroup ? '' : (index === 0 ? '' : 'mt-4')}
-                        style={isPartOfPreviousGroup ? { marginTop: '1px' } : undefined}
+                        className={index === 0 ? '' : 'mt-4'}
                       >
                         <SortableTaskItem
                           task={task}
                           taskIndex={index + 1}
                           onDelete={deleteTask}
                           onToggleCompletion={toggleTaskCompletion}
-                        isTaskActive={activeTaskId === task.id}
-                        groupPosition={groupPosition}
+                          groupPosition={groupPosition}
                         />
                       </div>
                     )
@@ -378,7 +373,6 @@ function ToDoListContent() {
                   style={{ color: '#989999', fontSize: 28, fontFamily: 'Inter' }}
                 >
                   {(() => {
-                    const task = tasks.find(t => t.id === activeId)
                     const index = todoTasks.findIndex(t => t.id === activeId)
                     return index + 1
                   })()}
