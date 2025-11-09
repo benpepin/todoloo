@@ -322,31 +322,31 @@ export default function Home() {
               )}
 
               {/* Scrollable Todo List Section */}
-              <div className="w-full flex-1 overflow-y-auto flex flex-col items-center" style={{ paddingTop: '64px' }}>
+              <div className="w-full flex-1 overflow-y-auto flex flex-col items-center relative" style={{ paddingTop: '64px' }}>
                 <div className="w-full max-w-[520px] mx-auto px-4 pb-8">
                   <ToDoList />
                 </div>
+
+                {/* Floating Action Button - Positioned inside card */}
+                <button
+                  onClick={toggleCreateTask}
+                  className="absolute bottom-6 right-6 w-[72px] h-[72px] rounded-full shadow-lg flex items-center justify-center active:scale-95 transition-transform hover:shadow-xl hover:scale-110 hover:cursor-pointer"
+                  style={{
+                    backgroundColor: 'var(--color-todoloo-card)',
+                    outline: '1px var(--color-todoloo-border) solid',
+                    outlineOffset: '-1px'
+                  }}
+                  aria-label="New Todo"
+                >
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 5V19M5 12H19" stroke="var(--color-todoloo-text-secondary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </button>
               </div>
             </div>
           </div>
         </div>
       </div>
-
-      {/* Floating Action Button - All Screen Sizes */}
-      <button
-        onClick={toggleCreateTask}
-        className="fixed bottom-6 right-6 w-[72px] h-[72px] rounded-full shadow-lg flex items-center justify-center z-50 active:scale-95 transition-transform hover:shadow-xl hover:scale-110 hover:cursor-pointer"
-        style={{
-          backgroundColor: 'var(--color-todoloo-card)',
-          outline: '1px var(--color-todoloo-border) solid',
-          outlineOffset: '-1px'
-        }}
-        aria-label="New Todo"
-      >
-        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M12 5V19M5 12H19" stroke="var(--color-todoloo-text-secondary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-        </svg>
-      </button>
 
       {/* Debug Component */}
       {/* <SharingDebug /> */}

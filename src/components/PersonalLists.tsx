@@ -204,13 +204,10 @@ export function PersonalLists() {
           ) : (
             <button
               onClick={() => setIsAddingList(true)}
-              className={`
-                w-full px-3 py-2.5 text-left text-[15px] font-medium rounded-lg
+              className="w-full px-3 py-2.5 text-left text-[15px] font-medium rounded-lg
                 text-[var(--color-todoloo-text-muted)] hover:text-[var(--color-todoloo-text-secondary)]
                 hover:bg-gray-50 dark:hover:bg-[#2d2d2d]
-                transition-all duration-150 ease-out
-                ${hoveredIndex !== null ? 'opacity-100' : 'opacity-0'}
-              `}
+                transition-all duration-150 ease-out cursor-pointer"
             >
               + Add Another List
             </button>
