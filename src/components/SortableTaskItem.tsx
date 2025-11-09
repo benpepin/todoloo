@@ -440,7 +440,7 @@ export default function SortableTaskItem({
 
   return (
     <AnimatedBorder>
-      <div className="relative w-full group max-w-[460px]">
+      <div className="relative w-full group max-w-[520px]">
         {/* Drag Handle - Positioned absolutely to not affect card width, hidden on mobile */}
         <button
           className="hidden lg:block absolute -left-10 top-1/2 -translate-y-1/2 p-2 rounded-lg transition-all duration-200 cursor-grab active:cursor-grabbing opacity-0 group-hover:opacity-100 z-10 hover:bg-[var(--muted)]"
@@ -852,14 +852,14 @@ export default function SortableTaskItem({
                       {task.description}
                     </p>
                     <div className="flex items-center gap-2">
-                      <p className="text-xs md:text-sm font-normal" style={{ color: 'var(--color-todoloo-text-muted)', fontFamily: 'Geist' }}>
+                      <p className="text-sm font-normal" style={{ color: 'var(--color-todoloo-text-muted)', fontFamily: 'Geist' }}>
                         {task.isCompleted && task.actualMinutes
                           ? formatEstimatedTime(task.actualMinutes)
                           : formatEstimatedTime(task.estimatedMinutes)
                         }
                       </p>
                       {hasStarted && (
-                        <p className="text-sm font-medium"
+                        <p className="text-sm font-normal"
                            style={{
                              color: isActive ? 'var(--color-todoloo-gradient-start)' : 'var(--color-todoloo-text-secondary)',
                              fontFamily: 'Geist'

@@ -666,7 +666,7 @@ function ToDoCardContent() {
   }
 
   return (
-    <div className="w-full max-w-[460px] rounded-[20px] shadow-[2px_2px_4px_rgba(0,0,0,0.15)] p-6 animate-in fade-in-0 zoom-in-95 duration-200"
+    <div className="w-full max-w-[520px] rounded-[20px] shadow-[2px_2px_4px_rgba(0,0,0,0.15)] p-6 animate-in fade-in-0 zoom-in-95 duration-200"
          style={{ backgroundColor: 'var(--color-todoloo-card)' }}>
       <form onSubmit={handleSubmit} className="flex flex-col gap-8">
         <div className="flex items-center relative">
@@ -682,7 +682,7 @@ function ToDoCardContent() {
               }
             }}
             className="flex-1 text-base font-['Geist'] bg-transparent border-none outline-none"
-            style={{ color: 'var(--color-todoloo-text-secondary)' }}
+            style={{ color: 'var(--color-todoloo-text-primary)' }}
           />
                  {!description && (
                    <div className="absolute left-0 top-0 pointer-events-none flex items-start"
@@ -788,7 +788,7 @@ function ToDoCardContent() {
           />
         )}
 
-        <div className="flex justify-between items-end">
+        <div className="flex justify-between items-center">
           <div className="flex items-center gap-2">
             {/* Timer Dropdown */}
             <div className="relative" ref={dropdownRef}>

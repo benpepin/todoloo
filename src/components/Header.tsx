@@ -8,7 +8,6 @@ import { getSharedLists } from '@/lib/db'
 import { ChevronDown } from 'lucide-react'
 
 export default function Header() {
-  const toggleCreateTask = useToDoStore((state) => state.toggleCreateTask)
   const userId = useToDoStore((state) => state.userId)
   const currentListOwnerId = useToDoStore((state) => state.currentListOwnerId)
 
@@ -33,10 +32,6 @@ export default function Header() {
     } catch (error) {
       console.error('Error loading shared lists:', error)
     }
-  }
-
-  const handleClick = () => {
-    toggleCreateTask()
   }
 
   const switchToList = async (ownerId: string) => {
@@ -93,17 +88,6 @@ export default function Header() {
               )}
             </div>
           )}
-        </div>
-        
-        <div className="flex justify-end items-center gap-8">
-          <div className="px-4 py-2 bg-zinc-100 rounded-md shadow-[0px_4px_7px_0px_rgba(0,0,0,0.05)] outline outline-1 outline-offset-[-1px] outline-zinc-300 inline-flex flex-col justify-start items-start gap-2.5">
-            <button
-              onClick={handleClick}
-              className="inline-flex justify-center items-center gap-2.5 cursor-pointer"
-            >
-              <div className="justify-start text-neutral-800 text-sm font-medium font-['Inter']">New Todo (n)</div>
-            </button>
-          </div>
         </div>
       </div>
     </div>

@@ -46,14 +46,15 @@
   
   /* Todoloo Custom Colors - Light Mode */
   --color-todoloo-bg: #F9F9FD;
-  --color-todoloo-card: #FEFFFF;
+  --color-todoloo-card: #FFFDFA;
   --color-todoloo-border: #D9D9D9;
   --color-todoloo-text-primary: #363636;
   --color-todoloo-text-secondary: #717171;
   --color-todoloo-text-muted: #989999;
+  --color-todoloo-muted: #F5F5F5;
   --color-todoloo-gradient-start: #9F8685;
   --color-todoloo-gradient-end: #583636;
-  --color-todoloo-sidebar: #FFFBF5;
+  --color-todoloo-sidebar: #F9F9FD;
   --color-todoloo-main: #F9F9FD;
 }
 
@@ -135,10 +136,11 @@
   --color-todoloo-text-primary: #e5e5e5;
   --color-todoloo-text-secondary: #a3a3a3;
   --color-todoloo-text-muted: #737373;
+  --color-todoloo-muted: #3a3a3a;
   --color-todoloo-gradient-start: #9F8685;
   --color-todoloo-gradient-end: #583636;
-  --color-todoloo-sidebar: #2a2a2a;
-  --color-todoloo-main: #1f1f1f;
+  --color-todoloo-sidebar: #1a1a1a;
+  --color-todoloo-main: #1a1a1a;
 }
 
 @layer base {

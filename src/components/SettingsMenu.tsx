@@ -108,8 +108,8 @@ export default function SettingsMenu() {
           {/* Divider */}
           <div className="h-px" style={{ backgroundColor: 'var(--color-todoloo-border)' }} />
 
-          {/* Insights */}
-          <button
+          {/* Insights - Hidden for now */}
+          {/* <button
             onClick={handleInsights}
             className="w-full px-4 py-3 flex items-center gap-3 transition-colors cursor-pointer"
             onMouseEnter={(e) => {
@@ -125,8 +125,7 @@ export default function SettingsMenu() {
             </span>
           </button>
 
-          {/* Divider */}
-          <div className="h-px" style={{ backgroundColor: 'var(--color-todoloo-border)' }} />
+          <div className="h-px" style={{ backgroundColor: 'var(--color-todoloo-border)' }} /> */}
 
           {/* Settings */}
           <button

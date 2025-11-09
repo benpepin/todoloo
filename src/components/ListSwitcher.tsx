@@ -70,13 +70,13 @@ export default function ListSwitcher() {
     return currentListOwnerId === ownerId
   }
 
-  // Don't render if no shared lists
-  if (sharedLists.length === 0) {
+  // Don't render if no shared lists and we're on our own list
+  if (sharedLists.length === 0 && (!currentListOwnerId || currentListOwnerId === userId)) {
     return null
   }
 
   return (
-    <div className="w-full mb-6" ref={menuRef}>
+    <div className="w-full" ref={menuRef}>
       <div className="relative">
         {/* Dropdown Button */}
         <button
@@ -103,9 +103,10 @@ export default function ListSwitcher() {
           <div className="absolute top-full mt-2 left-0 right-0
             bg-white dark:bg-[#2a2a2a]
             border border-gray-200 dark:border-[#404040]
-            rounded-xl shadow-xl z-50
+            rounded-xl shadow-xl
             overflow-hidden
-            animate-in fade-in slide-in-from-top-2 duration-200">
+            animate-in fade-in slide-in-from-top-2 duration-200"
+            style={{ zIndex: 9999 }}>
             {/* My List */}
             <button
               onClick={() => switchToList(userId || '')}

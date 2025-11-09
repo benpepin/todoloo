@@ -151,16 +151,6 @@ export default function Home() {
           event.preventDefault()
           toggleCreateTask()
         }
-
-        // Handle number keys (1-9) to create that many to dos
-        // Only if no modifier keys are pressed (to avoid interfering with browser shortcuts like Cmd+1 for tab switching)
-        const num = parseInt(event.key)
-        if (num >= 1 && num <= 9 && !event.metaKey && !event.ctrlKey && !event.altKey && !event.shiftKey) {
-          event.preventDefault()
-          for (let i = 0; i < num; i++) {
-            addTask(`To Do ${i + 1}`, 15) // Default 15 minutes
-          }
-        }
       }
     }
 
@@ -190,32 +180,38 @@ export default function Home() {
   return (
     <div className="w-full h-screen flex flex-col lg:flex-row" style={{ backgroundColor: 'var(--color-todoloo-bg)' }}>
       {/* Mobile Header - visible only on mobile/tablet */}
-      <div className="lg:hidden w-full p-4 border-b flex justify-between items-center"
+      <div className="lg:hidden w-full p-4 border-b flex flex-col gap-4"
            style={{
              backgroundColor: 'var(--color-todoloo-sidebar)',
              borderColor: 'var(--color-todoloo-border)'
            }}>
-        <div className="flex flex-col gap-1">
-          <ListSwitcher />
-          <div
-            className="text-sm font-['Geist'] font-normal"
-            style={{ color: 'var(--color-todoloo-text-secondary)' }}
-          >
-            {totalMinutes === 0 ? (
-              "You're done!"
-            ) : (
-              `Done at ${completionTime}`
-            )}
+        <div className="flex justify-between items-start">
+          <div className="flex flex-col gap-1 flex-1">
+            <ListSwitcher />
+            <div
+              className="text-sm font-['Geist'] font-normal"
+              style={{ color: 'var(--color-todoloo-text-secondary)' }}
+            >
+              {totalMinutes === 0 ? (
+                "You're done!"
+              ) : (
+                `Done at ${completionTime}`
+              )}
+            </div>
           </div>
+          <SettingsMenu />
         </div>
-        <SettingsMenu />
+
+        {/* Personal Lists on Mobile */}
+        <div className="w-full">
+          <PersonalLists />
+        </div>
       </div>
 
       {/* Desktop Sidebar - hidden on mobile/tablet */}
-      <div className="hidden lg:flex lg:w-[20%] h-full p-8 border-r flex-col items-start"
+      <div className="hidden lg:flex lg:w-[20%] h-full p-8 flex-col items-start"
            style={{
              backgroundColor: 'var(--color-todoloo-sidebar)',
-             borderColor: 'var(--color-todoloo-border)',
              minWidth: '340px'
            }}>
         {/* Top Section: Dropdown */}
@@ -258,9 +254,9 @@ export default function Home() {
       </div>
 
       {/* Main Content - full width on mobile, 80% on desktop */}
-      <div className="w-full lg:w-[80%] h-full p-4 md:p-6 lg:p-8 overflow-y-auto flex flex-col justify-start items-center gap-2.5"
-           style={{ backgroundColor: 'var(--color-todoloo-main)' }}>
-        
+      <div className="w-full lg:w-[80%] h-full overflow-y-auto flex flex-col justify-start items-start gap-2.5 relative"
+           style={{ backgroundColor: 'var(--color-todoloo-bg)' }}>
+
         {/* Error Display */}
         {error && (
           <div className="w-full max-w-[460px] mb-4 p-4 bg-red-100 border border-red-300 rounded-lg">
@@ -293,27 +289,63 @@ export default function Home() {
           </div>
         )}
 
-        <div className="w-full flex justify-center items-center gap-0.75">
-          <div className="w-full max-w-[460px] flex flex-col justify-start items-start gap-8">
-            {/* Progress Indicator - Shopping Cart for shopping lists, Horse for others */}
-            {showProgressIndicator && isShoppingList && showShoppingCartProgress && <ShoppingCartProgress />}
-            {showProgressIndicator && !isShoppingList && <HorseRaceProgress />}
+        <div className="fixed left-0 right-0 h-full flex justify-center items-stretch pointer-events-none" style={{ paddingTop: '32px' }}>
+          <div className="w-full max-w-[640px] flex flex-col justify-start items-start h-full pointer-events-auto">
+            {/* Large Unified Card Container */}
+            <div
+              className="w-full h-full rounded-t-[60px] overflow-hidden p-1 flex flex-col"
+              style={{
+                backgroundColor: 'var(--color-todoloo-bg)',
+                boxShadow: '0px 4px 14px 10px rgba(0, 0, 0, 0.02)',
+                outline: '1px var(--color-todoloo-border) solid',
+                outlineOffset: '-1px'
+              }}
+            >
+              {/* Progress Indicator - Fixed at top - Shopping Cart for shopping lists, Horse for others - Full Width */}
+              {showProgressIndicator && isShoppingList && showShoppingCartProgress && (
+                <div className="w-full rounded-t-[56px] overflow-hidden flex-shrink-0"
+                     style={{
+                       backgroundColor: 'var(--color-todoloo-bg)',
+                       outline: '1px var(--color-todoloo-border) solid'
+                     }}>
+                  <ShoppingCartProgress />
+                </div>
+              )}
+              {showProgressIndicator && !isShoppingList && (
+                <div className="w-full rounded-t-[56px] overflow-hidden flex-shrink-0"
+                     style={{
+                       backgroundColor: 'var(--color-todoloo-bg)',
+                       outline: '1px var(--color-todoloo-border) solid'
+                     }}>
+                  <HorseRaceProgress />
+                </div>
+              )}
 
-            <ToDoList />
+              {/* Scrollable Todo List Section */}
+              <div className="w-full flex-1 overflow-y-auto flex flex-col items-center" style={{ paddingTop: '64px' }}>
+                <div className="w-full max-w-[520px] mx-auto px-4 pb-8">
+                  <ToDoList />
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Floating Action Button - Mobile Only */}
+      {/* Floating Action Button - All Screen Sizes */}
       <button
         onClick={toggleCreateTask}
-        className="lg:hidden fixed bottom-6 right-6 w-14 h-14 rounded-full shadow-lg flex items-center justify-center z-50 active:scale-95 transition-transform"
+        className="fixed bottom-6 right-6 w-[72px] h-[72px] rounded-full shadow-lg flex items-center justify-center z-50 active:scale-95 transition-transform hover:shadow-xl hover:scale-110 hover:cursor-pointer"
         style={{
-          background: 'linear-gradient(to right, var(--color-todoloo-gradient-start), var(--color-todoloo-gradient-end))'
+          backgroundColor: 'var(--color-todoloo-card)',
+          outline: '1px var(--color-todoloo-border) solid',
+          outlineOffset: '-1px'
         }}
         aria-label="New Todo"
       >
-        <span className="text-white text-2xl font-light">+</span>
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 5V19M5 12H19" stroke="var(--color-todoloo-text-secondary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
       </button>
 
       {/* Debug Component */}

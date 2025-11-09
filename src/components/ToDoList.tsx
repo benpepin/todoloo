@@ -25,9 +25,8 @@ function ToDoListContent() {
         (activeElement as HTMLElement).contentEditable === 'true'
       )
 
-      // Check for Cmd+N (Mac) or Ctrl+N (Windows/Linux) or just 'n'
-      if (((event.metaKey || event.ctrlKey) && event.key === 'n') ||
-          (!isInputFocused && event.key.toLowerCase() === 'n')) {
+      // Check for just 'n' key
+      if (!isInputFocused && event.key.toLowerCase() === 'n') {
         event.preventDefault()
         toggleCreateTask()
       }
@@ -172,14 +171,6 @@ function ToDoListContent() {
             <div className="w-full inline-flex justify-start items-center gap-1.5">
               <div className="text-base font-normal font-['Geist']" style={{ color: 'var(--color-todoloo-text-secondary)' }}>Todos</div>
               <div className="flex-1 h-px transform translate-y-0.5" style={{ backgroundColor: 'var(--color-todoloo-text-secondary)' }} />
-              <button
-                onClick={toggleCreateTask}
-                className="px-4 py-2 bg-zinc-100 dark:bg-[#2a2a2a] rounded-md shadow-[0px_4px_7px_0px_rgba(0,0,0,0.05)] outline outline-1 outline-offset-[-1px] outline-zinc-300 dark:outline-[#404040] inline-flex flex-col justify-start items-start gap-2.5 hover:bg-zinc-200 dark:hover:bg-[#333333] transition-colors"
-              >
-                <div className="inline-flex justify-center items-center gap-2.5 cursor-pointer">
-                  <div className="justify-start text-neutral-800 dark:text-gray-200 text-sm font-medium font-['Inter']">New Todo (n)</div>
-                </div>
-              </button>
             </div>
           )}
 
@@ -189,7 +180,7 @@ function ToDoListContent() {
           {/* Enhanced Empty state when no tasks - vertically centered */}
           {!showCreateTask && (
             <div className="w-full h-[calc(100vh-200px)] flex items-center justify-center">
-              <div className="w-full max-w-[460px] relative">
+              <div className="w-full max-w-[520px] relative">
                 {/* Bunny Ears - top left corner of card with pop-up animation */}
                 <div className="absolute -top-12 left-0 z-0 animate-[slideUp_0.4s_ease-out_0.2s_both]">
                   <Image src="/bunnyearsfingers.png" alt="" width={80} height={80} className="object-contain" />
@@ -252,14 +243,6 @@ function ToDoListContent() {
           <div className="w-full inline-flex justify-start items-center gap-1.5">
             <div className="text-base font-normal font-['Geist']" style={{ color: 'var(--color-todoloo-text-secondary)' }}>Todos</div>
             <div className="flex-1 h-px transform translate-y-0.5" style={{ backgroundColor: 'var(--color-todoloo-text-secondary)' }} />
-            <button
-              onClick={toggleCreateTask}
-              className="px-4 py-2 bg-zinc-100 dark:bg-[#2a2a2a] rounded-md shadow-[0px_4px_7px_0px_rgba(0,0,0,0.05)] outline outline-1 outline-offset-[-1px] outline-zinc-300 dark:outline-[#404040] inline-flex flex-col justify-start items-start gap-2.5 hover:bg-zinc-200 dark:hover:bg-[#333333] transition-colors"
-            >
-              <div className="inline-flex justify-center items-center gap-2.5 cursor-pointer">
-                <div className="justify-start text-neutral-800 dark:text-gray-200 text-sm font-medium font-['Inter']">New Todo (n)</div>
-              </div>
-            </button>
           </div>
 
           {/* Task Creation Card */}
