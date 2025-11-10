@@ -90,7 +90,7 @@ export default function ListSwitcher() {
             focus:outline-none focus:ring-2 focus:ring-gray-300 dark:focus:ring-gray-600
             cursor-pointer"
         >
-          <span className="text-[14px] font-medium font-outfit text-[var(--color-todoloo-text-primary)] truncate">
+          <span className="text-[14px] font-medium font-['Outfit'] text-[var(--color-todoloo-text-primary)] truncate">
             {getCurrentListName()}
           </span>
           <ChevronDown
@@ -112,7 +112,7 @@ export default function ListSwitcher() {
             <button
               onClick={() => switchToList(userId || '')}
               className={`w-full text-left px-4 py-3
-                text-[15px] font-medium
+                text-[15px] font-medium font-['Outfit']
                 transition-colors duration-150
                 cursor-pointer
                 ${
@@ -138,7 +138,7 @@ export default function ListSwitcher() {
                 key={list.ownerId}
                 onClick={() => switchToList(list.ownerId)}
                 className={`w-full text-left px-4 py-3
-                  text-[15px] font-medium
+                  text-[15px] font-medium font-['Outfit']
                   transition-colors duration-150
                   cursor-pointer
                   ${
