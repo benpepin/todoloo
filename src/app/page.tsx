@@ -17,6 +17,7 @@ import { PersonalLists } from '@/components/PersonalLists'
 export default function Home() {
   const { user, loading: authLoading } = useSupabase()
   const toggleCreateTask = useToDoStore((state) => state.toggleCreateTask)
+  const showCreateTask = useToDoStore((state) => state.showCreateTask)
   const tasks = useToDoStore((state) => state.tasks)
   const addTask = useToDoStore((state) => state.addTask)
   const isLoading = useToDoStore((state) => state.isLoading)
@@ -297,8 +298,18 @@ export default function Home() {
               style={{
                 backgroundColor: 'var(--color-todoloo-bg)',
                 boxShadow: '0px 4px 14px 10px rgba(0, 0, 0, 0.02)',
-                outline: '1px var(--color-todoloo-border) solid',
-                outlineOffset: '-1px'
+                ...(tasks.length === 0 && !showCreateTask 
+                  ? { 
+                      borderLeft: '1px var(--color-todoloo-border) solid',
+                      borderRight: '1px var(--color-todoloo-border) solid',
+                      borderBottom: '1px var(--color-todoloo-border) solid',
+                      borderTop: 'none'
+                    }
+                  : { 
+                      outline: '1px var(--color-todoloo-border) solid',
+                      outlineOffset: '-1px'
+                    }
+                )
               }}
             >
               {/* Progress Indicator - Fixed at top - Shopping Cart for shopping lists, Horse for others - Full Width */}
@@ -327,21 +338,23 @@ export default function Home() {
                   <ToDoList />
                 </div>
 
-                {/* Floating Action Button - Positioned inside card */}
-                <button
-                  onClick={toggleCreateTask}
-                  className="absolute bottom-6 right-6 w-[72px] h-[72px] rounded-full shadow-lg flex items-center justify-center active:scale-95 transition-transform hover:shadow-xl hover:scale-110 hover:cursor-pointer"
-                  style={{
-                    backgroundColor: 'var(--color-todoloo-card)',
-                    outline: '1px var(--color-todoloo-border) solid',
-                    outlineOffset: '-1px'
-                  }}
-                  aria-label="New Todo"
-                >
-                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M12 5V19M5 12H19" stroke="var(--color-todoloo-text-secondary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                </button>
+                {/* Floating Action Button - Positioned inside card - Hidden in empty state */}
+                {!(tasks.length === 0 && !showCreateTask) && (
+                  <button
+                    onClick={toggleCreateTask}
+                    className="absolute bottom-6 right-6 w-[72px] h-[72px] rounded-full shadow-lg flex items-center justify-center active:scale-95 transition-transform hover:shadow-xl hover:scale-110 hover:cursor-pointer"
+                    style={{
+                      backgroundColor: 'var(--color-todoloo-card)',
+                      outline: '1px var(--color-todoloo-border) solid',
+                      outlineOffset: '-1px'
+                    }}
+                    aria-label="New Todo"
+                  >
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M12 5V19M5 12H19" stroke="var(--color-todoloo-text-secondary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </button>
+                )}
               </div>
             </div>
           </div>
