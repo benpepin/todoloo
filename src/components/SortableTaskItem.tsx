@@ -41,6 +41,7 @@ export default function SortableTaskItem({
   const [showCheckmarkAnimation, setShowCheckmarkAnimation] = useState(false)
   const [showChecklist, setShowChecklist] = useState(false)
 
+
   const descriptionInputRef = useRef<HTMLInputElement>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const optionsDropdownRef = useRef<HTMLDivElement>(null)
@@ -968,7 +969,7 @@ export default function SortableTaskItem({
               </p>
             </div>
           )}
-          
+
         </div>
       </div>
     </AnimatedBorder>

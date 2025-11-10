@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
+import { motion } from 'framer-motion'
 import { Plus, Timer, ChevronDown, CornerDownLeft, MoreHorizontal, Check, X, GripVertical } from 'lucide-react'
 import { useToDoStore } from '@/store/toDoStore'
 import { useHistoryStore } from '@/store/historyStore'
@@ -322,6 +323,7 @@ function ToDoCardContent() {
   const [isOptionsDropdownOpen, setIsOptionsDropdownOpen] = useState(false)
   const [showChecklist, setShowChecklist] = useState(false)
   const [tempChecklistItems, setTempChecklistItems] = useState<ChecklistItem[]>([])
+  const [isTransitioning, setIsTransitioning] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const optionsDropdownRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -383,6 +385,11 @@ function ToDoCardContent() {
     document.addEventListener('keydown', handleKeyDown)
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [setShowCreateTask])
+
+  // Close immediately
+  const closeWithAnimation = () => {
+    setShowCreateTask(false)
+  }
 
   const handleDescriptionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newDescription = e.target.value
@@ -519,10 +526,20 @@ function ToDoCardContent() {
           setEstimatedMinutes(30)
           setTempChecklistItems([])
           setShowChecklist(false)
-          setShowCreateTask(false) // Close the card since group is complete
+          closeWithAnimation() // Close the card with animation since group is complete
           return
         }
       }
+
+      // Close the create card first
+      closeWithAnimation()
+
+      // Clear any ongoing group when creating a standalone task
+      delete (window as Window & { __currentGroupId?: string }).__currentGroupId
+      setDescription('')
+      setEstimatedMinutes(30)
+      setTempChecklistItems([])
+      setShowChecklist(false)
 
       // Check for multiplication pattern like "walk dog x 3" or "walk dog x3"
       const multiplicationMatch = description.trim().match(/^(.+?)\s+x\s*(\d+)$/i)
@@ -558,14 +575,6 @@ function ToDoCardContent() {
           }
         }
       }
-
-      // Clear any ongoing group when creating a standalone task
-      delete (window as Window & { __currentGroupId?: string }).__currentGroupId
-      setDescription('')
-      setEstimatedMinutes(30)
-      setTempChecklistItems([])
-      setShowChecklist(false)
-      setShowCreateTask(false) // Close the create to do card after adding
     }
   }
 
@@ -593,7 +602,7 @@ function ToDoCardContent() {
         addTask(description.trim(), minutes)
         setDescription('')
         setEstimatedMinutes(30)
-        setShowCreateTask(false) // Close the create to do card after adding
+        closeWithAnimation() // Close the create to do card with animation after adding
       } else {
         // Return focus to description input so user can hit Enter to save
         setTimeout(() => {
@@ -666,9 +675,20 @@ function ToDoCardContent() {
   }
 
   return (
-    <div className="w-full max-w-[520px] rounded-[20px] shadow-[2px_2px_4px_rgba(0,0,0,0.15)] p-6 animate-in fade-in-0 zoom-in-95 duration-200"
-         style={{ backgroundColor: 'var(--color-todoloo-card)' }}>
-      <form onSubmit={handleSubmit} className="flex flex-col gap-8">
+    <motion.div
+      className="w-full max-w-[520px] rounded-[20px] shadow-[2px_2px_4px_rgba(0,0,0,0.15)] p-6"
+      style={{ backgroundColor: 'var(--color-todoloo-card)' }}
+      initial={{ opacity: 1 }}
+      animate={{
+        opacity: isTransitioning ? 0 : 1
+      }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.15 }}
+    >
+      <form
+        onSubmit={handleSubmit}
+        className="flex flex-col gap-8"
+      >
         <div className="flex items-center relative">
           <input
             ref={inputRef}
@@ -936,7 +956,7 @@ function ToDoCardContent() {
           </div>
         </div>
       </form>
-    </div>
+    </motion.div>
   )
 }
 
