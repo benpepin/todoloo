@@ -258,38 +258,6 @@ export default function Home() {
       <div className="w-full lg:w-[80%] h-full overflow-y-auto flex flex-col justify-start items-start gap-2.5 relative"
            style={{ backgroundColor: 'var(--color-todoloo-bg)' }}>
 
-        {/* Error Display */}
-        {error && (
-          <div className="w-full max-w-[460px] mb-4 p-4 bg-red-100 border border-red-300 rounded-lg">
-            <div className="flex justify-between items-start">
-              <div>
-                <h3 className="text-red-800 font-medium">Error</h3>
-                <p className="text-red-700 text-sm mt-1">{error}</p>
-              </div>
-              <button
-                onClick={clearError}
-                className="text-red-600 hover:text-red-800 text-sm font-medium"
-              >
-                Dismiss
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Loading State */}
-        {isLoading && (
-          <div className="w-full max-w-[460px] mb-4 p-4 bg-blue-100 border border-blue-300 rounded-lg">
-            <p className="text-blue-800 text-sm">Loading tasks...</p>
-          </div>
-        )}
-
-        {/* Migration Status - Only show if there's an actual migration happening */}
-        {migrationStatus && migrationStatus !== 'Already migrated' && (
-          <div className="w-full max-w-[460px] mb-4 p-4 bg-green-100 border border-green-300 rounded-lg">
-            <p className="text-green-800 text-sm">{migrationStatus}</p>
-          </div>
-        )}
-
         <div className="fixed left-0 right-0 h-full flex justify-center items-stretch pointer-events-none" style={{ paddingTop: '32px' }}>
           <div className="w-full max-w-[640px] flex flex-col justify-start items-start h-full pointer-events-auto">
             {/* Large Unified Card Container */}
@@ -337,25 +305,27 @@ export default function Home() {
                 <div className="w-full max-w-[520px] mx-auto px-4 pb-8">
                   <ToDoList />
                 </div>
-
-                {/* Floating Action Button - Positioned inside card - Hidden in empty state */}
-                {!(tasks.length === 0 && !showCreateTask) && (
-                  <button
-                    onClick={toggleCreateTask}
-                    className="absolute bottom-6 right-6 w-[72px] h-[72px] rounded-full shadow-lg flex items-center justify-center active:scale-95 transition-transform hover:shadow-xl hover:scale-110 hover:cursor-pointer"
-                    style={{
-                      backgroundColor: 'var(--color-todoloo-card)',
-                      outline: '1px var(--color-todoloo-border) solid',
-                      outlineOffset: '-1px'
-                    }}
-                    aria-label="New Todo"
-                  >
-                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M12 5V19M5 12H19" stroke="var(--color-todoloo-text-secondary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  </button>
-                )}
               </div>
+
+              {/* Floating Action Button - Fixed position - Hidden in empty state */}
+              {!(tasks.length === 0 && !showCreateTask) && (
+                <button
+                  onClick={toggleCreateTask}
+                  className="fixed w-[72px] h-[72px] rounded-full shadow-lg flex items-center justify-center active:scale-95 transition-transform hover:shadow-xl hover:scale-110 hover:cursor-pointer z-50"
+                  style={{
+                    bottom: '24px',
+                    right: 'calc(50% - 320px + 24px)',
+                    backgroundColor: 'var(--color-todoloo-card)',
+                    outline: '1px var(--color-todoloo-border) solid',
+                    outlineOffset: '-1px'
+                  }}
+                  aria-label="New Todo"
+                >
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 5V19M5 12H19" stroke="var(--color-todoloo-text-secondary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -363,6 +333,41 @@ export default function Home() {
 
       {/* Debug Component */}
       {/* <SharingDebug /> */}
+
+      {/* Toast Notifications - Fixed bottom right */}
+      <div className="fixed bottom-6 right-6 z-[100] flex flex-col gap-3 max-w-md">
+        {/* Error Display */}
+        {error && (
+          <div className="p-4 bg-red-100 border border-red-300 rounded-lg shadow-lg">
+            <div className="flex justify-between items-start gap-3">
+              <div className="flex-1">
+                <h3 className="text-red-800 font-medium text-sm">Error</h3>
+                <p className="text-red-700 text-sm mt-1">{error}</p>
+              </div>
+              <button
+                onClick={clearError}
+                className="text-red-600 hover:text-red-800 text-sm font-medium flex-shrink-0"
+              >
+                Dismiss
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Loading State */}
+        {isLoading && (
+          <div className="p-4 bg-blue-100 border border-blue-300 rounded-lg shadow-lg">
+            <p className="text-blue-800 text-sm">Loading tasks...</p>
+          </div>
+        )}
+
+        {/* Migration Status - Only show if there's an actual migration happening */}
+        {migrationStatus && migrationStatus !== 'Already migrated' && (
+          <div className="p-4 bg-green-100 border border-green-300 rounded-lg shadow-lg">
+            <p className="text-green-800 text-sm">{migrationStatus}</p>
+          </div>
+        )}
+      </div>
     </div>
   )
 }

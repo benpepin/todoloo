@@ -87,7 +87,8 @@ export default function ListSwitcher() {
             hover:border-gray-300 dark:hover:border-[#505050]
             hover:shadow-sm
             transition-all duration-200 ease-out
-            focus:outline-none focus:ring-2 focus:ring-gray-300 dark:focus:ring-gray-600"
+            focus:outline-none focus:ring-2 focus:ring-gray-300 dark:focus:ring-gray-600
+            cursor-pointer"
         >
           <span className="text-[15px] font-medium text-[var(--color-todoloo-text-primary)] truncate">
             {getCurrentListName()}
@@ -113,6 +114,7 @@ export default function ListSwitcher() {
               className={`w-full text-left px-4 py-3
                 text-[15px] font-medium
                 transition-colors duration-150
+                cursor-pointer
                 ${
                   isCurrentList(userId || '')
                     ? 'bg-gray-50 dark:bg-[#333333] text-[var(--color-todoloo-text-primary)]'
@@ -138,6 +140,7 @@ export default function ListSwitcher() {
                 className={`w-full text-left px-4 py-3
                   text-[15px] font-medium
                   transition-colors duration-150
+                  cursor-pointer
                   ${
                     isCurrentList(list.ownerId)
                       ? 'bg-gray-50 dark:bg-[#333333] text-[var(--color-todoloo-text-primary)]'
