@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Settings as SettingsIcon, Clock, Users, Trash2, UserPlus, List, Plus, X, Timer, Edit2, Check } from 'lucide-react'
+import { Settings as SettingsIcon, Clock, Users, Trash2, UserPlus, List, Plus, X, Timer, Edit2, Check, ArrowLeft } from 'lucide-react'
 import { getCurrentDate } from '@/utils/timeUtils'
 import { useSettingsStore } from '@/store/settingsStore'
 import { useSupabase } from '@/components/SupabaseProvider'
@@ -11,8 +11,11 @@ import { useToDoStore } from '@/store/toDoStore'
 import { getSharedUsers, shareListWithUser, removeShare, getSharedLists } from '@/lib/db'
 import { SharedUser } from '@/types'
 
+type SettingsCategory = 'todo' | 'time' | 'sharing'
+
 export default function SettingsPage() {
   const router = useRouter()
+  const [selectedCategory, setSelectedCategory] = useState<SettingsCategory>('todo')
   const [autoSave, setAutoSave] = useState(true)
   const [showCompleted, setShowCompleted] = useState(true)
   const {
@@ -164,49 +167,97 @@ export default function SettingsPage() {
 
   const timeOptions = [5, 10, 15, 30, 45, 60, 90, 120, 180, 240]
 
+  const getCategoryTitle = (category: SettingsCategory) => {
+    switch (category) {
+      case 'todo': return 'To Do Settings'
+      case 'time': return 'Time Estimation'
+      case 'sharing': return 'Sharing'
+      default: return 'Settings'
+    }
+  }
+
+  const getCategoryIcon = (category: SettingsCategory) => {
+    switch (category) {
+      case 'todo': return Clock
+      case 'time': return Timer
+      case 'sharing': return Users
+      default: return SettingsIcon
+    }
+  }
+
+  const categories: Array<{ id: SettingsCategory; label: string; icon: typeof Clock }> = [
+    { id: 'todo', label: 'To Do Settings', icon: Clock },
+    { id: 'time', label: 'Time Estimation', icon: Timer },
+    { id: 'sharing', label: 'Sharing', icon: Users }
+  ]
+
+  const CategoryIcon = getCategoryIcon(selectedCategory)
 
   return (
-    <div className="w-full h-screen flex" style={{ backgroundColor: 'var(--color-todoloo-bg)' }}>
-      {/* Sidebar - 33% width */}
-      <div className="w-1/3 h-full p-8 overflow-hidden border-r flex flex-col justify-between items-start"
+    <div className="w-full h-screen flex flex-col" style={{ backgroundColor: 'var(--color-todoloo-bg)' }}>
+      {/* Header with back arrow and category title */}
+      <div className="w-full h-16 flex items-center gap-4 px-6 border-b flex-shrink-0"
            style={{ 
-             backgroundColor: 'var(--color-todoloo-sidebar)',
+             backgroundColor: 'var(--color-todoloo-bg)',
              borderColor: 'var(--color-todoloo-border)'
            }}>
-        <div className="w-full flex flex-col justify-start items-start gap-1.5">
-          <div className="w-full text-[42px] font-['Geist'] font-light" 
-               style={{ color: 'var(--color-todoloo-text-secondary)' }}>Settings</div>
-          <div className="w-full text-base font-['Geist'] font-normal" 
-               style={{ color: 'var(--color-todoloo-text-secondary)' }}>{getCurrentDate()}</div>
-        </div>
-        <div className="w-full flex justify-start items-start gap-4">
-          <Link href="/" 
-                className="text-xs font-['Geist'] font-normal transition-colors"
-                style={{ 
-                  color: 'var(--color-todoloo-text-muted)'
-                } as React.CSSProperties}
-                onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-todoloo-text-secondary)'}
-                onMouseLeave={(e) => e.currentTarget.style.color = 'var(--color-todoloo-text-muted)'}>
-            ← Back to Todos
-          </Link>
-        </div>
+        <button
+          onClick={() => router.push('/')}
+          className="p-2 rounded-lg hover:bg-opacity-10 hover:bg-gray-500 transition-colors"
+          style={{ color: 'var(--color-todoloo-text-secondary)' }}
+        >
+          <ArrowLeft className="w-5 h-5" />
+        </button>
+        <h1 className="text-xl font-['Geist'] font-medium" style={{ color: 'var(--color-todoloo-text-secondary)' }}>
+          {getCategoryTitle(selectedCategory)}
+        </h1>
       </div>
 
-      {/* Main Content - 67% width */}
-      <div className="w-2/3 h-full p-8 overflow-y-auto flex flex-col justify-start items-center gap-2.5"
-           style={{ backgroundColor: 'var(--color-todoloo-main)' }}>
-        <div className="w-full flex justify-center items-center gap-0.75">
-          <div className="w-full max-w-[460px] flex flex-col justify-start items-start gap-8">
-            
-            {/* Settings Header */}
-            <div className="w-full flex items-center gap-3">
-              <SettingsIcon className="w-6 h-6" style={{ color: 'var(--color-todoloo-text-secondary)' }} />
-              <h1 className="text-2xl font-['Geist'] font-medium" style={{ color: 'var(--color-todoloo-text-secondary)' }}>Settings</h1>
-            </div>
+      <div className="w-full flex-1 flex overflow-hidden">
+        {/* Left Navigation - 33% width */}
+        <div className="w-1/3 h-full overflow-y-auto border-r flex flex-col"
+             style={{ 
+               backgroundColor: 'var(--color-todoloo-sidebar)',
+               borderColor: 'var(--color-todoloo-border)'
+             }}>
+          {categories.map((category) => {
+            const Icon = category.icon
+            const isSelected = selectedCategory === category.id
+            return (
+              <button
+                key={category.id}
+                onClick={() => setSelectedCategory(category.id)}
+                className="w-full px-6 py-4 flex items-center gap-3 transition-colors text-left"
+                style={{
+                  backgroundColor: isSelected ? 'rgba(59, 130, 246, 0.1)' : 'transparent',
+                  borderLeft: isSelected ? '3px solid #3b82f6' : '3px solid transparent',
+                  color: 'var(--color-todoloo-text-secondary)'
+                }}
+                onMouseEnter={(e) => {
+                  if (!isSelected) {
+                    e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.05)'
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isSelected) {
+                    e.currentTarget.style.backgroundColor = 'transparent'
+                  }
+                }}
+              >
+                <Icon className="w-5 h-5" />
+                <span className="text-base font-['Geist'] font-normal">{category.label}</span>
+              </button>
+            )
+          })}
+        </div>
 
-            {/* Settings Sections */}
-            <div className="w-full flex flex-col gap-6">
-              {/* To Do Settings */}
+        {/* Right Content - 67% width */}
+        <div className="w-2/3 h-full overflow-y-auto p-8 flex flex-col justify-start items-center"
+             style={{ backgroundColor: 'var(--color-todoloo-main)' }}>
+          <div className="w-full max-w-[600px] flex flex-col justify-start items-start gap-6">
+
+            {/* Settings Sections - Conditionally rendered based on selected category */}
+            {selectedCategory === 'todo' && (
               <div className="w-full rounded-[10px] shadow-[2px_2px_4px_rgba(0,0,0,0.15)] p-6"
                    style={{ backgroundColor: 'var(--color-todoloo-card)' }}>
                 <div className="flex items-center gap-3 mb-4">
@@ -290,8 +341,9 @@ export default function SettingsPage() {
                   </div>
                 </div>
               </div>
+            )}
 
-              {/* Time Estimation Settings */}
+            {selectedCategory === 'time' && (
               <div className="w-full rounded-[10px] shadow-[2px_2px_4px_rgba(0,0,0,0.15)] p-6"
                    style={{ backgroundColor: 'var(--color-todoloo-card)' }}>
                 <div className="flex items-center gap-3 mb-4">
@@ -477,8 +529,9 @@ export default function SettingsPage() {
                   </form>
                 </div>
               </div>
+            )}
 
-              {/* List Sharing */}
+            {selectedCategory === 'sharing' && (
               <div className="w-full rounded-[10px] shadow-[2px_2px_4px_rgba(0,0,0,0.15)] p-6"
                    style={{ backgroundColor: 'var(--color-todoloo-card)' }}>
                 <div className="flex items-center gap-3 mb-4">
@@ -648,8 +701,8 @@ export default function SettingsPage() {
                   )}
                 </div>
               </div>
+            )}
 
-            </div>
           </div>
         </div>
       </div>
