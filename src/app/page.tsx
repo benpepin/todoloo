@@ -307,25 +307,6 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* Floating Action Button - Fixed position - Hidden in empty state */}
-              {!(tasks.length === 0 && !showCreateTask) && (
-                <button
-                  onClick={toggleCreateTask}
-                  className="fixed w-[72px] h-[72px] rounded-full shadow-lg flex items-center justify-center active:scale-95 transition-transform hover:shadow-xl hover:scale-110 hover:cursor-pointer z-50"
-                  style={{
-                    bottom: '24px',
-                    right: 'calc(50% - 320px + 24px)',
-                    backgroundColor: 'var(--color-todoloo-card)',
-                    outline: '1px var(--color-todoloo-border) solid',
-                    outlineOffset: '-1px'
-                  }}
-                  aria-label="New Todo"
-                >
-                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M12 5V19M5 12H19" stroke="var(--color-todoloo-text-secondary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                </button>
-              )}
             </div>
           </div>
         </div>
@@ -333,6 +314,26 @@ export default function Home() {
 
       {/* Debug Component */}
       {/* <SharingDebug /> */}
+
+      {/* Floating Action Button - Fixed bottom right of window - Hidden in empty state */}
+      {!(tasks.length === 0 && !showCreateTask) && (
+        <button
+          onClick={toggleCreateTask}
+          className="fixed w-[72px] h-[72px] rounded-full shadow-lg flex items-center justify-center active:scale-95 transition-transform hover:shadow-xl hover:scale-110 hover:cursor-pointer z-50"
+          style={{
+            bottom: '24px',
+            right: '24px',
+            backgroundColor: 'var(--color-todoloo-card)',
+            outline: '1px var(--color-todoloo-border) solid',
+            outlineOffset: '-1px'
+          }}
+          aria-label="New Todo"
+        >
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 5V19M5 12H19" stroke="var(--color-todoloo-text-secondary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </button>
+      )}
 
       {/* Toast Notifications - Fixed bottom right */}
       <div className="fixed bottom-6 right-6 z-[100] flex flex-col gap-3 max-w-md">
