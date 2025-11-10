@@ -43,14 +43,14 @@ export default function InsightsPage() {
              borderColor: 'var(--color-todoloo-border)'
            }}>
         <div className="w-full flex flex-col justify-start items-start gap-1.5">
-          <div className="w-full text-[42px] font-['Geist'] font-light"
+          <div className="w-full text-[42px] font-['Outfit'] font-light"
                style={{ color: 'var(--color-todoloo-text-secondary)' }}>Insights</div>
-          <div className="w-full text-base font-['Geist'] font-normal"
+          <div className="w-full text-base font-['Outfit'] font-normal"
                style={{ color: 'var(--color-todoloo-text-secondary)' }}>{getCurrentDate()}</div>
         </div>
         <div className="w-full flex justify-start items-start gap-4">
           <Link href="/"
-                className="text-xs font-['Geist'] font-normal transition-colors"
+                className="text-xs font-['Outfit'] font-normal transition-colors"
                 style={{
                   color: 'var(--color-todoloo-text-muted)'
                 } as React.CSSProperties}
@@ -70,7 +70,7 @@ export default function InsightsPage() {
             {/* Insights Header */}
             <div className="w-full flex items-center gap-3">
               <History className="w-6 h-6" style={{ color: 'var(--color-todoloo-text-secondary)' }} />
-              <h1 className="text-2xl font-['Geist'] font-medium" style={{ color: 'var(--color-todoloo-text-secondary)' }}>To Do History</h1>
+              <h1 className="text-2xl font-['Outfit'] font-medium" style={{ color: 'var(--color-todoloo-text-secondary)' }}>To Do History</h1>
             </div>
 
             {/* Stats Grid */}
@@ -87,13 +87,13 @@ export default function InsightsPage() {
                       <Zap className="w-5 h-5" style={{ color: '#22c55e' }} />
                     </div>
                     <div className="flex-1">
-                      <div className="text-xs font-['Geist'] font-medium mb-1" style={{ color: 'var(--color-todoloo-text-muted)' }}>
+                      <div className="text-xs font-['Outfit'] font-medium mb-1" style={{ color: 'var(--color-todoloo-text-muted)' }}>
                         Fastest Task
                       </div>
-                      <div className="text-2xl font-['Geist'] font-semibold mb-1" style={{ color: 'var(--color-todoloo-text-primary)' }}>
+                      <div className="text-2xl font-['Outfit'] font-semibold mb-1" style={{ color: 'var(--color-todoloo-text-primary)' }}>
                         {formatDuration(personalRecords.fastest.actualMinutes)}
                       </div>
-                      <div className="text-sm font-['Geist'] line-clamp-1" style={{ color: 'var(--color-todoloo-text-secondary)' }}>
+                      <div className="text-sm font-['Outfit'] line-clamp-1" style={{ color: 'var(--color-todoloo-text-secondary)' }}>
                         {personalRecords.fastest.originalDescription}
                       </div>
                     </div>
@@ -111,13 +111,13 @@ export default function InsightsPage() {
                       <Turtle className="w-5 h-5" style={{ color: '#9333ea' }} />
                     </div>
                     <div className="flex-1">
-                      <div className="text-xs font-['Geist'] font-medium mb-1" style={{ color: 'var(--color-todoloo-text-muted)' }}>
+                      <div className="text-xs font-['Outfit'] font-medium mb-1" style={{ color: 'var(--color-todoloo-text-muted)' }}>
                         Longest Task
                       </div>
-                      <div className="text-2xl font-['Geist'] font-semibold mb-1" style={{ color: 'var(--color-todoloo-text-primary)' }}>
+                      <div className="text-2xl font-['Outfit'] font-semibold mb-1" style={{ color: 'var(--color-todoloo-text-primary)' }}>
                         {formatDuration(personalRecords.slowest.actualMinutes)}
                       </div>
-                      <div className="text-sm font-['Geist'] line-clamp-1" style={{ color: 'var(--color-todoloo-text-secondary)' }}>
+                      <div className="text-sm font-['Outfit'] line-clamp-1" style={{ color: 'var(--color-todoloo-text-secondary)' }}>
                         {personalRecords.slowest.originalDescription}
                       </div>
                     </div>
@@ -135,13 +135,13 @@ export default function InsightsPage() {
                       <History className="w-5 h-5" style={{ color: '#3b82f6' }} />
                     </div>
                     <div className="flex-1">
-                      <div className="text-xs font-['Geist'] font-medium mb-1" style={{ color: 'var(--color-todoloo-text-muted)' }}>
+                      <div className="text-xs font-['Outfit'] font-medium mb-1" style={{ color: 'var(--color-todoloo-text-muted)' }}>
                         Total Completed
                       </div>
-                      <div className="text-2xl font-['Geist'] font-semibold mb-1" style={{ color: 'var(--color-todoloo-text-primary)' }}>
+                      <div className="text-2xl font-['Outfit'] font-semibold mb-1" style={{ color: 'var(--color-todoloo-text-primary)' }}>
                         {entries.length}
                       </div>
-                      <div className="text-sm font-['Geist']" style={{ color: 'var(--color-todoloo-text-secondary)' }}>
+                      <div className="text-sm font-['Outfit']" style={{ color: 'var(--color-todoloo-text-secondary)' }}>
                         Tasks
                       </div>
                     </div>
@@ -159,7 +159,7 @@ export default function InsightsPage() {
                    }}>
                 <div className="flex items-center gap-2 mb-4">
                   <Cloud className="w-5 h-5" style={{ color: 'var(--color-todoloo-text-secondary)' }} />
-                  <h2 className="text-lg font-['Geist'] font-semibold" style={{ color: 'var(--color-todoloo-text-secondary)' }}>
+                  <h2 className="text-lg font-['Outfit'] font-semibold" style={{ color: 'var(--color-todoloo-text-secondary)' }}>
                     Most Common Words
                   </h2>
                 </div>

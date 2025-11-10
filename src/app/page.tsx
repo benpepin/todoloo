@@ -190,7 +190,7 @@ export default function Home() {
           <div className="flex flex-col gap-1 flex-1">
             <ListSwitcher />
             <div
-              className="text-sm font-['Geist'] font-normal"
+              className="text-sm font-['Outfit'] font-normal"
               style={{ color: 'var(--color-todoloo-text-secondary)' }}
             >
               {totalMinutes === 0 ? (
@@ -230,7 +230,7 @@ export default function Home() {
         {/* Bottom Section: Quote/Completion Time & Settings */}
         <div className="w-full flex flex-col gap-4">
           <div
-            className="w-full text-base font-['Geist'] font-normal cursor-pointer transition-colors duration-200 hover:opacity-70"
+            className="w-full text-base font-['Outfit'] font-normal cursor-pointer transition-colors duration-200 hover:opacity-70"
             style={{ color: 'var(--color-todoloo-text-secondary)' }}
             onClick={() => {
               if (totalMinutes === 0) {

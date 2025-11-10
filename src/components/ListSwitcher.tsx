@@ -57,7 +57,7 @@ export default function ListSwitcher() {
 
   const getCurrentListName = () => {
     if (!currentListOwnerId || currentListOwnerId === userId) {
-      return 'My List'
+      return 'My Lists'
     }
     const sharedList = sharedLists.find(l => l.ownerId === currentListOwnerId)
     return sharedList ? `${sharedList.ownerEmail}'s List` : 'Shared List'
@@ -81,16 +81,16 @@ export default function ListSwitcher() {
         {/* Dropdown Button */}
         <button
           onClick={() => setShowListMenu(!showListMenu)}
-          className="w-full flex items-center justify-between gap-3 px-4 py-3
+          className="w-full flex items-center justify-between gap-1.5 px-4 py-3
             bg-white dark:bg-[#2a2a2a]
-            rounded-xl border border-gray-200 dark:border-[#404040]
+            rounded-full border border-gray-200 dark:border-[#404040]
             hover:border-gray-300 dark:hover:border-[#505050]
             hover:shadow-sm
             transition-all duration-200 ease-out
             focus:outline-none focus:ring-2 focus:ring-gray-300 dark:focus:ring-gray-600
             cursor-pointer"
         >
-          <span className="text-[15px] font-medium text-[var(--color-todoloo-text-primary)] truncate">
+          <span className="text-[14px] font-medium font-outfit text-[var(--color-todoloo-text-primary)] truncate">
             {getCurrentListName()}
           </span>
           <ChevronDown
@@ -104,7 +104,7 @@ export default function ListSwitcher() {
           <div className="absolute top-full mt-2 left-0 right-0
             bg-white dark:bg-[#2a2a2a]
             border border-gray-200 dark:border-[#404040]
-            rounded-xl shadow-xl
+            rounded-[20px] shadow-xl
             overflow-hidden
             animate-in fade-in slide-in-from-top-2 duration-200"
             style={{ zIndex: 9999 }}>

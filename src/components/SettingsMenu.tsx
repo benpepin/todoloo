@@ -92,7 +92,7 @@ export default function SettingsMenu() {
           >
             <div className="flex items-center gap-3">
               <Palette className="w-5 h-5" style={{ color: 'var(--color-todoloo-text-secondary)' }} />
-              <span className="text-base font-['Geist']" style={{ color: 'var(--color-todoloo-text-primary)' }}>
+              <span className="text-base font-['Outfit']" style={{ color: 'var(--color-todoloo-text-primary)' }}>
                 Appearance
               </span>
             </div>
@@ -120,7 +120,7 @@ export default function SettingsMenu() {
             }}
           >
             <History className="w-5 h-5" style={{ color: 'var(--color-todoloo-text-secondary)' }} />
-            <span className="text-base font-['Geist']" style={{ color: 'var(--color-todoloo-text-primary)' }}>
+            <span className="text-base font-['Outfit']" style={{ color: 'var(--color-todoloo-text-primary)' }}>
               Insights
             </span>
           </button>
@@ -139,7 +139,7 @@ export default function SettingsMenu() {
             }}
           >
             <Settings className="w-5 h-5" style={{ color: 'var(--color-todoloo-text-secondary)' }} />
-            <span className="text-base font-['Geist']" style={{ color: 'var(--color-todoloo-text-primary)' }}>
+            <span className="text-base font-['Outfit']" style={{ color: 'var(--color-todoloo-text-primary)' }}>
               Settings
             </span>
           </button>
@@ -159,7 +159,7 @@ export default function SettingsMenu() {
             }}
           >
             <LogOut className="w-5 h-5" style={{ color: '#ef4444' }} />
-            <span className="text-base font-['Geist']" style={{ color: '#ef4444' }}>
+            <span className="text-base font-['Outfit']" style={{ color: '#ef4444' }}>
               Log out
             </span>
           </button>

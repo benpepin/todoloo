@@ -170,7 +170,7 @@ function ToDoListContent() {
           {/* Only show header when there are tasks */}
           {todoTasks.length > 0 && (
             <div className="w-full inline-flex justify-start items-center gap-1.5">
-              <div className="text-base font-normal font-['Geist']" style={{ color: 'var(--color-todoloo-text-secondary)' }}>Todos</div>
+              <div className="text-base font-normal font-['Outfit']" style={{ color: 'var(--color-todoloo-text-secondary)' }}>Todos</div>
               <div className="flex-1 h-px transform translate-y-0.5" style={{ backgroundColor: 'var(--color-todoloo-text-secondary)' }} />
             </div>
           )}
@@ -190,7 +190,7 @@ function ToDoListContent() {
                 {/* Date in top right corner with fade-in */}
                 <div className="absolute -top-8 right-0 z-0 animate-[fadeIn_0.3s_ease-out_0.1s_both]">
                   <div
-                    className="text-base font-normal font-['Geist']"
+                    className="text-base font-normal font-['Outfit']"
                     style={{ color: 'var(--color-todoloo-text-secondary)' }}
                   >
                     {new Date().toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: '2-digit' })}
@@ -242,7 +242,7 @@ function ToDoListContent() {
         {/* Todo Section */}
         <div className="w-full flex flex-col justify-start items-start gap-4">
           <div className="w-full inline-flex justify-start items-center gap-1.5">
-            <div className="text-base font-normal font-['Geist']" style={{ color: 'var(--color-todoloo-text-secondary)' }}>Todos</div>
+            <div className="text-base font-normal font-['Outfit']" style={{ color: 'var(--color-todoloo-text-secondary)' }}>Todos</div>
             <div className="flex-1 h-px transform translate-y-0.5" style={{ backgroundColor: 'var(--color-todoloo-text-secondary)' }} />
           </div>
 
@@ -295,7 +295,7 @@ function ToDoListContent() {
         {doneTasks.length > 0 && (
           <div className="w-full flex flex-col justify-start items-start gap-4">
             <div className="w-full inline-flex justify-start items-center gap-1.5">
-              <div className="text-base font-normal font-['Geist']" style={{ color: 'var(--color-todoloo-text-secondary)' }}>Done</div>
+              <div className="text-base font-normal font-['Outfit']" style={{ color: 'var(--color-todoloo-text-secondary)' }}>Done</div>
               <div className="flex-1 h-px transform translate-y-0.5" style={{ backgroundColor: 'var(--color-todoloo-text-secondary)' }} />
             </div>
             <div className="w-full flex flex-col justify-start items-start">
@@ -354,7 +354,7 @@ function ToDoListContent() {
               <div className="hidden lg:flex items-center justify-center w-8 h-8">
                 <span
                   className="font-normal"
-                  style={{ color: '#989999', fontSize: 28, fontFamily: 'Inter' }}
+                  style={{ color: '#989999', fontSize: 28, fontFamily: 'Outfit' }}
                 >
                   {(() => {
                     const index = todoTasks.findIndex(t => t.id === activeId)
@@ -367,14 +367,14 @@ function ToDoListContent() {
                   <p className="text-base font-medium"
                      style={{
                        color: 'var(--color-todoloo-text-secondary)',
-                       fontFamily: 'Geist'
+                       fontFamily: 'Outfit'
                      }}>
                     {(() => {
                       const task = tasks.find(t => t.id === activeId)
                       return task?.description || ''
                     })()}
                   </p>
-                  <p className="text-sm font-normal" style={{ color: 'var(--color-todoloo-text-muted)', fontFamily: 'Geist' }}>
+                  <p className="text-sm font-normal" style={{ color: 'var(--color-todoloo-text-muted)', fontFamily: 'Outfit' }}>
                     {(() => {
                       const task = tasks.find(t => t.id === activeId)
                       if (!task) return ''

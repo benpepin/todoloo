@@ -208,7 +208,7 @@ export default function SettingsPage() {
         >
           <ArrowLeft className="w-5 h-5" />
         </button>
-        <h1 className="text-xl font-['Geist'] font-medium" style={{ color: 'var(--color-todoloo-text-secondary)' }}>
+        <h1 className="text-xl font-['Outfit'] font-medium" style={{ color: 'var(--color-todoloo-text-secondary)' }}>
           {getCategoryTitle(selectedCategory)}
         </h1>
       </div>
@@ -245,7 +245,7 @@ export default function SettingsPage() {
                 }}
               >
                 <Icon className="w-5 h-5" />
-                <span className="text-base font-['Geist'] font-normal">{category.label}</span>
+                <span className="text-base font-['Outfit'] font-normal">{category.label}</span>
               </button>
             )
           })}
@@ -262,13 +262,13 @@ export default function SettingsPage() {
                    style={{ backgroundColor: 'var(--color-todoloo-card)' }}>
                 <div className="flex items-center gap-3 mb-4">
                   <Clock className="w-5 h-5" style={{ color: 'var(--color-todoloo-text-secondary)' }} />
-                  <h2 className="text-lg font-['Geist'] font-medium" style={{ color: 'var(--color-todoloo-text-secondary)' }}>To Do Settings</h2>
+                  <h2 className="text-lg font-['Outfit'] font-medium" style={{ color: 'var(--color-todoloo-text-secondary)' }}>To Do Settings</h2>
                 </div>
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-['Geist'] font-medium" style={{ color: 'var(--color-todoloo-text-primary)' }}>Auto-save tasks</p>
-                      <p className="text-xs font-['Geist']" style={{ color: 'var(--color-todoloo-text-muted)' }}>Automatically save changes</p>
+                      <p className="text-sm font-['Outfit'] font-medium" style={{ color: 'var(--color-todoloo-text-primary)' }}>Auto-save tasks</p>
+                      <p className="text-xs font-['Outfit']" style={{ color: 'var(--color-todoloo-text-muted)' }}>Automatically save changes</p>
                     </div>
                     <button
                       onClick={() => setAutoSave(!autoSave)}
@@ -285,8 +285,8 @@ export default function SettingsPage() {
                   </div>
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-['Geist'] font-medium" style={{ color: 'var(--color-todoloo-text-primary)' }}>Show completed to dos</p>
-                      <p className="text-xs font-['Geist']" style={{ color: 'var(--color-todoloo-text-muted)' }}>Display finished to dos in the list</p>
+                      <p className="text-sm font-['Outfit'] font-medium" style={{ color: 'var(--color-todoloo-text-primary)' }}>Show completed to dos</p>
+                      <p className="text-xs font-['Outfit']" style={{ color: 'var(--color-todoloo-text-muted)' }}>Display finished to dos in the list</p>
                     </div>
                     <button
                       onClick={() => setShowCompleted(!showCompleted)}
@@ -303,8 +303,8 @@ export default function SettingsPage() {
                   </div>
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-['Geist'] font-medium" style={{ color: 'var(--color-todoloo-text-primary)' }}>Show progress indicator</p>
-                      <p className="text-xs font-['Geist']" style={{ color: 'var(--color-todoloo-text-muted)' }}>Display carnival horse race for completed todos</p>
+                      <p className="text-sm font-['Outfit'] font-medium" style={{ color: 'var(--color-todoloo-text-primary)' }}>Show progress indicator</p>
+                      <p className="text-xs font-['Outfit']" style={{ color: 'var(--color-todoloo-text-muted)' }}>Display carnival horse race for completed todos</p>
                     </div>
                     <button
                       onClick={() => user?.id && toggleProgressIndicator(user.id)}
@@ -322,8 +322,8 @@ export default function SettingsPage() {
                   </div>
                   <div className="flex items-center justify-between pt-4">
                     <div>
-                      <p className="text-sm font-['Geist'] font-medium" style={{ color: 'var(--color-todoloo-text-primary)' }}>Show shopping cart progress</p>
-                      <p className="text-xs font-['Geist']" style={{ color: 'var(--color-todoloo-text-muted)' }}>Display shopping cart for shopping-related lists</p>
+                      <p className="text-sm font-['Outfit'] font-medium" style={{ color: 'var(--color-todoloo-text-primary)' }}>Show shopping cart progress</p>
+                      <p className="text-xs font-['Outfit']" style={{ color: 'var(--color-todoloo-text-muted)' }}>Display shopping cart for shopping-related lists</p>
                     </div>
                     <button
                       onClick={() => user?.id && toggleShoppingCartProgress(user.id)}
@@ -348,22 +348,22 @@ export default function SettingsPage() {
                    style={{ backgroundColor: 'var(--color-todoloo-card)' }}>
                 <div className="flex items-center gap-3 mb-4">
                   <Timer className="w-5 h-5" style={{ color: 'var(--color-todoloo-text-secondary)' }} />
-                  <h2 className="text-lg font-['Geist'] font-medium" style={{ color: 'var(--color-todoloo-text-secondary)' }}>Time Estimation</h2>
+                  <h2 className="text-lg font-['Outfit'] font-medium" style={{ color: 'var(--color-todoloo-text-secondary)' }}>Time Estimation</h2>
                 </div>
 
                 {/* Default Time Selector */}
                 <div className="mb-6">
-                  <p className="text-sm font-['Geist'] font-medium mb-2" style={{ color: 'var(--color-todoloo-text-primary)' }}>
+                  <p className="text-sm font-['Outfit'] font-medium mb-2" style={{ color: 'var(--color-todoloo-text-primary)' }}>
                     Default Estimated Time
                   </p>
-                  <p className="text-xs font-['Geist'] mb-3" style={{ color: 'var(--color-todoloo-text-muted)' }}>
+                  <p className="text-xs font-['Outfit'] mb-3" style={{ color: 'var(--color-todoloo-text-muted)' }}>
                     Time to suggest when no keyword matches
                   </p>
                   <select
                     value={defaultMinutes}
                     onChange={(e) => user?.id && setDefaultMinutes(Number(e.target.value), user.id)}
                     disabled={!user?.id}
-                    className="w-full px-3 py-2 rounded-lg border text-sm font-['Geist']"
+                    className="w-full px-3 py-2 rounded-lg border text-sm font-['Outfit']"
                     style={{
                       backgroundColor: 'var(--color-todoloo-bg)',
                       borderColor: 'var(--color-todoloo-border)',
@@ -380,10 +380,10 @@ export default function SettingsPage() {
 
                 {/* Custom Keywords Manager */}
                 <div>
-                  <p className="text-sm font-['Geist'] font-medium mb-2" style={{ color: 'var(--color-todoloo-text-primary)' }}>
+                  <p className="text-sm font-['Outfit'] font-medium mb-2" style={{ color: 'var(--color-todoloo-text-primary)' }}>
                     Custom Keywords
                   </p>
-                  <p className="text-xs font-['Geist'] mb-3" style={{ color: 'var(--color-todoloo-text-muted)' }}>
+                  <p className="text-xs font-['Outfit'] mb-3" style={{ color: 'var(--color-todoloo-text-muted)' }}>
                     Add keywords to auto-suggest specific times for your tasks
                   </p>
 
@@ -404,7 +404,7 @@ export default function SettingsPage() {
                                   type="text"
                                   value={editKeyword}
                                   onChange={(e) => setEditKeyword(e.target.value)}
-                                  className="flex-1 px-2 py-1 rounded border text-sm font-['Geist']"
+                                  className="flex-1 px-2 py-1 rounded border text-sm font-['Outfit']"
                                   style={{
                                     backgroundColor: 'var(--color-todoloo-bg)',
                                     borderColor: 'var(--color-todoloo-border)',
@@ -415,7 +415,7 @@ export default function SettingsPage() {
                                 <select
                                   value={editKeywordMinutes}
                                   onChange={(e) => setEditKeywordMinutes(e.target.value)}
-                                  className="px-2 py-1 rounded border text-sm font-['Geist']"
+                                  className="px-2 py-1 rounded border text-sm font-['Outfit']"
                                   style={{
                                     backgroundColor: 'var(--color-todoloo-bg)',
                                     borderColor: 'var(--color-todoloo-border)',
@@ -450,10 +450,10 @@ export default function SettingsPage() {
                             // View mode
                             <>
                               <div className="flex-1">
-                                <p className="text-sm font-['Geist'] font-medium" style={{ color: 'var(--color-todoloo-text-primary)' }}>
+                                <p className="text-sm font-['Outfit'] font-medium" style={{ color: 'var(--color-todoloo-text-primary)' }}>
                                   &ldquo;{kw.keyword}&rdquo;
                                 </p>
-                                <p className="text-xs font-['Geist']" style={{ color: 'var(--color-todoloo-text-muted)' }}>
+                                <p className="text-xs font-['Outfit']" style={{ color: 'var(--color-todoloo-text-muted)' }}>
                                   {kw.minutes < 60 ? `${kw.minutes} minutes` : `${kw.minutes / 60} hour${kw.minutes > 60 ? 's' : ''}`}
                                 </p>
                               </div>
@@ -488,7 +488,7 @@ export default function SettingsPage() {
                       value={newKeyword}
                       onChange={(e) => setNewKeyword(e.target.value)}
                       placeholder="e.g., workout, zoom call, etc."
-                      className="w-full px-3 py-2 rounded-lg border text-sm font-['Geist']"
+                      className="w-full px-3 py-2 rounded-lg border text-sm font-['Outfit']"
                       style={{
                         backgroundColor: 'var(--color-todoloo-bg)',
                         borderColor: 'var(--color-todoloo-border)',
@@ -499,7 +499,7 @@ export default function SettingsPage() {
                       <select
                         value={newKeywordMinutes}
                         onChange={(e) => setNewKeywordMinutes(e.target.value)}
-                        className="flex-1 px-3 py-2 rounded-lg border text-sm font-['Geist']"
+                        className="flex-1 px-3 py-2 rounded-lg border text-sm font-['Outfit']"
                         style={{
                           backgroundColor: 'var(--color-todoloo-bg)',
                           borderColor: 'var(--color-todoloo-border)',
@@ -515,7 +515,7 @@ export default function SettingsPage() {
                       <button
                         type="submit"
                         disabled={!newKeyword.trim()}
-                        className="px-4 py-2 rounded-lg text-sm font-['Geist'] font-medium transition-opacity flex items-center gap-2"
+                        className="px-4 py-2 rounded-lg text-sm font-['Outfit'] font-medium transition-opacity flex items-center gap-2"
                         style={{
                           backgroundColor: 'var(--color-todoloo-gradient-start)',
                           color: 'white',
@@ -536,12 +536,12 @@ export default function SettingsPage() {
                    style={{ backgroundColor: 'var(--color-todoloo-card)' }}>
                 <div className="flex items-center gap-3 mb-4">
                   <Users className="w-5 h-5" style={{ color: 'var(--color-todoloo-text-secondary)' }} />
-                  <h2 className="text-lg font-['Geist'] font-medium" style={{ color: 'var(--color-todoloo-text-secondary)' }}>List Sharing</h2>
+                  <h2 className="text-lg font-['Outfit'] font-medium" style={{ color: 'var(--color-todoloo-text-secondary)' }}>List Sharing</h2>
                 </div>
 
                 {/* Active List Selector */}
                 <div className="mb-6">
-                  <p className="text-sm font-['Geist'] font-medium mb-3" style={{ color: 'var(--color-todoloo-text-primary)' }}>
+                  <p className="text-sm font-['Outfit'] font-medium mb-3" style={{ color: 'var(--color-todoloo-text-primary)' }}>
                     Active List
                   </p>
 
@@ -563,7 +563,7 @@ export default function SettingsPage() {
                   >
                     <List className="w-5 h-5" />
                     <div className="flex-1 text-left">
-                      <p className="text-sm font-['Geist'] font-medium">My List</p>
+                      <p className="text-sm font-['Outfit'] font-medium">My List</p>
                       <p className="text-xs opacity-75">Your personal todo list</p>
                     </div>
                   </button>
@@ -571,7 +571,7 @@ export default function SettingsPage() {
                   {/* Shared lists */}
                   {sharedLists.length > 0 && (
                     <>
-                      <p className="text-xs font-['Geist'] font-medium mb-2 mt-4" style={{ color: 'var(--color-todoloo-text-secondary)' }}>
+                      <p className="text-xs font-['Outfit'] font-medium mb-2 mt-4" style={{ color: 'var(--color-todoloo-text-secondary)' }}>
                         Shared With You
                       </p>
                       {sharedLists.map((list) => (
@@ -593,7 +593,7 @@ export default function SettingsPage() {
                         >
                           <List className="w-5 h-5" />
                           <div className="flex-1 text-left">
-                            <p className="text-sm font-['Geist'] font-medium">
+                            <p className="text-sm font-['Outfit'] font-medium">
                               {list.ownerEmail}&apos;s list
                             </p>
                             <p className="text-xs opacity-75">
@@ -609,10 +609,10 @@ export default function SettingsPage() {
                 {/* Share your list */}
                 <div className="space-y-4">
                   <div>
-                    <p className="text-sm font-['Geist'] font-medium mb-2" style={{ color: 'var(--color-todoloo-text-primary)' }}>
+                    <p className="text-sm font-['Outfit'] font-medium mb-2" style={{ color: 'var(--color-todoloo-text-primary)' }}>
                       Share your list
                     </p>
-                    <p className="text-xs font-['Geist'] mb-3" style={{ color: 'var(--color-todoloo-text-muted)' }}>
+                    <p className="text-xs font-['Outfit'] mb-3" style={{ color: 'var(--color-todoloo-text-muted)' }}>
                       Enter an email address to give someone access to add and manage tasks on your list
                     </p>
 
@@ -622,7 +622,7 @@ export default function SettingsPage() {
                         value={shareEmail}
                         onChange={(e) => setShareEmail(e.target.value)}
                         placeholder="email@example.com"
-                        className="flex-1 px-3 py-2 rounded-lg border text-sm font-['Geist']"
+                        className="flex-1 px-3 py-2 rounded-lg border text-sm font-['Outfit']"
                         style={{
                           backgroundColor: 'var(--color-todoloo-bg)',
                           borderColor: 'var(--color-todoloo-border)',
@@ -633,7 +633,7 @@ export default function SettingsPage() {
                       <button
                         type="submit"
                         disabled={isSharing || !shareEmail}
-                        className="px-4 py-2 rounded-lg text-sm font-['Geist'] font-medium transition-opacity flex items-center gap-2"
+                        className="px-4 py-2 rounded-lg text-sm font-['Outfit'] font-medium transition-opacity flex items-center gap-2"
                         style={{
                           backgroundColor: 'var(--color-todoloo-gradient-start)',
                           color: 'white',
@@ -646,13 +646,13 @@ export default function SettingsPage() {
                     </form>
 
                     {shareError && (
-                      <div className="mt-2 p-2 rounded-lg text-xs font-['Geist']"
+                      <div className="mt-2 p-2 rounded-lg text-xs font-['Outfit']"
                            style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)', color: '#ef4444' }}>
                         {shareError}
                       </div>
                     )}
                     {shareSuccess && (
-                      <div className="mt-2 p-2 rounded-lg text-xs font-['Geist']"
+                      <div className="mt-2 p-2 rounded-lg text-xs font-['Outfit']"
                            style={{ backgroundColor: 'rgba(34, 197, 94, 0.1)', color: '#22c55e' }}>
                         {shareSuccess}
                       </div>
@@ -661,12 +661,12 @@ export default function SettingsPage() {
 
                   {/* List of shared users */}
                   {isLoadingShares ? (
-                    <div className="text-sm font-['Geist']" style={{ color: 'var(--color-todoloo-text-muted)' }}>
+                    <div className="text-sm font-['Outfit']" style={{ color: 'var(--color-todoloo-text-muted)' }}>
                       Loading shared users...
                     </div>
                   ) : sharedUsers.length > 0 ? (
                     <div>
-                      <p className="text-sm font-['Geist'] font-medium mb-2" style={{ color: 'var(--color-todoloo-text-primary)' }}>
+                      <p className="text-sm font-['Outfit'] font-medium mb-2" style={{ color: 'var(--color-todoloo-text-primary)' }}>
                         People with access ({sharedUsers.length})
                       </p>
                       <div className="space-y-2">
@@ -675,10 +675,10 @@ export default function SettingsPage() {
                                className="flex items-center justify-between p-3 rounded-lg"
                                style={{ backgroundColor: 'var(--color-todoloo-muted)' }}>
                             <div className="flex-1">
-                              <p className="text-sm font-['Geist'] font-medium" style={{ color: 'var(--color-todoloo-text-primary)' }}>
+                              <p className="text-sm font-['Outfit'] font-medium" style={{ color: 'var(--color-todoloo-text-primary)' }}>
                                 {sharedUser.email}
                               </p>
-                              <p className="text-xs font-['Geist']" style={{ color: 'var(--color-todoloo-text-muted)' }}>
+                              <p className="text-xs font-['Outfit']" style={{ color: 'var(--color-todoloo-text-muted)' }}>
                                 Can {sharedUser.permission === 'write' ? 'edit' : 'view'} • Shared {sharedUser.sharedAt.toLocaleDateString()}
                               </p>
                             </div>
@@ -695,7 +695,7 @@ export default function SettingsPage() {
                       </div>
                     </div>
                   ) : (
-                    <div className="text-sm font-['Geist']" style={{ color: 'var(--color-todoloo-text-muted)' }}>
+                    <div className="text-sm font-['Outfit']" style={{ color: 'var(--color-todoloo-text-muted)' }}>
                       No one has access to your list yet
                     </div>
                   )}

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, Geist, Instrument_Serif } from "next/font/google";
+import { Inter, Instrument_Serif, Outfit } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { SupabaseProvider } from "@/components/SupabaseProvider";
@@ -9,15 +9,15 @@ const inter = Inter({
   variable: "--font-inter",
 });
 
-const geist = Geist({
-  subsets: ["latin"],
-  variable: "--font-geist",
-});
-
 const instrumentSerif = Instrument_Serif({
   subsets: ["latin"],
   variable: "--font-instrument-serif",
   weight: "400",
+});
+
+const outfit = Outfit({
+  subsets: ["latin"],
+  variable: "--font-outfit",
 });
 
 export const metadata: Metadata = {
@@ -32,7 +32,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${inter.variable} ${geist.variable} ${instrumentSerif.variable} antialiased`}>
+      <body className={`${inter.variable} ${instrumentSerif.variable} ${outfit.variable} antialiased`}>
         <SupabaseProvider>
           <ThemeProvider>
             {children}

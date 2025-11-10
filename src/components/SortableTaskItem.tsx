@@ -714,7 +714,7 @@ export default function SortableTaskItem({
                       border: 'none'
                     }}
                   >
-                    <span className="text-white text-xs font-medium" style={{ fontFamily: 'Geist' }}>Save</span>
+                    <span className="text-white text-xs font-medium" style={{ fontFamily: 'Outfit' }}>Save</span>
                   </button>
                 </div>
               </div>
@@ -806,7 +806,7 @@ export default function SortableTaskItem({
                   <div className="relative w-8 h-8 flex items-center justify-center">
                     <span
                       className="font-normal transition-opacity duration-200 group-hover:opacity-0"
-                      style={{ color: '#989999', fontSize: 28, fontFamily: 'Inter' }}
+                      style={{ color: '#989999', fontSize: 28, fontFamily: 'Outfit' }}
                     >
                       {taskIndex}
                     </span>
@@ -849,12 +849,12 @@ export default function SortableTaskItem({
                     }`}
                        style={{
                          color: task.isCompleted ? 'var(--color-todoloo-text-muted)' : 'var(--color-todoloo-text-secondary)',
-                         fontFamily: 'Geist'
+                         fontFamily: 'Outfit'
                        }}>
                       {task.description}
                     </p>
                     <div className="flex items-center">
-                      <p className="text-sm" style={{ color: 'var(--color-todoloo-text-muted)', fontFamily: 'Geist', fontWeight: 400 }}>
+                      <p className="text-sm" style={{ color: 'var(--color-todoloo-text-muted)', fontFamily: 'Outfit', fontWeight: 400 }}>
                         {task.isCompleted && task.actualMinutes
                           ? formatEstimatedTime(task.actualMinutes)
                           : formatEstimatedTime(task.estimatedMinutes)
@@ -862,11 +862,11 @@ export default function SortableTaskItem({
                       </p>
                       {hasStarted && (
                         <>
-                          <span className="text-sm mx-2" style={{ color: 'var(--color-todoloo-text-secondary)', fontFamily: 'Geist', fontWeight: 400 }}>•</span>
+                          <span className="text-sm mx-2" style={{ color: 'var(--color-todoloo-text-secondary)', fontFamily: 'Outfit', fontWeight: 400 }}>•</span>
                           <p className="text-sm"
                              style={{
                                color: isActive ? 'var(--color-todoloo-gradient-start)' : 'var(--color-todoloo-text-secondary)',
-                               fontFamily: 'Geist',
+                               fontFamily: 'Outfit',
                                fontWeight: 400
                              }}>
                             {formatTime(seconds)}
@@ -964,7 +964,7 @@ export default function SortableTaskItem({
           {/* Creator attribution - positioned absolutely at bottom right */}
           {task.createdByName && task.createdByUserId && task.userId !== task.createdByUserId && (
             <div className="absolute bottom-3 right-4">
-              <p className="text-xs font-normal" style={{ color: 'var(--color-todoloo-text-muted)', fontFamily: 'Geist' }}>
+              <p className="text-xs font-normal" style={{ color: 'var(--color-todoloo-text-muted)', fontFamily: 'Outfit' }}>
                 With love from {task.createdByName}
               </p>
             </div>

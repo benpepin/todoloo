@@ -145,14 +145,14 @@ function SortableChecklistItem({ item, onToggle, onDelete, onUpdate }: SortableC
           }}
           onKeyDown={handleKeyDown}
           onBlur={handleSave}
-          className="flex-1 text-sm font-inter bg-transparent border-none outline-none"
+          className="flex-1 text-sm font-['Outfit'] bg-transparent border-none outline-none"
           style={{
             color: 'var(--color-todoloo-text-secondary)'
           }}
         />
       ) : (
         <span
-          className={`flex-1 text-sm font-inter cursor-text ${item.isCompleted ? 'line-through' : ''}`}
+          className={`flex-1 text-sm font-['Outfit'] cursor-text ${item.isCompleted ? 'line-through' : ''}`}
           style={{
             color: item.isCompleted ? 'var(--color-todoloo-text-muted)' : 'var(--color-todoloo-text-secondary)'
           }}
@@ -326,7 +326,7 @@ export default function ChecklistSection({ taskId, checklistItems = [], isEditin
                 }
               }}
               placeholder="Add item..."
-              className="flex-1 text-sm font-inter bg-transparent border-none outline-none"
+              className="flex-1 text-sm font-['Outfit'] bg-transparent border-none outline-none"
               style={{ color: 'var(--color-todoloo-text-primary)' }}
             />
           </div>
@@ -336,7 +336,7 @@ export default function ChecklistSection({ taskId, checklistItems = [], isEditin
             className="flex items-center gap-2 py-2 px-3 rounded-lg transition-colors hover:bg-[var(--color-todoloo-muted)] cursor-pointer w-full"
           >
             <Plus className="w-4 h-4" style={{ color: 'var(--color-todoloo-text-muted)' }} />
-            <span className="text-sm font-inter" style={{ color: 'var(--color-todoloo-text-muted)' }}>
+            <span className="text-sm font-['Outfit']" style={{ color: 'var(--color-todoloo-text-muted)' }}>
               Add item
             </span>
           </button>

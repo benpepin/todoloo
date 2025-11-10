@@ -58,11 +58,12 @@ function DroppableListItem({
           }}
           onBlur={onSaveEdit}
           autoFocus
-          className="w-full px-3 py-2.5 text-[15px] font-medium rounded-lg
-            bg-white dark:bg-[#2a2a2a]
-            border border-gray-300 dark:border-[#404040]
+          className="w-full px-0 py-2 text-lg font-normal font-outfit
+            bg-transparent
+            border-none
             text-[var(--color-todoloo-text-primary)]
-            focus:outline-none focus:ring-2 focus:ring-gray-400 dark:focus:ring-gray-500"
+            focus:outline-none
+            transition-all duration-200 ease-out"
         />
       ) : (
         // Display mode
@@ -70,14 +71,14 @@ function DroppableListItem({
           onClick={onSwitch}
           onDoubleClick={onEdit}
           className={`
-            w-full px-3 py-2.5 text-left text-[15px] font-medium rounded-lg
-            transition-all duration-150 ease-out cursor-pointer
+            w-full px-0 py-2 text-left text-lg font-normal font-outfit
+            transition-all duration-200 ease-out cursor-pointer
             ${
               isActive
-                ? 'bg-gray-100 dark:bg-[#333333] text-[var(--color-todoloo-text-primary)]'
-                : 'text-[var(--color-todoloo-text-secondary)] hover:bg-gray-50 dark:hover:bg-[#2d2d2d]'
+                ? 'text-[var(--color-todoloo-text-primary)] font-semibold'
+                : 'text-[var(--color-todoloo-text-secondary)] hover:text-[var(--color-todoloo-text-primary)]'
             }
-            ${isOver ? 'ring-2 ring-blue-400 dark:ring-blue-500 bg-blue-50 dark:bg-blue-900/20' : ''}
+            ${isOver ? 'text-blue-500' : ''}
           `}
         >
           <div className="flex items-center justify-between">
@@ -149,9 +150,9 @@ export function PersonalLists() {
   }
 
   return (
-    <div className="w-full">
+    <div className="w-full flex flex-col gap-2">
       {/* Personal Lists */}
-      <div className="space-y-1" onMouseLeave={() => setHoveredIndex(null)}>
+      <div className="space-y-0" onMouseLeave={() => setHoveredIndex(null)}>
         {lists.map((list, index) => (
           <div key={list.id} onMouseEnter={() => setHoveredIndex(index)}>
             <DroppableListItem
@@ -170,50 +171,51 @@ export function PersonalLists() {
             />
           </div>
         ))}
-
-        {/* Add New List Button (shows on hover) - only if user has permission */}
-        {canAddList && (
-          isAddingList ? (
-            <input
-              type="text"
-              value={newListName}
-              onChange={(e) => setNewListName(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') handleCreateList()
-                if (e.key === 'Escape') {
-                  setIsAddingList(false)
-                  setNewListName('')
-                }
-              }}
-              onBlur={() => {
-                if (!newListName.trim()) {
-                  setIsAddingList(false)
-                } else {
-                  handleCreateList()
-                }
-              }}
-              placeholder="List name"
-              autoFocus
-              className="w-full px-3 py-2.5 text-[15px] font-medium rounded-lg
-                bg-white dark:bg-[#2a2a2a]
-                border border-gray-300 dark:border-[#404040]
-                text-[var(--color-todoloo-text-primary)]
-                placeholder:text-[var(--color-todoloo-text-muted)]
-                focus:outline-none focus:ring-2 focus:ring-gray-400 dark:focus:ring-gray-500"
-            />
-          ) : (
-            <button
-              onClick={() => setIsAddingList(true)}
-              className="w-full px-3 py-2.5 text-left text-[15px] font-medium rounded-lg
-                text-[var(--color-todoloo-text-muted)] hover:text-[var(--color-todoloo-text-secondary)]
-                hover:bg-gray-50 dark:hover:bg-[#2d2d2d]
-                transition-all duration-150 ease-out cursor-pointer"
-            >
-              + Add Another List
-            </button>
-          )
-        )}
       </div>
+
+      {/* Add New List Button - only if user has permission */}
+      {canAddList && (
+        isAddingList ? (
+          <input
+            type="text"
+            value={newListName}
+            onChange={(e) => setNewListName(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') handleCreateList()
+              if (e.key === 'Escape') {
+                setIsAddingList(false)
+                setNewListName('')
+              }
+            }}
+            onBlur={() => {
+              if (!newListName.trim()) {
+                setIsAddingList(false)
+              } else {
+                handleCreateList()
+              }
+            }}
+            placeholder="List name"
+            autoFocus
+            className="w-full px-0 py-2 text-lg font-normal font-outfit
+              bg-transparent
+              border-none
+              text-[var(--color-todoloo-text-primary)]
+              placeholder:text-[var(--color-todoloo-text-muted)]
+              focus:outline-none
+              transition-all duration-200 ease-out"
+          />
+        ) : (
+          <button
+            onClick={() => setIsAddingList(true)}
+            className="w-full px-0 py-2 text-left text-lg font-normal font-outfit
+              text-[var(--color-todoloo-text-muted)]
+              transition-all duration-200 ease-out cursor-pointer
+              hover:text-[var(--color-todoloo-text-secondary)]"
+          >
+            +Add Another List
+          </button>
+        )
+      )}
     </div>
   )
 }

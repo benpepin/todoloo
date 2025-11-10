@@ -197,10 +197,10 @@ export default function HistoryTable({ className = '' }: HistoryTableProps) {
   if (entries.length === 0) {
     return (
       <div className={`w-full p-8 text-center ${className}`}>
-        <div className="text-lg font-['Geist'] font-medium mb-2" style={{ color: 'var(--color-todoloo-text-secondary)' }}>
+        <div className="text-lg font-['Outfit'] font-medium mb-2" style={{ color: 'var(--color-todoloo-text-secondary)' }}>
           No history yet
         </div>
-        <div className="text-sm font-['Geist']" style={{ color: 'var(--color-todoloo-text-muted)' }}>
+        <div className="text-sm font-['Outfit']" style={{ color: 'var(--color-todoloo-text-muted)' }}>
           Complete some to dos to see your history here
         </div>
       </div>
@@ -221,7 +221,7 @@ export default function HistoryTable({ className = '' }: HistoryTableProps) {
               placeholder="Search to dos..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 rounded-lg border text-sm font-['Geist']"
+              className="w-full pl-10 pr-4 py-2 rounded-lg border text-sm font-['Outfit']"
               style={{
                 backgroundColor: 'var(--color-todoloo-card)',
                 borderColor: 'var(--color-todoloo-border)',
@@ -233,7 +233,7 @@ export default function HistoryTable({ className = '' }: HistoryTableProps) {
           {/* Export */}
           <button
             onClick={exportToCSV}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg border text-sm font-['Geist'] font-medium transition-colors whitespace-nowrap"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg border text-sm font-['Outfit'] font-medium transition-colors whitespace-nowrap"
             style={{
               backgroundColor: 'var(--color-todoloo-gradient-start)',
               borderColor: 'var(--color-todoloo-gradient-start)',
@@ -253,7 +253,7 @@ export default function HistoryTable({ className = '' }: HistoryTableProps) {
             <button
               key={filter}
               onClick={() => setFilterBy(filter)}
-              className="px-3 py-1.5 rounded-lg text-xs font-['Geist'] font-medium transition-all"
+              className="px-3 py-1.5 rounded-lg text-xs font-['Outfit'] font-medium transition-all"
               style={{
                 backgroundColor: filterBy === filter ? 'var(--color-todoloo-gradient-start)' : 'var(--color-todoloo-card)',
                 borderColor: filterBy === filter ? 'var(--color-todoloo-gradient-start)' : 'var(--color-todoloo-border)',
@@ -276,7 +276,7 @@ export default function HistoryTable({ className = '' }: HistoryTableProps) {
           <thead>
             <tr className="border-b" style={{ borderColor: 'var(--color-todoloo-border)' }}>
               <th
-                className="text-left py-3 px-4 font-['Geist'] font-medium text-sm cursor-pointer hover:opacity-70 transition-opacity"
+                className="text-left py-3 px-4 font-['Outfit'] font-medium text-sm cursor-pointer hover:opacity-70 transition-opacity"
                 style={{ color: 'var(--color-todoloo-text-secondary)' }}
                 onClick={() => handleSort('originalDescription')}
               >
@@ -286,7 +286,7 @@ export default function HistoryTable({ className = '' }: HistoryTableProps) {
                 </div>
               </th>
               <th
-                className="text-left py-3 px-4 font-['Geist'] font-medium text-sm cursor-pointer hover:opacity-70 transition-opacity"
+                className="text-left py-3 px-4 font-['Outfit'] font-medium text-sm cursor-pointer hover:opacity-70 transition-opacity"
                 style={{ color: 'var(--color-todoloo-text-secondary)' }}
                 onClick={() => handleSort('actualMinutes')}
               >
@@ -296,7 +296,7 @@ export default function HistoryTable({ className = '' }: HistoryTableProps) {
                 </div>
               </th>
               <th
-                className="text-left py-3 px-4 font-['Geist'] font-medium text-sm cursor-pointer hover:opacity-70 transition-opacity"
+                className="text-left py-3 px-4 font-['Outfit'] font-medium text-sm cursor-pointer hover:opacity-70 transition-opacity"
                 style={{ color: 'var(--color-todoloo-text-secondary)' }}
                 onClick={() => handleSort('completedAt')}
               >
@@ -306,13 +306,13 @@ export default function HistoryTable({ className = '' }: HistoryTableProps) {
                 </div>
               </th>
               <th
-                className="text-center py-3 px-4 font-['Geist'] font-medium text-sm"
+                className="text-center py-3 px-4 font-['Outfit'] font-medium text-sm"
                 style={{ color: 'var(--color-todoloo-text-secondary)' }}
               >
                 vs Avg
               </th>
               <th
-                className="text-right py-3 px-4 font-['Geist'] font-medium text-sm"
+                className="text-right py-3 px-4 font-['Outfit'] font-medium text-sm"
                 style={{ color: 'var(--color-todoloo-text-secondary)' }}
               >
                 Actions
@@ -333,17 +333,17 @@ export default function HistoryTable({ className = '' }: HistoryTableProps) {
                   }}
                 >
                   <td className="py-3 px-4">
-                    <div className="font-['Geist'] font-medium text-sm" style={{ color: 'var(--color-todoloo-text-primary)' }}>
+                    <div className="font-['Outfit'] font-medium text-sm" style={{ color: 'var(--color-todoloo-text-primary)' }}>
                       {entry.originalDescription}
                     </div>
                   </td>
                   <td className="py-3 px-4">
-                    <div className="font-['Geist'] text-sm" style={{ color: 'var(--color-todoloo-text-secondary)' }}>
+                    <div className="font-['Outfit'] text-sm" style={{ color: 'var(--color-todoloo-text-secondary)' }}>
                       {formatDuration(entry.actualMinutes)}
                     </div>
                   </td>
                   <td className="py-3 px-4">
-                    <div className="font-['Geist'] text-sm" style={{ color: 'var(--color-todoloo-text-secondary)' }}>
+                    <div className="font-['Outfit'] text-sm" style={{ color: 'var(--color-todoloo-text-secondary)' }}>
                       <div>{formatDate(entry.completedAt)}</div>
                       <div className="text-xs opacity-70">{formatTime(entry.completedAt)}</div>
                     </div>
@@ -355,7 +355,7 @@ export default function HistoryTable({ className = '' }: HistoryTableProps) {
                         style={{ backgroundColor: comparison.bgColor }}
                       >
                         <Icon className="w-3.5 h-3.5" style={{ color: comparison.color }} />
-                        <span className="text-xs font-['Geist'] font-medium" style={{ color: comparison.color }}>
+                        <span className="text-xs font-['Outfit'] font-medium" style={{ color: comparison.color }}>
                           {comparison.text}
                         </span>
                       </div>
@@ -393,26 +393,26 @@ export default function HistoryTable({ className = '' }: HistoryTableProps) {
         <div className="mt-6 p-4 rounded-lg" style={{ backgroundColor: 'var(--color-todoloo-muted)' }}>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-center">
             <div>
-              <div className="text-lg font-['Geist'] font-semibold" style={{ color: 'var(--color-todoloo-text-primary)' }}>
+              <div className="text-lg font-['Outfit'] font-semibold" style={{ color: 'var(--color-todoloo-text-primary)' }}>
                 {filteredAndSortedEntries.length}
               </div>
-              <div className="text-xs font-['Geist']" style={{ color: 'var(--color-todoloo-text-muted)' }}>
+              <div className="text-xs font-['Outfit']" style={{ color: 'var(--color-todoloo-text-muted)' }}>
                 To Dos
               </div>
             </div>
             <div>
-              <div className="text-lg font-['Geist'] font-semibold" style={{ color: 'var(--color-todoloo-text-primary)' }}>
+              <div className="text-lg font-['Outfit'] font-semibold" style={{ color: 'var(--color-todoloo-text-primary)' }}>
                 {formatDuration(filteredAndSortedEntries.reduce((sum, entry) => sum + entry.actualMinutes, 0))}
               </div>
-              <div className="text-xs font-['Geist']" style={{ color: 'var(--color-todoloo-text-muted)' }}>
+              <div className="text-xs font-['Outfit']" style={{ color: 'var(--color-todoloo-text-muted)' }}>
                 Total Time
               </div>
             </div>
             <div>
-              <div className="text-lg font-['Geist'] font-semibold" style={{ color: 'var(--color-todoloo-text-primary)' }}>
+              <div className="text-lg font-['Outfit'] font-semibold" style={{ color: 'var(--color-todoloo-text-primary)' }}>
                 {Math.round(filteredAndSortedEntries.reduce((sum, entry) => sum + entry.actualMinutes, 0) / filteredAndSortedEntries.length)}m
               </div>
-              <div className="text-xs font-['Geist']" style={{ color: 'var(--color-todoloo-text-muted)' }}>
+              <div className="text-xs font-['Outfit']" style={{ color: 'var(--color-todoloo-text-muted)' }}>
                 Avg Time
               </div>
             </div>
@@ -428,7 +428,7 @@ export default function HistoryTable({ className = '' }: HistoryTableProps) {
             style={{ backgroundColor: 'var(--color-todoloo-card)' }}
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 className="text-lg font-['Geist'] font-semibold mb-4" style={{ color: 'var(--color-todoloo-text-primary)' }}>
+            <h3 className="text-lg font-['Outfit'] font-semibold mb-4" style={{ color: 'var(--color-todoloo-text-primary)' }}>
               Edit History Entry
             </h3>
             <form onSubmit={(e) => {
@@ -450,14 +450,14 @@ export default function HistoryTable({ className = '' }: HistoryTableProps) {
             }}>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-['Geist'] font-medium mb-1" style={{ color: 'var(--color-todoloo-text-secondary)' }}>
+                  <label className="block text-sm font-['Outfit'] font-medium mb-1" style={{ color: 'var(--color-todoloo-text-secondary)' }}>
                     Description
                   </label>
                   <input
                     type="text"
                     name="description"
                     defaultValue={editingEntry.originalDescription}
-                    className="w-full px-3 py-2 rounded-lg border text-sm font-['Geist']"
+                    className="w-full px-3 py-2 rounded-lg border text-sm font-['Outfit']"
                     style={{
                       backgroundColor: 'var(--color-todoloo-bg)',
                       borderColor: 'var(--color-todoloo-border)',
@@ -467,7 +467,7 @@ export default function HistoryTable({ className = '' }: HistoryTableProps) {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-['Geist'] font-medium mb-1" style={{ color: 'var(--color-todoloo-text-secondary)' }}>
+                  <label className="block text-sm font-['Outfit'] font-medium mb-1" style={{ color: 'var(--color-todoloo-text-secondary)' }}>
                     Duration (minutes)
                   </label>
                   <input
@@ -475,7 +475,7 @@ export default function HistoryTable({ className = '' }: HistoryTableProps) {
                     name="minutes"
                     defaultValue={editingEntry.actualMinutes}
                     min="1"
-                    className="w-full px-3 py-2 rounded-lg border text-sm font-['Geist']"
+                    className="w-full px-3 py-2 rounded-lg border text-sm font-['Outfit']"
                     style={{
                       backgroundColor: 'var(--color-todoloo-bg)',
                       borderColor: 'var(--color-todoloo-border)',
@@ -485,14 +485,14 @@ export default function HistoryTable({ className = '' }: HistoryTableProps) {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-['Geist'] font-medium mb-1" style={{ color: 'var(--color-todoloo-text-secondary)' }}>
+                  <label className="block text-sm font-['Outfit'] font-medium mb-1" style={{ color: 'var(--color-todoloo-text-secondary)' }}>
                     Date
                   </label>
                   <input
                     type="date"
                     name="date"
                     defaultValue={new Date(editingEntry.completedAt).toISOString().split('T')[0]}
-                    className="w-full px-3 py-2 rounded-lg border text-sm font-['Geist']"
+                    className="w-full px-3 py-2 rounded-lg border text-sm font-['Outfit']"
                     style={{
                       backgroundColor: 'var(--color-todoloo-bg)',
                       borderColor: 'var(--color-todoloo-border)',
@@ -502,14 +502,14 @@ export default function HistoryTable({ className = '' }: HistoryTableProps) {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-['Geist'] font-medium mb-1" style={{ color: 'var(--color-todoloo-text-secondary)' }}>
+                  <label className="block text-sm font-['Outfit'] font-medium mb-1" style={{ color: 'var(--color-todoloo-text-secondary)' }}>
                     Time
                   </label>
                   <input
                     type="time"
                     name="time"
                     defaultValue={new Date(editingEntry.completedAt).toTimeString().slice(0, 5)}
-                    className="w-full px-3 py-2 rounded-lg border text-sm font-['Geist']"
+                    className="w-full px-3 py-2 rounded-lg border text-sm font-['Outfit']"
                     style={{
                       backgroundColor: 'var(--color-todoloo-bg)',
                       borderColor: 'var(--color-todoloo-border)',
@@ -523,7 +523,7 @@ export default function HistoryTable({ className = '' }: HistoryTableProps) {
                 <button
                   type="button"
                   onClick={() => setEditingEntry(null)}
-                  className="flex-1 px-4 py-2 rounded-lg border text-sm font-['Geist'] font-medium transition-colors"
+                  className="flex-1 px-4 py-2 rounded-lg border text-sm font-['Outfit'] font-medium transition-colors"
                   style={{
                     backgroundColor: 'var(--color-todoloo-bg)',
                     borderColor: 'var(--color-todoloo-border)',
@@ -534,7 +534,7 @@ export default function HistoryTable({ className = '' }: HistoryTableProps) {
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 px-4 py-2 rounded-lg text-sm font-['Geist'] font-medium transition-colors"
+                  className="flex-1 px-4 py-2 rounded-lg text-sm font-['Outfit'] font-medium transition-colors"
                   style={{
                     backgroundColor: 'var(--color-todoloo-gradient-start)',
                     color: 'white'

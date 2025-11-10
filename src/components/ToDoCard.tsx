@@ -177,12 +177,12 @@ function SortableTempChecklistItem({ item, onToggle, onDelete, onUpdate }: Sorta
           onChange={(e) => setEditValue(e.target.value)}
           onKeyDown={handleKeyDown}
           onBlur={handleSave}
-          className="flex-1 text-sm font-inter bg-transparent border-none outline-none"
+          className="flex-1 text-sm font-['Outfit'] bg-transparent border-none outline-none"
           style={{ color: 'var(--color-todoloo-text-secondary)' }}
         />
       ) : (
         <span
-          className={`flex-1 text-sm font-inter cursor-text ${item.isCompleted ? 'line-through' : ''}`}
+          className={`flex-1 text-sm font-['Outfit'] cursor-text ${item.isCompleted ? 'line-through' : ''}`}
           style={{
             color: item.isCompleted ? 'var(--color-todoloo-text-muted)' : 'var(--color-todoloo-text-secondary)'
           }}
@@ -295,7 +295,7 @@ function TempChecklistSection({ items, onAddItem, onDeleteItem, onToggleItem, on
               }
             }}
             placeholder="Add item..."
-            className="flex-1 text-sm font-inter bg-transparent border-none outline-none"
+            className="flex-1 text-sm font-['Outfit'] bg-transparent border-none outline-none"
             style={{ color: 'var(--color-todoloo-text-primary)' }}
           />
         </div>
@@ -305,7 +305,7 @@ function TempChecklistSection({ items, onAddItem, onDeleteItem, onToggleItem, on
           className="flex items-center gap-2 py-2 px-3 rounded-lg transition-colors hover:bg-[var(--color-todoloo-muted)] cursor-pointer w-full"
         >
           <Plus className="w-4 h-4" style={{ color: 'var(--color-todoloo-text-muted)' }} />
-          <span className="text-sm font-inter" style={{ color: 'var(--color-todoloo-text-muted)' }}>
+          <span className="text-sm font-['Outfit']" style={{ color: 'var(--color-todoloo-text-muted)' }}>
             Add item
           </span>
         </button>
@@ -701,7 +701,7 @@ function ToDoCardContent() {
                 handleSubmit(e)
               }
             }}
-            className="flex-1 text-base font-['Geist'] bg-transparent border-none outline-none"
+            className="flex-1 text-base font-['Outfit'] bg-transparent border-none outline-none"
             style={{ color: 'var(--color-todoloo-text-primary)' }}
           />
                  {!description && (
@@ -721,7 +721,7 @@ function ToDoCardContent() {
                          "Update my LinkedIn",
                        ]}
                        interval={4000}
-                       className="text-base font-['Geist'] leading-tight"
+                       className="text-base font-['Outfit'] leading-tight"
                        onTextChange={(text) => {
                          const historicalStats = getSimilarStats(text)
                          const estimatedTime = estimateTimeFromDescription(text, customKeywords, defaultMinutes, historicalStats)
@@ -741,7 +741,7 @@ function ToDoCardContent() {
           }`}>
             <div className="flex items-center gap-2 mb-2">
               <Plus className={`w-4 h-4 ${multiplicationPreview.count > 10 ? 'text-[#D32F2F]' : 'text-[#1976D2]'}`} />
-              <span className={`text-sm font-inter font-medium ${
+              <span className={`text-sm font-['Outfit'] font-medium ${
                 multiplicationPreview.count > 10 ? 'text-[#D32F2F]' : 'text-[#1565C0]'
               }`}>
                 {multiplicationPreview.count > 10 
@@ -753,12 +753,12 @@ function ToDoCardContent() {
             {multiplicationPreview.count <= 10 && (
               <div className="space-y-1">
                 {Array.from({ length: Math.min(multiplicationPreview.count, 5) }, (_, i) => (
-                  <div key={i} className="text-sm text-[#1565C0] font-inter">
+                  <div key={i} className="text-sm text-[#1565C0] font-['Outfit']">
                     • {multiplicationPreview.baseDescription} ({i + 1})
                   </div>
                 ))}
                 {multiplicationPreview.count > 5 && (
-                  <div className="text-sm text-[#1565C0] font-inter text-opacity-70">
+                  <div className="text-sm text-[#1565C0] font-['Outfit'] text-opacity-70">
                     ... and {multiplicationPreview.count - 5} more
                   </div>
                 )}
@@ -775,7 +775,7 @@ function ToDoCardContent() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <TrendingUp className="w-4 h-4 text-[#6C757D]" />
-                  <span className="text-sm text-[#495057] font-inter">
+                  <span className="text-sm text-[#495057] font-['Outfit']">
                     Based on {stats.count} similar to do{stats.count !== 1 ? 's' : ''}: avg {stats.averageMinutes}m
                     {stats.count > 1 && (
                       <span className="text-xs text-[#6C757D] ml-1">
@@ -787,7 +787,7 @@ function ToDoCardContent() {
                 <button
                   type="button"
                   onClick={handleUseSuggestion}
-                  className="text-xs text-[#007BFF] hover:text-[#0056B3] font-inter font-medium transition-colors"
+                  className="text-xs text-[#007BFF] hover:text-[#0056B3] font-['Outfit'] font-medium transition-colors"
                 >
                   Use suggestion
                 </button>
@@ -832,7 +832,7 @@ function ToDoCardContent() {
                 }}
               >
                 <Timer className="w-3.5 h-3.5" style={{ color: 'var(--color-todoloo-text-secondary)' }} />
-                <span className="text-xs font-inter" style={{ color: 'var(--color-todoloo-text-secondary)', transform: 'translateY(1px)' }}>
+                <span className="text-xs font-['Outfit']" style={{ color: 'var(--color-todoloo-text-secondary)', transform: 'translateY(1px)' }}>
                   {formatEstimatedTime(estimatedMinutes)}
                 </span>
                 <ChevronDown className={`w-3 h-3 transition-transform translate-y-px ${isDropdownOpen ? 'rotate-180' : ''}`}
@@ -847,7 +847,7 @@ function ToDoCardContent() {
                         key={time.value}
                         type="button"
                         onClick={() => handleTimeSelect(time.value)}
-                        className="w-full text-left px-3 py-2 text-xs text-[#696969] font-inter hover:bg-[#F5F5F5] rounded-[10px] transition-colors cursor-pointer"
+                        className="w-full text-left px-3 py-2 text-xs text-[#696969] font-['Outfit'] hover:bg-[#F5F5F5] rounded-[10px] transition-colors cursor-pointer"
                       >
                         {time.label}
                       </button>
@@ -869,9 +869,9 @@ function ToDoCardContent() {
                           placeholder="Custom"
                           min="1"
                           max="999"
-                          className="flex-1 text-xs text-[#2D1B1B] font-inter bg-transparent border-none outline-none placeholder:text-[#989999]"
+                          className="flex-1 text-xs text-[#2D1B1B] font-['Outfit'] bg-transparent border-none outline-none placeholder:text-[#989999]"
                         />
-                        <span className="text-xs text-[#696969] font-inter">minutes</span>
+                        <span className="text-xs text-[#696969] font-['Outfit']">minutes</span>
                       </div>
                     </form>
                   </div>
@@ -908,7 +908,7 @@ function ToDoCardContent() {
                   <button
                     type="button"
                     onClick={handleAddChecklist}
-                    className="w-full text-left px-3 py-2 text-xs text-[#696969] font-inter hover:bg-[#F5F5F5] rounded-[10px] transition-colors cursor-pointer"
+                    className="w-full text-left px-3 py-2 text-xs text-[#696969] font-['Outfit'] hover:bg-[#F5F5F5] rounded-[10px] transition-colors cursor-pointer"
                   >
                     {showChecklist ? 'Hide Checklist' : 'Add Checklist'}
                   </button>

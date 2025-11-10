@@ -39,7 +39,7 @@ export default function WordCloud({ entries }: WordCloudProps) {
   if (wordFrequencies.length === 0) {
     return (
       <div className="text-center py-8">
-        <div className="text-sm font-['Geist']" style={{ color: 'var(--color-todoloo-text-muted)' }}>
+        <div className="text-sm font-['Outfit']" style={{ color: 'var(--color-todoloo-text-muted)' }}>
           Complete more tasks to see your word cloud
         </div>
       </div>
@@ -68,7 +68,7 @@ export default function WordCloud({ entries }: WordCloudProps) {
         return (
           <span
             key={word}
-            className="font-['Geist'] font-semibold hover:opacity-100 transition-opacity cursor-default"
+            className="font-['Outfit'] font-semibold hover:opacity-100 transition-opacity cursor-default"
             style={{
               fontSize: `${size}px`,
               color,
