@@ -734,8 +734,9 @@ export default function SortableTaskItem({
                   style={{
                     top: '12px',
                     left: 0,
-                    transform: 'translateX(-100%)',
                     animation: 'catPawSlide 1.5s ease-in-out',
+                    animationFillMode: 'backwards',
+                    transform: 'translateX(-100%)',
                   }}
                 >
                   <Image
