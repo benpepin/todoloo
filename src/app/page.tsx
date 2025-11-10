@@ -262,26 +262,24 @@ export default function Home() {
           <div className="w-full max-w-[640px] flex flex-col justify-start items-start h-full pointer-events-auto">
             {/* Large Unified Card Container */}
             <div
-              className="w-full h-full rounded-t-[60px] overflow-hidden p-1 flex flex-col"
+              className="w-full h-full rounded-t-[60px] overflow-hidden flex flex-col"
               style={{
                 backgroundColor: 'var(--color-todoloo-bg)',
                 boxShadow: '0px 4px 14px 10px rgba(0, 0, 0, 0.02)',
-                ...(tasks.length === 0 && !showCreateTask 
-                  ? { 
-                      borderLeft: '1px var(--color-todoloo-border) solid',
-                      borderRight: '1px var(--color-todoloo-border) solid',
-                      borderBottom: '1px var(--color-todoloo-border) solid',
-                      borderTop: 'none'
+                ...(tasks.length === 0 && !showCreateTask
+                  ? {
+                      border: '1px var(--color-todoloo-border) solid'
                     }
-                  : { 
+                  : {
                       outline: '1px var(--color-todoloo-border) solid',
-                      outlineOffset: '-1px'
+                      outlineOffset: '-1px',
+                      padding: '1px'
                     }
                 )
               }}
             >
               {/* Progress Indicator - Fixed at top - Shopping Cart for shopping lists, Horse for others - Full Width */}
-              {showProgressIndicator && isShoppingList && showShoppingCartProgress && (
+              {showProgressIndicator && isShoppingList && showShoppingCartProgress && (tasks.length > 0 || showCreateTask) && (
                 <div className="w-full rounded-t-[56px] overflow-hidden flex-shrink-0"
                      style={{
                        backgroundColor: 'var(--color-todoloo-bg)',
@@ -290,7 +288,7 @@ export default function Home() {
                   <ShoppingCartProgress />
                 </div>
               )}
-              {showProgressIndicator && !isShoppingList && (
+              {showProgressIndicator && !isShoppingList && (tasks.length > 0 || showCreateTask) && (
                 <div className="w-full rounded-t-[56px] overflow-hidden flex-shrink-0"
                      style={{
                        backgroundColor: 'var(--color-todoloo-bg)',
