@@ -84,16 +84,16 @@ function SortableChecklistItem({ item, onToggle, onDelete, onUpdate }: SortableC
     <div
       ref={setNodeRef}
       style={style}
-      className="group flex items-center gap-3 py-2 px-3 rounded-lg transition-colors hover:bg-[var(--color-todoloo-muted)]"
+      className="group flex items-center gap-2 py-2 rounded-lg transition-colors hover:bg-[var(--color-todoloo-muted)] relative lg:ml-6"
       tabIndex={-1}
       onKeyDown={(e) => {
         // Stop keyboard events from bubbling to parent task
         e.stopPropagation()
       }}
     >
-      {/* Drag Handle */}
+      {/* Drag Handle - only visible on hover */}
       <button
-        className="opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing p-1"
+        className="opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing p-1 hidden lg:block flex-shrink-0"
         tabIndex={0}
         onPointerDown={(e) => {
           // Stop propagation to prevent parent task card from being selected
@@ -165,10 +165,10 @@ function SortableChecklistItem({ item, onToggle, onDelete, onUpdate }: SortableC
         </span>
       )}
 
-      {/* Delete button (shown on hover) */}
+      {/* Delete button (shown on hover) - positioned absolutely to right-align with main checkbox */}
       <button
         onClick={() => onDelete(item.id)}
-        className="opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer p-1 rounded hover:bg-[var(--color-todoloo-border)]"
+        className="opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer p-1 rounded hover:bg-[var(--color-todoloo-border)] lg:absolute lg:right-[10px]"
         aria-label="Delete checklist item"
       >
         <X className="w-3.5 h-3.5" style={{ color: 'var(--color-todoloo-text-muted)' }} />
@@ -305,7 +305,9 @@ export default function ChecklistSection({ taskId, checklistItems = [], isEditin
       {/* Add new item - only show when editing */}
       {isEditing && (
         isAddingItem ? (
-          <div className="flex items-center gap-3 py-2 px-3">
+          <div className="flex items-center gap-2 py-2 rounded-lg lg:ml-6">
+            {/* Spacer for drag handle alignment */}
+            <div className="w-[22px] hidden lg:block flex-shrink-0" />
             <div className="w-5 h-5 rounded border-2 flex-shrink-0" style={{ borderColor: 'var(--color-todoloo-border)' }} />
             <input
               ref={newItemInputRef}
@@ -333,9 +335,13 @@ export default function ChecklistSection({ taskId, checklistItems = [], isEditin
         ) : (
           <button
             onClick={() => setIsAddingItem(true)}
-            className="flex items-center gap-2 py-2 px-3 rounded-lg transition-colors hover:bg-[var(--color-todoloo-muted)] cursor-pointer w-full"
+            className="flex items-center gap-2 py-2 rounded-lg transition-colors hover:bg-[var(--color-todoloo-muted)] cursor-pointer w-full lg:ml-6"
           >
-            <Plus className="w-4 h-4" style={{ color: 'var(--color-todoloo-text-muted)' }} />
+            {/* Spacer for drag handle alignment */}
+            <div className="w-[22px] hidden lg:block flex-shrink-0" />
+            <div className="w-5 h-5 flex items-center justify-center flex-shrink-0">
+              <Plus className="w-4 h-4" style={{ color: 'var(--color-todoloo-text-muted)' }} />
+            </div>
             <span className="text-sm font-['Outfit']" style={{ color: 'var(--color-todoloo-text-muted)' }}>
               Add item
             </span>
