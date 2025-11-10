@@ -19,7 +19,6 @@ export default function Home() {
   const toggleCreateTask = useToDoStore((state) => state.toggleCreateTask)
   const showCreateTask = useToDoStore((state) => state.showCreateTask)
   const tasks = useToDoStore((state) => state.tasks)
-  const addTask = useToDoStore((state) => state.addTask)
   const isLoading = useToDoStore((state) => state.isLoading)
   const error = useToDoStore((state) => state.error)
   const clearError = useToDoStore((state) => state.clearError)
@@ -138,17 +137,23 @@ export default function Home() {
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
+      // Block Command+N / Ctrl+N
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'n') {
+        event.preventDefault()
+        return
+      }
+
       // Only trigger if no input/textarea is focused
       const activeElement = document.activeElement
       const isInputFocused = activeElement && (
-        activeElement.tagName === 'INPUT' || 
+        activeElement.tagName === 'INPUT' ||
         activeElement.tagName === 'TEXTAREA' ||
         (activeElement as HTMLElement).contentEditable === 'true'
       )
 
       if (!isInputFocused) {
-        // Handle 'n' key for new to do
-        if (event.key.toLowerCase() === 'n') {
+        // Handle 'n' key for new to do (without modifier keys)
+        if (event.key.toLowerCase() === 'n' && !event.metaKey && !event.ctrlKey && !event.altKey && !event.shiftKey) {
           event.preventDefault()
           toggleCreateTask()
         }
@@ -157,7 +162,7 @@ export default function Home() {
 
     document.addEventListener('keydown', handleKeyDown)
     return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [toggleCreateTask, addTask])
+  }, [toggleCreateTask])
 
   // Show loading state while auth is loading
   if (authLoading) {

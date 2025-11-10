@@ -18,6 +18,12 @@ function ToDoListContent() {
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
+      // Block Command+N / Ctrl+N
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'n') {
+        event.preventDefault()
+        return
+      }
+
       // Only trigger if no input/textarea is focused
       const activeElement = document.activeElement
       const isInputFocused = activeElement && (
@@ -26,8 +32,8 @@ function ToDoListContent() {
         (activeElement as HTMLElement).contentEditable === 'true'
       )
 
-      // Check for just 'n' key
-      if (!isInputFocused && event.key.toLowerCase() === 'n') {
+      // Check for just 'n' key (without modifier keys)
+      if (!isInputFocused && event.key.toLowerCase() === 'n' && !event.metaKey && !event.ctrlKey && !event.altKey && !event.shiftKey) {
         event.preventDefault()
         toggleCreateTask()
       }
