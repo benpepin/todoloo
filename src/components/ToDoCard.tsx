@@ -323,7 +323,6 @@ function ToDoCardContent() {
   const [isOptionsDropdownOpen, setIsOptionsDropdownOpen] = useState(false)
   const [showChecklist, setShowChecklist] = useState(false)
   const [tempChecklistItems, setTempChecklistItems] = useState<ChecklistItem[]>([])
-  const [isTransitioning, setIsTransitioning] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const optionsDropdownRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)

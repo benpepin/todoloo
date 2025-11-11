@@ -6,7 +6,6 @@ import { SortableContext, useSortable, verticalListSortingStrategy, arrayMove } 
 import { CSS } from '@dnd-kit/utilities'
 import { GripVertical } from 'lucide-react'
 import { useToDoStore } from '@/store/toDoStore'
-import { restrictToVerticalAxis, restrictToParentElement } from '@dnd-kit/modifiers'
 
 interface SortableListItemProps {
   listId: string
