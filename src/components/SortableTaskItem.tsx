@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import Image from 'next/image'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { Check, GripVertical, Timer, ChevronDown, Play, Pause, Unlink, MoreHorizontal } from 'lucide-react'
+import { Check, GripVertical, Timer, ChevronDown, Play, Pause, MoreHorizontal } from 'lucide-react'
 import { Task } from '@/types'
 import { useToDoStore } from '@/store/toDoStore'
 import { useSimpleTimer } from '@/hooks/useSimpleTimer'
@@ -42,7 +42,7 @@ export default function SortableTaskItem({
   const [showChecklist, setShowChecklist] = useState(false)
 
 
-  const descriptionInputRef = useRef<HTMLInputElement>(null)
+  const descriptionInputRef = useRef<HTMLTextAreaElement>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const optionsDropdownRef = useRef<HTMLDivElement>(null)
   const taskCardRef = useRef<HTMLDivElement>(null)
@@ -63,7 +63,6 @@ export default function SortableTaskItem({
   const startTask = useToDoStore((state) => state.startTask)
   const stopTask = useToDoStore((state) => state.stopTask)
   const activeTaskId = useToDoStore((state) => state.activeTaskId)
-  const ungroupTask = useToDoStore((state) => state.ungroupTask)
   const loadChecklistItems = useToDoStore((state) => state.loadChecklistItems)
   const lists = useToDoStore((state) => state.lists)
   const moveTaskToList = useToDoStore((state) => state.moveTaskToList)
