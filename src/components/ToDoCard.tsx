@@ -208,7 +208,7 @@ function SortableTempChecklistItem({ item, onToggle, onDelete, onUpdate }: Sorta
 
 function TempChecklistSection({ items, onAddItem, onDeleteItem, onToggleItem, onUpdateItem, onReorder }: TempChecklistSectionProps) {
   const [newItemDescription, setNewItemDescription] = useState('')
-  const [isAddingItem, setIsAddingItem] = useState(false)
+  const [isAddingItem, setIsAddingItem] = useState(items.length === 0)
   const newItemInputRef = useRef<HTMLInputElement>(null)
 
   const sensors = useSensors(useSensor(PointerSensor))

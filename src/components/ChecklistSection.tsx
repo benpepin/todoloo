@@ -179,7 +179,7 @@ function SortableChecklistItem({ item, onToggle, onDelete, onUpdate }: SortableC
 
 export default function ChecklistSection({ taskId, checklistItems = [], isEditing = false }: ChecklistSectionProps) {
   const [newItemDescription, setNewItemDescription] = useState('')
-  const [isAddingItem, setIsAddingItem] = useState(false)
+  const [isAddingItem, setIsAddingItem] = useState(checklistItems.length === 0 && isEditing)
   const newItemInputRef = useRef<HTMLInputElement>(null)
 
   const addChecklistItem = useToDoStore((state) => state.addChecklistItem)
