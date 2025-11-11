@@ -1,10 +1,14 @@
 'use client'
 
 import { useState } from 'react'
-import { useDroppable } from '@dnd-kit/core'
+import { useDroppable, DndContext, DragEndEvent, DragStartEvent, DragOverlay, PointerSensor, useSensor, useSensors, DragCancelEvent } from '@dnd-kit/core'
+import { SortableContext, useSortable, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
+import { GripVertical } from 'lucide-react'
 import { useToDoStore } from '@/store/toDoStore'
+import { restrictToVerticalAxis, restrictToParentElement } from '@dnd-kit/modifiers'
 
-interface DroppableListItemProps {
+interface SortableListItemProps {
   listId: string
   listName: string
   isActive: boolean
@@ -19,7 +23,7 @@ interface DroppableListItemProps {
   setEditingName: (name: string) => void
 }
 
-function DroppableListItem({
+function SortableListItem({
   listId,
   listName,
   isActive,
@@ -32,8 +36,17 @@ function DroppableListItem({
   onDelete,
   onSwitch,
   setEditingName
-}: DroppableListItemProps) {
-  const { setNodeRef, isOver } = useDroppable({
+}: SortableListItemProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging
+  } = useSortable({ id: listId })
+
+  const { isOver } = useDroppable({
     id: `list-${listId}`,
     data: {
       type: 'list',
@@ -41,10 +54,17 @@ function DroppableListItem({
     }
   })
 
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  }
+
   return (
     <div
       ref={setNodeRef}
-      className="relative group"
+      style={style}
+      className="relative group w-full"
     >
       {isEditing ? (
         // Editing mode
@@ -68,8 +88,6 @@ function DroppableListItem({
       ) : (
         // Display mode
         <div
-          onClick={onSwitch}
-          onDoubleClick={onEdit}
           className={`
             w-full px-0 py-2 text-left text-lg font-normal font-outfit
             transition-all duration-200 ease-out cursor-pointer
@@ -81,24 +99,41 @@ function DroppableListItem({
             ${isOver ? 'text-blue-500' : ''}
           `}
         >
-          <div className="flex items-center justify-between">
-            <span className="flex-1">
+          <div className="flex items-center justify-between gap-2 min-w-0">
+            <span
+              className="flex-1 truncate"
+              onClick={onSwitch}
+              onDoubleClick={onEdit}
+            >
               {listName}
             </span>
-            {isActive && canDelete && (
+            <div className="flex items-center gap-1 flex-shrink-0">
+              {/* Drag Handle */}
               <button
-                onClick={(e) => {
-                  e.stopPropagation()
-                  onDelete()
-                }}
+                {...attributes}
+                {...listeners}
                 className="opacity-0 group-hover:opacity-100 transition-opacity
-                  text-[var(--color-todoloo-text-muted)] hover:text-red-500
-                  dark:hover:text-red-400 px-1"
-                aria-label="Delete list"
+                  text-[var(--color-todoloo-text-muted)] hover:text-[var(--color-todoloo-text-primary)]
+                  cursor-grab active:cursor-grabbing p-1"
+                aria-label="Drag to reorder"
               >
-                ×
+                <GripVertical className="w-4 h-4" />
               </button>
-            )}
+              {isActive && canDelete && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    onDelete()
+                  }}
+                  className="opacity-0 group-hover:opacity-100 transition-opacity
+                    text-[var(--color-todoloo-text-muted)] hover:text-red-500
+                    dark:hover:text-red-400 px-1"
+                  aria-label="Delete list"
+                >
+                  ×
+                </button>
+              )}
+            </div>
           </div>
         </div>
       )}
@@ -107,15 +142,27 @@ function DroppableListItem({
 }
 
 export function PersonalLists() {
-  const { lists, currentListId, currentListOwnerId, currentListOwnerPermission, userId, switchToPersonalList, createList, updateListName, deleteList } = useToDoStore()
+  const { lists, currentListId, currentListOwnerId, currentListOwnerPermission, userId, switchToPersonalList, createList, updateListName, deleteList, reorderLists } = useToDoStore()
   const [isAddingList, setIsAddingList] = useState(false)
   const [newListName, setNewListName] = useState('')
   const [editingListId, setEditingListId] = useState<string | null>(null)
   const [editingName, setEditingName] = useState('')
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
+  const [activeId, setActiveId] = useState<string | null>(null)
 
   // Can add lists if viewing own lists OR have write permission on shared user's lists
   const canAddList = !currentListOwnerId || currentListOwnerId === userId || currentListOwnerPermission === 'write'
+
+  // Setup sensors for drag and drop
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8, // 8px of movement required before drag starts
+      },
+    })
+  )
+
+  const activeList = lists.find(list => list.id === activeId)
 
   const handleCreateList = async () => {
     if (newListName.trim()) {
@@ -149,29 +196,60 @@ export function PersonalLists() {
     }
   }
 
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveId(event.active.id as string)
+  }
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event
+
+    if (over && active.id !== over.id) {
+      const oldIndex = lists.findIndex((list) => list.id === active.id)
+      const newIndex = lists.findIndex((list) => list.id === over.id)
+
+      const newLists = arrayMove(lists, oldIndex, newIndex)
+      await reorderLists(newLists)
+    }
+
+    setActiveId(null)
+  }
+
   return (
-    <div className="w-full flex flex-col gap-2">
+    <div className="w-full flex flex-col gap-2 overflow-x-hidden">
       {/* Personal Lists */}
-      <div className="space-y-0" onMouseLeave={() => setHoveredIndex(null)}>
-        {lists.map((list, index) => (
-          <div key={list.id} onMouseEnter={() => setHoveredIndex(index)}>
-            <DroppableListItem
-              listId={list.id}
-              listName={list.name}
-              isActive={currentListId === list.id}
-              isEditing={editingListId === list.id}
-              editingName={editingName}
-              canDelete={lists.length > 1}
-              onEdit={() => handleStartEdit(list.id, list.name)}
-              onSaveEdit={handleSaveEdit}
-              onCancelEdit={handleCancelEdit}
-              onDelete={() => handleDeleteList(list.id)}
-              onSwitch={() => switchToPersonalList(list.id)}
-              setEditingName={setEditingName}
-            />
+      <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+        <SortableContext items={lists.map(list => list.id)} strategy={verticalListSortingStrategy}>
+          <div className="space-y-0 overflow-x-hidden" onMouseLeave={() => setHoveredIndex(null)}>
+            {lists.map((list, index) => (
+              <div key={list.id} onMouseEnter={() => setHoveredIndex(index)}>
+                <SortableListItem
+                  listId={list.id}
+                  listName={list.name}
+                  isActive={currentListId === list.id}
+                  isEditing={editingListId === list.id}
+                  editingName={editingName}
+                  canDelete={lists.length > 1}
+                  onEdit={() => handleStartEdit(list.id, list.name)}
+                  onSaveEdit={handleSaveEdit}
+                  onCancelEdit={handleCancelEdit}
+                  onDelete={() => handleDeleteList(list.id)}
+                  onSwitch={() => switchToPersonalList(list.id)}
+                  setEditingName={setEditingName}
+                />
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
+        </SortableContext>
+        <DragOverlay>
+          {activeList ? (
+            <div className="relative group w-full bg-[var(--color-todoloo-sidebar)] px-0 py-2">
+              <div className="text-lg font-normal font-outfit text-[var(--color-todoloo-text-primary)]">
+                {activeList.name}
+              </div>
+            </div>
+          ) : null}
+        </DragOverlay>
+      </DndContext>
 
       {/* Add New List Button - only if user has permission */}
       {canAddList && (
