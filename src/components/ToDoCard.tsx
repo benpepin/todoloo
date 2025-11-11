@@ -258,10 +258,10 @@ function TempChecklistSection({ items, onAddItem, onDeleteItem, onToggleItem, on
   }
 
   return (
-    <div className="mt-4 space-y-2">
+    <div className="space-y-0">
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
         <SortableContext items={items.map(item => item.id)} strategy={verticalListSortingStrategy}>
-          <div className="space-y-1">
+          <div className="space-y-0">
             {items.map((item) => (
               <SortableTempChecklistItem
                 key={item.id}
@@ -276,7 +276,7 @@ function TempChecklistSection({ items, onAddItem, onDeleteItem, onToggleItem, on
       </DndContext>
 
       {isAddingItem ? (
-        <div className="flex items-center gap-3 py-2 px-3">
+        <div className="flex items-center gap-3 py-1 px-0">
           <div className="w-5 h-5 rounded border-2 flex-shrink-0" style={{ borderColor: 'var(--color-todoloo-border)' }} />
           <input
             ref={newItemInputRef}
@@ -687,7 +687,7 @@ function ToDoCardContent() {
     >
       <form
         onSubmit={handleSubmit}
-        className="flex flex-col gap-8"
+        className={`flex flex-col ${showChecklist ? 'gap-2' : 'gap-8'}`}
       >
         <div className="flex items-center relative">
           <input
@@ -925,7 +925,7 @@ function ToDoCardContent() {
                 delete (window as Window & { __currentGroupId?: string }).__currentGroupId
                 setShowCreateTask(false)
               }}
-              className="px-3 py-2 text-sm font-medium cursor-pointer transition-colors"
+              className="px-3 py-2 text-sm font-['Outfit'] font-medium cursor-pointer transition-colors"
               style={{
                 backgroundColor: 'transparent',
                 color: 'var(--color-todoloo-text-secondary)'
@@ -948,7 +948,7 @@ function ToDoCardContent() {
                   : 'bg-[#E6E6E6] dark:bg-gray-700 cursor-not-allowed border-[#D9D9D9] dark:border-gray-600'
               }`}
             >
-              <span className="text-sm font-medium" style={{ color: description.trim() ? 'white' : 'var(--color-todoloo-text-muted)' }}>
+              <span className="text-sm font-['Outfit'] font-medium" style={{ color: description.trim() ? 'white' : 'var(--color-todoloo-text-muted)' }}>
                 Create
               </span>
               <CornerDownLeft className="w-4 h-4" style={{ color: description.trim() ? 'white' : 'var(--color-todoloo-text-muted)', opacity: 0.5 }} />

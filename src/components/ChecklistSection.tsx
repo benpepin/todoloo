@@ -145,14 +145,14 @@ function SortableChecklistItem({ item, onToggle, onDelete, onUpdate }: SortableC
           }}
           onKeyDown={handleKeyDown}
           onBlur={handleSave}
-          className="flex-1 text-sm font-['Outfit'] bg-transparent border-none outline-none"
+          className="flex-1 text-sm font-['Outfit'] bg-transparent border-none outline-none lg:pr-8"
           style={{
             color: 'var(--color-todoloo-text-secondary)'
           }}
         />
       ) : (
         <span
-          className={`flex-1 text-sm font-['Outfit'] cursor-text ${item.isCompleted ? 'line-through' : ''}`}
+          className={`flex-1 text-sm font-['Outfit'] cursor-text lg:pr-8 ${item.isCompleted ? 'line-through' : ''}`}
           style={{
             color: item.isCompleted ? 'var(--color-todoloo-text-muted)' : 'var(--color-todoloo-text-secondary)'
           }}
@@ -277,7 +277,7 @@ export default function ChecklistSection({ taskId, checklistItems = [], isEditin
   }
 
   return (
-    <div className="mt-4 space-y-2">
+    <div className="mt-4 flex flex-col">
       {/* Checklist items */}
       <DndContext
         sensors={sensors}
@@ -304,7 +304,8 @@ export default function ChecklistSection({ taskId, checklistItems = [], isEditin
 
       {/* Add new item - only show when editing */}
       {isEditing && (
-        isAddingItem ? (
+        <div style={{ marginTop: '16px' }}>
+          {isAddingItem ? (
           <div className="flex items-center gap-2 py-2 rounded-lg lg:ml-6">
             {/* Spacer for drag handle alignment */}
             <div className="w-[22px] hidden lg:block flex-shrink-0" />
@@ -335,7 +336,7 @@ export default function ChecklistSection({ taskId, checklistItems = [], isEditin
         ) : (
           <button
             onClick={() => setIsAddingItem(true)}
-            className="flex items-center gap-2 py-2 rounded-lg transition-colors hover:bg-[var(--color-todoloo-muted)] cursor-pointer w-full lg:ml-6"
+            className="flex items-center gap-2 py-2 pb-4 rounded-lg transition-colors hover:bg-[var(--color-todoloo-muted)] cursor-pointer w-full lg:ml-6"
           >
             {/* Spacer for drag handle alignment */}
             <div className="w-[22px] hidden lg:block flex-shrink-0" />
@@ -346,7 +347,8 @@ export default function ChecklistSection({ taskId, checklistItems = [], isEditin
               Add item
             </span>
           </button>
-        )
+          )}
+        </div>
       )}
     </div>
   )

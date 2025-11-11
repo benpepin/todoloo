@@ -482,27 +482,37 @@ export default function SortableTaskItem({
         >
           {isEditing ? (
             // Edit mode - looks like TaskCard
-            <div className={`flex flex-col gap-8 transition-all duration-150 ${
-              isAnimatingOut 
-                ? 'animate-out fade-out-0' 
+            <div className={`flex flex-col ${showChecklist ? 'gap-2' : 'gap-8'} transition-all duration-150 ${
+              isAnimatingOut
+                ? 'animate-out fade-out-0'
                 : 'animate-in fade-in-0'
             }`}>
-              <div className="flex items-center">
-                <input
+              <div className="flex items-start pr-12">
+                <textarea
                   ref={descriptionInputRef}
-                  type="text"
                   value={editDescription}
                   onChange={(e) => setEditDescription(e.target.value)}
                   onKeyDown={handleKeyDown}
                   placeholder="Write something that will disappoint your future self"
-                  className="flex-1 text-base font-inter bg-transparent border-none outline-none"
-                  style={{ 
+                  rows={1}
+                  className="flex-1 text-base font-['Outfit'] bg-transparent border-none outline-none resize-none overflow-hidden"
+                  style={{
                     color: 'var(--color-todoloo-text-primary)'
+                  }}
+                  onInput={(e) => {
+                    const target = e.target as HTMLTextAreaElement
+                    target.style.height = 'auto'
+                    target.style.height = target.scrollHeight + 'px'
                   }}
                 />
               </div>
-              
-              <div className="flex justify-between items-end">
+
+              {/* Checklist Section - shown in edit mode */}
+              {showChecklist && (
+                <ChecklistSection taskId={task.id} checklistItems={task.checklistItems} isEditing={isEditing} />
+              )}
+
+              <div className="flex justify-between items-center">
                 <div className="flex items-center gap-2">
                   <div className="relative" ref={dropdownRef}>
                     <button
@@ -525,7 +535,7 @@ export default function SortableTaskItem({
                       }}
                     >
                       <Timer className="w-3.5 h-3.5" style={{ color: 'var(--color-todoloo-text-secondary)' }} />
-                      <span className="text-xs font-inter" style={{ color: 'var(--color-todoloo-text-secondary)', transform: 'translateY(1px)' }}>
+                      <span className="text-xs font-['Outfit']" style={{ color: 'var(--color-todoloo-text-secondary)', transform: 'translateY(1px)' }}>
                         {formatEstimatedTime(editEstimatedMinutes)}
                       </span>
                       <ChevronDown className={`w-3 h-3 transition-transform translate-y-px ${isDropdownOpen ? 'rotate-180' : ''}`}
@@ -540,7 +550,7 @@ export default function SortableTaskItem({
                               key={time.value}
                               type="button"
                               onClick={() => handleTimeSelect(time.value)}
-                              className="w-full text-left px-3 py-2 text-xs text-[#696969] font-inter hover:bg-[#F5F5F5] rounded-[10px] transition-colors cursor-pointer"
+                              className="w-full text-left px-3 py-2 text-xs text-[#696969] font-['Outfit'] hover:bg-[#F5F5F5] rounded-[10px] transition-colors cursor-pointer"
                             >
                               {time.label}
                             </button>
@@ -562,9 +572,9 @@ export default function SortableTaskItem({
                                 placeholder="Custom"
                                 min="1"
                                 max="999"
-                                className="flex-1 text-xs text-[#2D1B1B] font-inter bg-transparent border-none outline-none placeholder:text-[#989999]"
+                                className="flex-1 text-xs text-[#2D1B1B] font-['Outfit'] bg-transparent border-none outline-none placeholder:text-[#989999]"
                               />
-                              <span className="text-xs text-[#696969] font-inter">minutes</span>
+                              <span className="text-xs text-[#696969] font-['Outfit']">minutes</span>
                             </div>
                           </form>
                         </div>
@@ -610,7 +620,7 @@ export default function SortableTaskItem({
                               }
                               setIsOptionsDropdownOpen(false)
                             }}
-                            className="w-full text-left px-3 py-2 text-xs text-[#696969] font-inter hover:bg-[#F5F5F5] rounded-[10px] transition-colors cursor-pointer"
+                            className="w-full text-left px-3 py-2 text-xs text-[#696969] font-['Outfit'] hover:bg-[#F5F5F5] rounded-[10px] transition-colors cursor-pointer"
                           >
                             {showChecklist ? 'Hide Checklist' : 'Add Checklist'}
                           </button>
@@ -621,7 +631,7 @@ export default function SortableTaskItem({
                                 type="button"
                                 onMouseEnter={() => setShowMoveToSubmenu(true)}
                                 onMouseLeave={() => setShowMoveToSubmenu(false)}
-                                className="w-full text-left px-3 py-2 text-xs text-[#696969] font-inter hover:bg-[#F5F5F5] rounded-[10px] transition-colors cursor-pointer flex items-center justify-between"
+                                className="w-full text-left px-3 py-2 text-xs text-[#696969] font-['Outfit'] hover:bg-[#F5F5F5] rounded-[10px] transition-colors cursor-pointer flex items-center justify-between"
                               >
                                 Move to...
                                 <ChevronDown className="w-3 h-3 -rotate-90" />
@@ -644,7 +654,7 @@ export default function SortableTaskItem({
                                           setIsOptionsDropdownOpen(false)
                                           setShowMoveToSubmenu(false)
                                         }}
-                                        className="w-full text-left px-3 py-2 text-xs text-[#696969] font-inter hover:bg-[#F5F5F5] rounded-[10px] transition-colors cursor-pointer"
+                                        className="w-full text-left px-3 py-2 text-xs text-[#696969] font-['Outfit'] hover:bg-[#F5F5F5] rounded-[10px] transition-colors cursor-pointer"
                                       >
                                         {list.name}
                                       </button>
@@ -659,44 +669,18 @@ export default function SortableTaskItem({
                     )}
                   </div>
                 </div>
-                
-                <div className="flex items-center gap-2">
-                  {task.groupId && (
-                    <button
-                      onClick={async () => {
-                        try {
-                          await ungroupTask(task.id)
-                        } catch (error) {
-                          console.error('Failed to ungroup task:', error)
-                        }
-                      }}
-                      className="h-8 px-3 text-xs font-inter cursor-pointer transition-colors flex items-center gap-1"
-                      style={{
-                        backgroundColor: 'transparent',
-                        color: 'var(--color-todoloo-text-secondary)'
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.color = 'var(--color-todoloo-gradient-start)'
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.color = 'var(--color-todoloo-text-secondary)'
-                      }}
-                      aria-label="Ungroup task"
-                      title="Ungroup"
-                    >
-                      <Unlink className="w-3 h-3" />
-                      Ungroup
-                    </button>
-                  )}
+
+                <div className="flex items-center gap-4">
                   <button
                     onClick={() => onDelete(task.id)}
-                    className="h-8 px-3 text-xs font-inter cursor-pointer transition-colors"
+                    className="text-sm font-['Outfit'] cursor-pointer transition-colors"
                     style={{
                       backgroundColor: 'transparent',
-                      color: 'var(--color-todoloo-text-secondary)'
+                      color: 'var(--color-todoloo-text-secondary)',
+                      border: 'none'
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.color = 'red'
+                      e.currentTarget.style.color = 'var(--color-todoloo-text-primary)'
                     }}
                     onMouseLeave={(e) => {
                       e.currentTarget.style.color = 'var(--color-todoloo-text-secondary)'
@@ -714,15 +698,10 @@ export default function SortableTaskItem({
                       border: 'none'
                     }}
                   >
-                    <span className="text-white text-xs font-medium" style={{ fontFamily: 'Outfit' }}>Save</span>
+                    <span className="text-white text-sm font-medium" style={{ fontFamily: 'Outfit' }}>Save</span>
                   </button>
                 </div>
               </div>
-
-              {/* Checklist Section - shown in edit mode */}
-              {showChecklist && (
-                <ChecklistSection taskId={task.id} checklistItems={task.checklistItems} isEditing={isEditing} />
-              )}
             </div>
           ) : (
             // Normal display mode - simplified design with hover states
