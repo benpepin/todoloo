@@ -127,6 +127,10 @@ export async function generateMusicForTask(task: Task): Promise<string> {
   console.log('Duration:', durationMs, 'ms (', Math.round(durationMs / 1000), 'seconds )')
 
   try {
+    // Create AbortController for timeout
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 3 * 60 * 1000) // 3 minute timeout
+
     const response = await fetch(ELEVEN_LABS_API_URL, {
       method: 'POST',
       headers: {
@@ -138,8 +142,11 @@ export async function generateMusicForTask(task: Task): Promise<string> {
         music_length_ms: durationMs,
         model_id: 'music_v1',
         force_instrumental: false
-      })
+      }),
+      signal: controller.signal
     })
+
+    clearTimeout(timeoutId)
 
     if (!response.ok) {
       const errorText = await response.text()
@@ -184,6 +191,10 @@ export async function generateMusicForTask(task: Task): Promise<string> {
     return publicUrl
   } catch (error) {
     if (error instanceof Error) {
+      // Handle abort/timeout error
+      if (error.name === 'AbortError') {
+        throw new Error('Music generation timed out after 3 minutes. Please try again with a simpler task name.')
+      }
       throw error
     }
     throw new Error('An unexpected error occurred while generating music.')

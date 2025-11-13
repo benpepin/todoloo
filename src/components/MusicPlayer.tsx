@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Music, Loader2, AlertCircle, RotateCcw } from 'lucide-react'
 import { useAudioPlayback } from '@/hooks/useAudioPlayback'
 
@@ -22,6 +22,18 @@ export function MusicPlayer({
   onRetry
 }: MusicPlayerProps) {
   const { isPlaying, play, pause, stop, error } = useAudioPlayback(musicUrl)
+  const [elapsedSeconds, setElapsedSeconds] = useState(0)
+
+  // Track elapsed time during generation
+  useEffect(() => {
+    if (musicGenerationStatus === 'generating') {
+      setElapsedSeconds(0)
+      const interval = setInterval(() => {
+        setElapsedSeconds(prev => prev + 1)
+      }, 1000)
+      return () => clearInterval(interval)
+    }
+  }, [musicGenerationStatus])
 
   // Auto-play when task starts (if music is ready)
   useEffect(() => {
@@ -46,10 +58,16 @@ export function MusicPlayer({
 
   // Rendering based on status
   if (musicGenerationStatus === 'generating') {
+    const minutes = Math.floor(elapsedSeconds / 60)
+    const seconds = elapsedSeconds % 60
+    const timeStr = minutes > 0
+      ? `${minutes}:${seconds.toString().padStart(2, '0')}`
+      : `${seconds}s`
+
     return (
       <div className="flex items-center gap-2 text-sm text-gray-500">
         <Loader2 className="h-4 w-4 animate-spin" />
-        <span>Generating music...</span>
+        <span>Generating music... ({timeStr})</span>
       </div>
     )
   }

@@ -43,23 +43,21 @@ export default function ShoppingCartProgress() {
   }
 
   return (
-    <div className="w-full max-w-[460px] mb-6">
+    <div className="w-full">
       {/* Track Container */}
       <div
         className="relative w-full overflow-hidden"
         style={{
-          height: 85,
-          borderRadius: 10
+          height: 160
         }}
       >
         {/* Sky background */}
         <div
           className="absolute top-0 left-0 right-0"
           style={{
-            height: 65,
+            height: 125,
             top: 0,
-            background: '#79C7FD',
-            borderRadius: 10
+            background: '#79C7FD'
           }}
         >
           <div
@@ -77,9 +75,8 @@ export default function ShoppingCartProgress() {
         <div
           className="absolute bottom-0 left-0 right-0"
           style={{
-            height: 28,
-            background: '#103F2A',
-            boxShadow: '0px -1px 2px rgba(0, 0, 0, 0.15)'
+            height: 35,
+            background: '#103F2A'
           }}
         />
 
@@ -87,9 +84,8 @@ export default function ShoppingCartProgress() {
         <div
           className="absolute bottom-0 left-0 right-0"
           style={{
-            height: 24,
-            background: '#009959',
-            boxShadow: '0px -3px 4px rgba(0, 0, 0, 0.25)'
+            height: 30,
+            background: '#009959'
           }}
         />
 
@@ -97,9 +93,9 @@ export default function ShoppingCartProgress() {
         <div
           className="absolute right-0 bottom-0 flex flex-col"
           style={{
-            width: 8,
-            height: 28,
-            background: 'repeating-linear-gradient(0deg, #000, #000 4px, #fff 4px, #fff 8px)'
+            width: 12,
+            height: 35,
+            background: 'repeating-linear-gradient(0deg, #000, #000 6px, #fff 6px, #fff 12px)'
           }}
         />
 
@@ -108,17 +104,17 @@ export default function ShoppingCartProgress() {
           className="absolute transition-all duration-500 ease-out"
           style={{
             left: `${Math.min(progress, 92)}%`,
-            top: 0,
+            top: 14,
             transform: 'translateX(-50%)',
-            width: 95,
-            height: 100
+            width: 160,
+            height: 160
           }}
         >
           <Image
             src={getCartImage()}
             alt="Shopping cart"
-            width={95}
-            height={100}
+            width={160}
+            height={160}
             className={isAnimating ? 'animate-cart-bounce' : ''}
             style={{ display: 'block' }}
           />
