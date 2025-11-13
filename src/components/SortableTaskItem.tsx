@@ -4,13 +4,14 @@ import { useState, useRef, useEffect } from 'react'
 import Image from 'next/image'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { Check, GripVertical, Timer, ChevronDown, Play, Pause, MoreHorizontal } from 'lucide-react'
+import { Check, GripVertical, Timer, ChevronDown, Play, Pause, MoreHorizontal, Music } from 'lucide-react'
 import { Task } from '@/types'
 import { useToDoStore } from '@/store/toDoStore'
 import { useSimpleTimer } from '@/hooks/useSimpleTimer'
 import AnimatedBorder from './AnimatedBorder'
 import { AnimatedBars } from './AnimatedBars'
 import ChecklistSection from './ChecklistSection'
+import { MusicPlayer } from './MusicPlayer'
 
 interface SortableTaskItemProps {
   task: Task
@@ -67,6 +68,9 @@ export default function SortableTaskItem({
   const lists = useToDoStore((state) => state.lists)
   const moveTaskToList = useToDoStore((state) => state.moveTaskToList)
   const currentListId = useToDoStore((state) => state.currentListId)
+  const toggleTaskMusic = useToDoStore((state) => state.toggleTaskMusic)
+  const generateMusicForTask = useToDoStore((state) => state.generateMusicForTask)
+  const retryMusicGeneration = useToDoStore((state) => state.retryMusicGeneration)
   
   const isEditing = editingTaskId === task.id
   const isActive = activeTaskId === task.id
@@ -218,6 +222,11 @@ export default function SortableTaskItem({
 
   const handleStartTask = () => {
     startTask(task.id)
+
+    // Generate music if enabled and not already generated
+    if (task.musicEnabled && !task.musicUrl && task.musicGenerationStatus !== 'generating') {
+      generateMusicForTask(task.id)
+    }
   }
 
   const handlePauseTask = () => {
@@ -624,6 +633,18 @@ export default function SortableTaskItem({
                             {showChecklist ? 'Hide Checklist' : 'Add Checklist'}
                           </button>
 
+                          <button
+                            type="button"
+                            onClick={() => {
+                              toggleTaskMusic(task.id)
+                              setIsOptionsDropdownOpen(false)
+                            }}
+                            className="w-full text-left px-3 py-2 text-xs text-[#696969] font-['Outfit'] hover:bg-[#F5F5F5] rounded-[10px] transition-colors cursor-pointer flex items-center gap-2"
+                          >
+                            <Music className="w-3 h-3" />
+                            {task.musicEnabled ? 'Disable Music' : 'Enable Music'}
+                          </button>
+
                           {lists.length > 1 && (
                             <div className="relative">
                               <button
@@ -831,25 +852,37 @@ export default function SortableTaskItem({
                        }}>
                       {task.description}
                     </p>
-                    <div className="flex items-center">
-                      <p className="text-sm" style={{ color: 'var(--color-todoloo-text-muted)', fontFamily: 'Outfit', fontWeight: 400 }}>
-                        {task.isCompleted && task.actualMinutes
-                          ? formatEstimatedTime(task.actualMinutes)
-                          : formatEstimatedTime(task.estimatedMinutes)
-                        }
-                      </p>
-                      {hasStarted && (
-                        <>
-                          <span className="text-sm mx-2" style={{ color: 'var(--color-todoloo-text-secondary)', fontFamily: 'Outfit', fontWeight: 400 }}>•</span>
-                          <p className="text-sm"
-                             style={{
-                               color: isActive ? 'var(--color-todoloo-gradient-start)' : 'var(--color-todoloo-text-secondary)',
-                               fontFamily: 'Outfit',
-                               fontWeight: 400
-                             }}>
-                            {formatTime(seconds)}
-                          </p>
-                        </>
+                    <div className="flex flex-col gap-1">
+                      <div className="flex items-center">
+                        <p className="text-sm" style={{ color: 'var(--color-todoloo-text-muted)', fontFamily: 'Outfit', fontWeight: 400 }}>
+                          {task.isCompleted && task.actualMinutes
+                            ? formatEstimatedTime(task.actualMinutes)
+                            : formatEstimatedTime(task.estimatedMinutes)
+                          }
+                        </p>
+                        {hasStarted && (
+                          <>
+                            <span className="text-sm mx-2" style={{ color: 'var(--color-todoloo-text-secondary)', fontFamily: 'Outfit', fontWeight: 400 }}>•</span>
+                            <p className="text-sm"
+                               style={{
+                                 color: isActive ? 'var(--color-todoloo-gradient-start)' : 'var(--color-todoloo-text-secondary)',
+                                 fontFamily: 'Outfit',
+                                 fontWeight: 400
+                               }}>
+                              {formatTime(seconds)}
+                            </p>
+                          </>
+                        )}
+                      </div>
+                      {task.musicEnabled && !task.isCompleted && (
+                        <MusicPlayer
+                          taskId={task.id}
+                          musicUrl={task.musicUrl}
+                          musicGenerationStatus={task.musicGenerationStatus}
+                          isTaskActive={isActive}
+                          isTaskPaused={!isRunning && hasStarted}
+                          onRetry={() => retryMusicGeneration(task.id)}
+                        />
                       )}
                     </div>
                   </div>

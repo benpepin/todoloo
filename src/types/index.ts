@@ -24,6 +24,9 @@ export interface Task {
   createdByUserId?: string // The user who created this task
   createdByName?: string // Display name of the creator (enriched from DB)
   checklistItems?: ChecklistItem[]  // Optional array of checklist items
+  musicEnabled?: boolean // Whether music generation is enabled for this task
+  musicUrl?: string // URL to the generated music file
+  musicGenerationStatus?: 'idle' | 'generating' | 'ready' | 'error' // Status of music generation
 }
 
 export interface AppState {

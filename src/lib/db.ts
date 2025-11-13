@@ -17,6 +17,9 @@ interface DbTask {
   tags?: string[]
   group_id?: string
   created_by_user_id?: string
+  music_enabled?: boolean
+  music_url?: string
+  music_generation_status?: string
 }
 
 interface DbList {
@@ -43,7 +46,10 @@ function dbTaskToTask(dbTask: DbTask & { user_id?: string; list_id?: string }): 
     userId: dbTask.user_id, // Include user_id for shared list detection
     listId: dbTask.list_id, // Include list_id
     groupId: dbTask.group_id,
-    createdByUserId: dbTask.created_by_user_id
+    createdByUserId: dbTask.created_by_user_id,
+    musicEnabled: dbTask.music_enabled,
+    musicUrl: dbTask.music_url,
+    musicGenerationStatus: dbTask.music_generation_status as 'idle' | 'generating' | 'ready' | 'error' | undefined
   }
 }
 
@@ -144,7 +150,10 @@ export async function createTodo(
     tags: [], // TODO: Add tags support later
     user_id: userId,
     group_id: task.groupId,
-    created_by_user_id: actualCreatorId
+    created_by_user_id: actualCreatorId,
+    music_enabled: task.musicEnabled || false,
+    music_url: task.musicUrl,
+    music_generation_status: task.musicGenerationStatus || 'idle'
   }
 
   if (listId) {
@@ -195,7 +204,16 @@ export async function updateTodo(id: string, updates: Partial<Task>): Promise<Ta
   if (updates.groupId !== undefined) {
     dbUpdates.group_id = updates.groupId
   }
-  
+  if (updates.musicEnabled !== undefined) {
+    dbUpdates.music_enabled = updates.musicEnabled
+  }
+  if (updates.musicUrl !== undefined) {
+    dbUpdates.music_url = updates.musicUrl
+  }
+  if (updates.musicGenerationStatus !== undefined) {
+    dbUpdates.music_generation_status = updates.musicGenerationStatus
+  }
+
   dbUpdates.updated_at = new Date().toISOString()
 
   const { data, error } = await supabase

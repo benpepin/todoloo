@@ -25,6 +25,7 @@ import {
   toggleChecklistItemCompletion,
   updateChecklistItemOrder
 } from '@/lib/checklistDb'
+import { generateMusicForTask as generateMusic } from '@/lib/elevenLabsApi'
 
 // Inspirational quotes for empty state
 const INSPIRATIONAL_QUOTES = [
@@ -54,7 +55,7 @@ interface ToDoStore extends AppState {
   initializeUser: (userId: string) => Promise<void>
   loadTasks: () => Promise<void>
   switchToList: (listOwnerId: string) => Promise<void>
-  addTask: (description: string, estimatedMinutes: number, groupId?: string) => Promise<Task | undefined>
+  addTask: (description: string, estimatedMinutes: number, groupId?: string, musicEnabled?: boolean) => Promise<Task | undefined>
   deleteTask: (id: string) => Promise<void>
   toggleTaskCompletion: (id: string) => Promise<void>
   updateTaskOrder: (tasks: Task[]) => Promise<void>
@@ -82,6 +83,11 @@ interface ToDoStore extends AppState {
   deleteChecklistItem: (id: string) => Promise<void>
   toggleChecklistItemCompletion: (id: string) => Promise<void>
   updateChecklistItemOrder: (taskId: string, items: ChecklistItem[]) => Promise<void>
+
+  // Music generation methods
+  toggleTaskMusic: (taskId: string) => Promise<void>
+  generateMusicForTask: (taskId: string) => Promise<void>
+  retryMusicGeneration: (taskId: string) => Promise<void>
 
   // Sync methods for UI state
   startTask: (id: string) => void
@@ -296,7 +302,7 @@ export const useToDoStore = create<ToDoStore>()((set, get) => ({
   },
 
   // Add new task with optimistic update
-  addTask: async (description: string, estimatedMinutes: number, groupId?: string) => {
+  addTask: async (description: string, estimatedMinutes: number, groupId?: string, musicEnabled?: boolean) => {
     const { userId, currentListOwnerId, currentListId } = get()
     if (!userId) {
       set({ error: 'User not authenticated' })
@@ -339,7 +345,9 @@ export const useToDoStore = create<ToDoStore>()((set, get) => ({
       order: orderValue,
       userId: targetUserId,
       groupId,
-      createdByUserId: userId // The current logged-in user is the creator
+      createdByUserId: userId, // The current logged-in user is the creator
+      musicEnabled: musicEnabled || false,
+      musicGenerationStatus: musicEnabled ? 'idle' : undefined
     }
 
     // Optimistic update
@@ -373,7 +381,9 @@ export const useToDoStore = create<ToDoStore>()((set, get) => ({
         actualMinutes: 0,
         isCompleted: false,
         isActive: false,
-        groupId
+        groupId,
+        musicEnabled: musicEnabled || false,
+        musicGenerationStatus: musicEnabled ? 'idle' : undefined
       }, targetUserId, userId, currentListId || undefined) // Pass current user ID as creator and list ID
 
       // Replace optimistic task with real one
@@ -1168,6 +1178,63 @@ export const useToDoStore = create<ToDoStore>()((set, get) => ({
         error: error instanceof Error ? error.message : 'Failed to move task to list'
       })
     }
+  },
+
+  // Toggle music enabled for a task
+  toggleTaskMusic: async (taskId: string) => {
+    const task = get().tasks.find(t => t.id === taskId)
+    if (!task) return
+
+    const newMusicEnabled = !task.musicEnabled
+
+    await get().updateTaskField(
+      taskId,
+      {
+        musicEnabled: newMusicEnabled,
+        // Reset music state when disabling
+        ...(newMusicEnabled ? {} : { musicUrl: undefined, musicGenerationStatus: 'idle' })
+      },
+      'Failed to toggle music'
+    )
+  },
+
+  // Generate music for a task
+  generateMusicForTask: async (taskId: string) => {
+    const task = get().tasks.find(t => t.id === taskId)
+    if (!task || !task.musicEnabled) {
+      console.warn('Cannot generate music: task not found or music not enabled')
+      return
+    }
+
+    // Set generating status
+    await get().updateTaskField(taskId, { musicGenerationStatus: 'generating' })
+
+    try {
+      // Generate music using Eleven Labs API
+      const musicUrl = await generateMusic(task)
+
+      // Update task with music URL and ready status
+      await get().updateTaskField(taskId, {
+        musicUrl,
+        musicGenerationStatus: 'ready'
+      })
+    } catch (error) {
+      console.error('Error generating music:', error)
+
+      // Update status to error
+      await get().updateTaskField(taskId, {
+        musicGenerationStatus: 'error'
+      })
+
+      set({
+        error: error instanceof Error ? error.message : 'Failed to generate music'
+      })
+    }
+  },
+
+  // Retry music generation after error
+  retryMusicGeneration: async (taskId: string) => {
+    await get().generateMusicForTask(taskId)
   },
 }))
 

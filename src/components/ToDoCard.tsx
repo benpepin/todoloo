@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Plus, Timer, ChevronDown, CornerDownLeft, MoreHorizontal, Check, X, GripVertical } from 'lucide-react'
+import { Plus, Timer, ChevronDown, CornerDownLeft, MoreHorizontal, Check, X, GripVertical, Music } from 'lucide-react'
 import { useToDoStore } from '@/store/toDoStore'
 import { useHistoryStore } from '@/store/historyStore'
 import { useSettingsStore } from '@/store/settingsStore'
@@ -323,6 +323,7 @@ function ToDoCardContent() {
   const [isOptionsDropdownOpen, setIsOptionsDropdownOpen] = useState(false)
   const [showChecklist, setShowChecklist] = useState(false)
   const [tempChecklistItems, setTempChecklistItems] = useState<ChecklistItem[]>([])
+  const [musicEnabled, setMusicEnabled] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const optionsDropdownRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -466,7 +467,7 @@ function ToDoCardContent() {
               // Create multiple tasks with the current group ID
               for (let i = 0; i < taskCount; i++) {
                 const numberedDescription = `${baseDescription.trim()} (${i + 1})`
-                const newTask = await addTask(numberedDescription, estimatedMinutes, groupId)
+                const newTask = await addTask(numberedDescription, estimatedMinutes, groupId, musicEnabled)
                 // Add checklist items if any
                 if (tempChecklistItems.length > 0 && newTask) {
                   for (const item of tempChecklistItems) {
@@ -478,7 +479,7 @@ function ToDoCardContent() {
           } else {
             // Create single task in the current group
             console.log('Adding task to group:', groupId, taskDescription)
-            const newTask = await addTask(taskDescription, estimatedMinutes, groupId)
+            const newTask = await addTask(taskDescription, estimatedMinutes, groupId, musicEnabled)
             // Add checklist items if any
             if (tempChecklistItems.length > 0 && newTask) {
               for (const item of tempChecklistItems) {
@@ -493,6 +494,7 @@ function ToDoCardContent() {
           setEstimatedMinutes(30)
           setTempChecklistItems([])
           setShowChecklist(false)
+          setMusicEnabled(false)
 
           // Re-focus input for next task
           setTimeout(() => {
@@ -509,7 +511,7 @@ function ToDoCardContent() {
         if (currentGroupId) {
           // This task is part of the current group
           console.log('Adding task to group:', currentGroupId, description.trim())
-          const newTask = await addTask(description.trim(), estimatedMinutes, currentGroupId)
+          const newTask = await addTask(description.trim(), estimatedMinutes, currentGroupId, musicEnabled)
           // Add checklist items if any
           if (tempChecklistItems.length > 0 && newTask) {
             for (const item of tempChecklistItems) {
@@ -539,6 +541,7 @@ function ToDoCardContent() {
       setEstimatedMinutes(30)
       setTempChecklistItems([])
       setShowChecklist(false)
+      setMusicEnabled(false)
 
       // Check for multiplication pattern like "walk dog x 3" or "walk dog x3"
       const multiplicationMatch = description.trim().match(/^(.+?)\s+x\s*(\d+)$/i)
@@ -556,7 +559,7 @@ function ToDoCardContent() {
         // Create multiple to dos
         for (let i = 0; i < taskCount; i++) {
           const taskDescription = taskCount > 1 ? `${baseDescription.trim()} (${i + 1})` : baseDescription.trim()
-          const newTask = await addTask(taskDescription, estimatedMinutes)
+          const newTask = await addTask(taskDescription, estimatedMinutes, undefined, musicEnabled)
           // Add checklist items if any
           if (tempChecklistItems.length > 0 && newTask) {
             for (const item of tempChecklistItems) {
@@ -566,7 +569,7 @@ function ToDoCardContent() {
         }
       } else {
         // Single to do (no group)
-        const newTask = await addTask(description.trim(), estimatedMinutes)
+        const newTask = await addTask(description.trim(), estimatedMinutes, undefined, musicEnabled)
         // Add checklist items if any
         if (tempChecklistItems.length > 0 && newTask) {
           for (const item of tempChecklistItems) {
@@ -598,7 +601,7 @@ function ToDoCardContent() {
       
       // If there's a description, create the to do immediately
       if (description.trim()) {
-        addTask(description.trim(), minutes)
+        addTask(description.trim(), minutes, undefined, musicEnabled)
         setDescription('')
         setEstimatedMinutes(30)
         closeWithAnimation() // Close the create to do card with animation after adding
@@ -904,13 +907,26 @@ function ToDoCardContent() {
 
               {isOptionsDropdownOpen && (
                 <div className="absolute top-9 left-0 w-48 bg-[#FEFFFF] rounded-[20px] border border-[#D9D9D9] shadow-[0px_4px_54px_rgba(0,0,0,0.05)] p-2 z-10">
-                  <button
-                    type="button"
-                    onClick={handleAddChecklist}
-                    className="w-full text-left px-3 py-2 text-xs text-[#696969] font-['Outfit'] hover:bg-[#F5F5F5] rounded-[10px] transition-colors cursor-pointer"
-                  >
-                    {showChecklist ? 'Hide Checklist' : 'Add Checklist'}
-                  </button>
+                  <div className="space-y-1">
+                    <button
+                      type="button"
+                      onClick={handleAddChecklist}
+                      className="w-full text-left px-3 py-2 text-xs text-[#696969] font-['Outfit'] hover:bg-[#F5F5F5] rounded-[10px] transition-colors cursor-pointer"
+                    >
+                      {showChecklist ? 'Hide Checklist' : 'Add Checklist'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMusicEnabled(!musicEnabled)
+                        setIsOptionsDropdownOpen(false)
+                      }}
+                      className="w-full text-left px-3 py-2 text-xs text-[#696969] font-['Outfit'] hover:bg-[#F5F5F5] rounded-[10px] transition-colors cursor-pointer flex items-center gap-2"
+                    >
+                      <Music className="w-3 h-3" />
+                      {musicEnabled ? 'Disable Music' : 'Enable Music'}
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
