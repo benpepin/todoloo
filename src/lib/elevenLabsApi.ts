@@ -237,11 +237,11 @@ function generateMusicPrompt(task: Task): string {
   ]
   const vocals = randomChoice(vocalStyles)
 
-  // Vary prompt structure - emphasize vocals and lyrics
+  // Vary prompt structure
   const promptVariations = [
-    `A ${genre} song with vocals, ${bpm} BPM, ${vibe}, ${songStyle}, ${production}. The singer performs with ${vocals}. Lyrics: "${customLyrics}". Full vocal performance, not instrumental.`,
-    `${songStyle} ${genre} song with singing at ${bpm} BPM. ${vibe} energy, ${vocals}. ${production}. Singer sings: "${customLyrics}". Must include vocal performance.`,
-    `Vocal ${genre} track, ${bpm} BPM with ${songStyle}. ${vibe}, ${vocals}. ${production}. The vocalist sings: "${customLyrics}". Include singing throughout.`
+    `${genre} track, ${bpm} BPM, ${vibe}, ${songStyle}, ${production}. Lyrics: "${customLyrics}". ${vocals}.`,
+    `${songStyle} ${genre} song at ${bpm} BPM. ${vibe} energy with ${vocals}. ${production}. Lyrics: "${customLyrics}".`,
+    `${bpm} BPM ${genre} with ${songStyle}. Vocals: ${vibe}, ${vocals}. ${production}. Lyrics: "${customLyrics}".`
   ]
 
   const prompt = randomChoice(promptVariations)
