@@ -650,6 +650,25 @@ export async function fetchTodosByList(listId: string): Promise<Task[]> {
   return enrichTasksWithCreatorNames(mapped)
 }
 
+// Fetch all tasks with generated music for a user
+export async function fetchTasksWithMusic(userId: string): Promise<Task[]> {
+  const { data, error } = await supabase
+    .from('todos')
+    .select('*, user_id, list_id, group_id, created_by_user_id')
+    .eq('user_id', userId)
+    .eq('music_enabled', true)
+    .not('music_url', 'is', null)
+    .order('created_at', { ascending: false })
+
+  if (error) {
+    console.error('Error fetching tasks with music:', error)
+    throw new Error(error.message)
+  }
+
+  const mapped = data?.map(dbTaskToTask) || []
+  return enrichTasksWithCreatorNames(mapped)
+}
+
 // Reorder lists (update multiple list orders at once)
 export async function reorderLists(listUpdates: { id: string; order: number }[]): Promise<void> {
   // Update each list's order

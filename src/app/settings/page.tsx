@@ -3,15 +3,15 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Settings as SettingsIcon, Clock, Users, Trash2, UserPlus, List, Plus, X, Timer, Edit2, Check, ArrowLeft } from 'lucide-react'
+import { Settings as SettingsIcon, Clock, Users, Trash2, UserPlus, List, Plus, X, Timer, Edit2, Check, ArrowLeft, Music } from 'lucide-react'
 import { getCurrentDate } from '@/utils/timeUtils'
 import { useSettingsStore } from '@/store/settingsStore'
 import { useSupabase } from '@/components/SupabaseProvider'
 import { useToDoStore } from '@/store/toDoStore'
-import { getSharedUsers, shareListWithUser, removeShare, getSharedLists } from '@/lib/db'
+import { getSharedUsers, shareListWithUser, removeShare, getSharedLists, fetchTasksWithMusic } from '@/lib/db'
 import { SharedUser } from '@/types'
 
-type SettingsCategory = 'todo' | 'time' | 'sharing'
+type SettingsCategory = 'todo' | 'time' | 'sharing' | 'music'
 
 export default function SettingsPage() {
   const router = useRouter()
@@ -51,12 +51,18 @@ export default function SettingsPage() {
   const [shareSuccess, setShareSuccess] = useState('')
   const [isLoadingShares, setIsLoadingShares] = useState(false)
 
+  // Music library state
+  const [tasksWithMusic, setTasksWithMusic] = useState<Array<{ id: string, description: string, musicUrl: string, createdAt: Date }>>([])
+  const [isLoadingMusic, setIsLoadingMusic] = useState(false)
+  const [playingMusicId, setPlayingMusicId] = useState<string | null>(null)
+
   // Load settings and shared users on mount
   useEffect(() => {
     if (user?.id) {
       loadSettings(user.id)
       loadSharedUsers()
       loadSharedLists()
+      loadMusicLibrary()
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id])
@@ -86,6 +92,27 @@ export default function SettingsPage() {
       setSharedLists(lists)
     } catch (error) {
       console.error('Error loading shared lists:', error)
+    }
+  }
+
+  const loadMusicLibrary = async () => {
+    if (!user?.id) return
+    setIsLoadingMusic(true)
+    try {
+      const tasks = await fetchTasksWithMusic(user.id)
+      const musicTasks = tasks
+        .filter(task => task.musicUrl)
+        .map(task => ({
+          id: task.id,
+          description: task.description,
+          musicUrl: task.musicUrl!,
+          createdAt: task.createdAt
+        }))
+      setTasksWithMusic(musicTasks)
+    } catch (error) {
+      console.error('Error loading music library:', error)
+    } finally {
+      setIsLoadingMusic(false)
     }
   }
 
@@ -172,6 +199,7 @@ export default function SettingsPage() {
       case 'todo': return 'To Do Settings'
       case 'time': return 'Time Estimation'
       case 'sharing': return 'Sharing'
+      case 'music': return 'Music Library'
       default: return 'Settings'
     }
   }
@@ -181,6 +209,7 @@ export default function SettingsPage() {
       case 'todo': return Clock
       case 'time': return Timer
       case 'sharing': return Users
+      case 'music': return Music
       default: return SettingsIcon
     }
   }
@@ -188,7 +217,8 @@ export default function SettingsPage() {
   const categories: Array<{ id: SettingsCategory; label: string; icon: typeof Clock }> = [
     { id: 'todo', label: 'To Do Settings', icon: Clock },
     { id: 'time', label: 'Time Estimation', icon: Timer },
-    { id: 'sharing', label: 'Sharing', icon: Users }
+    { id: 'sharing', label: 'Sharing', icon: Users },
+    { id: 'music', label: 'Music Library', icon: Music }
   ]
 
   const CategoryIcon = getCategoryIcon(selectedCategory)
@@ -700,6 +730,65 @@ export default function SettingsPage() {
                     </div>
                   )}
                 </div>
+              </div>
+            )}
+
+            {selectedCategory === 'music' && (
+              <div className="w-full rounded-[10px] shadow-[2px_2px_4px_rgba(0,0,0,0.15)] p-6"
+                   style={{ backgroundColor: 'var(--color-todoloo-card)' }}>
+                <div className="flex items-center gap-3 mb-4">
+                  <Music className="w-5 h-5" style={{ color: 'var(--color-todoloo-text-secondary)' }} />
+                  <h2 className="text-lg font-['Outfit'] font-medium" style={{ color: 'var(--color-todoloo-text-secondary)' }}>Music Library</h2>
+                </div>
+
+                <p className="text-sm font-['Outfit'] mb-4" style={{ color: 'var(--color-todoloo-text-muted)' }}>
+                  All your AI-generated task music in one place
+                </p>
+
+                {isLoadingMusic ? (
+                  <div className="text-sm font-['Outfit'] text-center py-8" style={{ color: 'var(--color-todoloo-text-muted)' }}>
+                    Loading your music library...
+                  </div>
+                ) : tasksWithMusic.length === 0 ? (
+                  <div className="text-center py-8">
+                    <Music className="w-12 h-12 mx-auto mb-3 opacity-20" style={{ color: 'var(--color-todoloo-text-muted)' }} />
+                    <p className="text-sm font-['Outfit']" style={{ color: 'var(--color-todoloo-text-muted)' }}>
+                      No music generated yet
+                    </p>
+                    <p className="text-xs font-['Outfit'] mt-1" style={{ color: 'var(--color-todoloo-text-muted)' }}>
+                      Enable music on your tasks to start building your library
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {tasksWithMusic.map((task) => (
+                      <div
+                        key={task.id}
+                        className="flex items-center gap-3 p-4 rounded-lg"
+                        style={{ backgroundColor: 'var(--color-todoloo-muted)' }}
+                      >
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-['Outfit'] font-medium truncate" style={{ color: 'var(--color-todoloo-text-primary)' }}>
+                            {task.description}
+                          </p>
+                          <p className="text-xs font-['Outfit']" style={{ color: 'var(--color-todoloo-text-muted)' }}>
+                            Generated {task.createdAt.toLocaleDateString()}
+                          </p>
+                        </div>
+                        <audio
+                          controls
+                          className="h-10"
+                          onPlay={() => setPlayingMusicId(task.id)}
+                          onPause={() => setPlayingMusicId(null)}
+                          style={{ maxWidth: '200px' }}
+                        >
+                          <source src={task.musicUrl} type="audio/mpeg" />
+                          Your browser does not support the audio element.
+                        </audio>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
 
