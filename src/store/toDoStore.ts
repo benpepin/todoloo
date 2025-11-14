@@ -1210,9 +1210,27 @@ export const useToDoStore = create<ToDoStore>()((set, get) => ({
 
   // Generate music for a task
   generateMusicForTask: async (taskId: string) => {
+    const { userId } = get()
+    if (!userId) {
+      set({ error: 'User not authenticated' })
+      return
+    }
+
     const task = get().tasks.find(t => t.id === taskId)
     if (!task || !task.musicEnabled) {
       console.warn('Cannot generate music: task not found or music not enabled')
+      return
+    }
+
+    // Check daily limit
+    const { canGenerateMusicToday, incrementMusicGenerationCount } = await import('@/lib/db')
+    const { canGenerate } = await canGenerateMusicToday(userId)
+
+    if (!canGenerate) {
+      set({
+        error: 'Daily music generation limit reached (3 per day). Try again tomorrow!'
+      })
+      await get().updateTaskField(taskId, { musicGenerationStatus: 'idle' })
       return
     }
 
@@ -1222,6 +1240,9 @@ export const useToDoStore = create<ToDoStore>()((set, get) => ({
     try {
       // Generate music using Eleven Labs API
       const musicUrl = await generateMusic(task)
+
+      // Increment the daily count
+      await incrementMusicGenerationCount(userId)
 
       // Update task with music URL and ready status
       await get().updateTaskField(taskId, {

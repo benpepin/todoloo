@@ -697,6 +697,8 @@ export interface UserSettings {
   showShoppingCartProgress: boolean
   defaultMinutes: number
   customKeywords: Array<{ id: string; keyword: string; minutes: number }>
+  musicGenerationsToday: number
+  lastMusicGenerationDate: Date | null
   createdAt: Date
   updatedAt: Date
 }
@@ -708,6 +710,8 @@ interface DbUserSettings {
   show_shopping_cart_progress: boolean
   default_minutes: number
   custom_keywords: Array<{ id: string; keyword: string; minutes: number }>
+  music_generations_today: number
+  last_music_generation_date: string | null
   created_at: string
   updated_at: string
 }
@@ -720,6 +724,8 @@ function dbUserSettingsToUserSettings(dbSettings: DbUserSettings): UserSettings 
     showShoppingCartProgress: dbSettings.show_shopping_cart_progress,
     defaultMinutes: dbSettings.default_minutes,
     customKeywords: dbSettings.custom_keywords || [],
+    musicGenerationsToday: dbSettings.music_generations_today || 0,
+    lastMusicGenerationDate: dbSettings.last_music_generation_date ? new Date(dbSettings.last_music_generation_date) : null,
     createdAt: new Date(dbSettings.created_at),
     updatedAt: new Date(dbSettings.updated_at)
   }
@@ -755,7 +761,9 @@ async function createUserSettings(userId: string): Promise<UserSettings> {
       show_progress_indicator: true,
       show_shopping_cart_progress: true,
       default_minutes: 30,
-      custom_keywords: []
+      custom_keywords: [],
+      music_generations_today: 0,
+      last_music_generation_date: null
     }])
     .select()
     .single()
@@ -801,4 +809,44 @@ export async function updateUserSettings(
   }
 
   return dbUserSettingsToUserSettings(data)
+}
+
+// Check if user can generate music today (max 3 per day)
+export async function canGenerateMusicToday(userId: string): Promise<{ canGenerate: boolean; remaining: number }> {
+  const settings = await getUserSettings(userId)
+
+  const today = new Date().toDateString()
+  const lastGenDate = settings.lastMusicGenerationDate?.toDateString()
+
+  // Reset count if it's a new day
+  if (lastGenDate !== today) {
+    return { canGenerate: true, remaining: 3 }
+  }
+
+  const remaining = Math.max(0, 3 - settings.musicGenerationsToday)
+  return { canGenerate: remaining > 0, remaining }
+}
+
+// Increment music generation count
+export async function incrementMusicGenerationCount(userId: string): Promise<void> {
+  const settings = await getUserSettings(userId)
+
+  const today = new Date().toDateString()
+  const lastGenDate = settings.lastMusicGenerationDate?.toDateString()
+
+  // Reset count if it's a new day
+  const newCount = lastGenDate === today ? settings.musicGenerationsToday + 1 : 1
+
+  const { error } = await supabase
+    .from('user_settings')
+    .update({
+      music_generations_today: newCount,
+      last_music_generation_date: new Date().toISOString()
+    })
+    .eq('user_id', userId)
+
+  if (error) {
+    console.error('Error incrementing music generation count:', error)
+    throw new Error(`Failed to increment music generation count: ${error.message}`)
+  }
 }
