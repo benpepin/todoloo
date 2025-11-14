@@ -135,8 +135,12 @@ export const useToDoStore = create<ToDoStore>()((set, get) => ({
       // Load user's personal lists
       const lists = await getUserLists(userId)
 
-      // If user has lists, set the first list as current; otherwise currentListId stays null
-      const currentListId = lists.length > 0 ? lists[0].id : null
+      // Try to restore the last selected list from localStorage
+      const savedListId = localStorage.getItem('currentListId')
+      const listExists = savedListId && lists.some(list => list.id === savedListId)
+
+      // If user has lists, use the saved list if it exists, otherwise use the first list
+      const currentListId = listExists ? savedListId : (lists.length > 0 ? lists[0].id : null)
 
       // Load tasks - either from the current list or all tasks if no lists
       let tasks: Task[] = []
@@ -268,6 +272,9 @@ export const useToDoStore = create<ToDoStore>()((set, get) => ({
       if (lists.length > 0) {
         currentListId = lists[0].id
         tasks = await fetchTodosByList(currentListId)
+
+        // Persist the selected list to localStorage
+        localStorage.setItem('currentListId', currentListId)
       } else {
         tasks = await fetchTodosDirect(listOwnerId)
       }
@@ -1098,6 +1105,9 @@ export const useToDoStore = create<ToDoStore>()((set, get) => ({
       }
 
       set({ isLoading: true, error: null, currentListId: listId, currentListOwnerId: listOwnerId, currentListOwnerPermission: permission })
+
+      // Persist the selected list to localStorage
+      localStorage.setItem('currentListId', listId)
 
       // If we're switching to a different user's lists, reload their lists
       if (currentListOwnerId && currentListOwnerId !== listOwnerId && listOwnerId) {
