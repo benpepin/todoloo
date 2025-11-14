@@ -237,11 +237,11 @@ function generateMusicPrompt(task: Task): string {
   ]
   const vocals = randomChoice(vocalStyles)
 
-  // Vary prompt structure
+  // Vary prompt structure - emphasize vocals and lyrics
   const promptVariations = [
-    `${genre} track, ${bpm} BPM, ${vibe}, ${songStyle}, ${production}. Lyrics: "${customLyrics}". ${vocals}.`,
-    `${songStyle} ${genre} song at ${bpm} BPM. ${vibe} energy with ${vocals}. ${production}. Lyrics: "${customLyrics}".`,
-    `${bpm} BPM ${genre} with ${songStyle}. Vocals: ${vibe}, ${vocals}. ${production}. Lyrics: "${customLyrics}".`
+    `A ${genre} song with vocals, ${bpm} BPM, ${vibe}, ${songStyle}, ${production}. The singer performs with ${vocals}. Lyrics: "${customLyrics}". Full vocal performance, not instrumental.`,
+    `${songStyle} ${genre} song with singing at ${bpm} BPM. ${vibe} energy, ${vocals}. ${production}. Singer sings: "${customLyrics}". Must include vocal performance.`,
+    `Vocal ${genre} track, ${bpm} BPM with ${songStyle}. ${vibe}, ${vocals}. ${production}. The vocalist sings: "${customLyrics}". Include singing throughout.`
   ]
 
   const prompt = randomChoice(promptVariations)
@@ -292,8 +292,7 @@ export async function generateMusicForTask(task: Task): Promise<string> {
       body: JSON.stringify({
         prompt: prompt,
         music_length_ms: durationMs,
-        model_id: 'music_v1',
-        force_instrumental: false
+        model_id: 'music_v1'
       }),
       signal: controller.signal
     })
