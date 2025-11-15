@@ -97,16 +97,6 @@ export default function HorseRaceProgress() {
           }}
         />
 
-        {/* Finish line */}
-        <div
-          className="absolute right-0 bottom-0 flex flex-col"
-          style={{
-            width: 12,
-            height: 35,
-            background: 'repeating-linear-gradient(0deg, #000, #000 6px, #fff 6px, #fff 12px)'
-          }}
-        />
-
         {/* Horse and Jockey */}
         <div
           className="absolute transition-all duration-500 ease-out"
