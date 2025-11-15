@@ -8,6 +8,25 @@ export default function HorseRaceProgress() {
   const tasks = useToDoStore((state) => state.tasks)
   const [prevProgress, setPrevProgress] = useState(0)
   const [isGalloping, setIsGalloping] = useState(false)
+  const [isDarkMode, setIsDarkMode] = useState(false)
+
+  // Detect dark mode
+  useEffect(() => {
+    const checkDarkMode = () => {
+      setIsDarkMode(document.documentElement.classList.contains('dark'))
+    }
+
+    checkDarkMode()
+
+    // Watch for theme changes
+    const observer = new MutationObserver(checkDarkMode)
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class']
+    })
+
+    return () => observer.disconnect()
+  }, [])
 
   // Calculate progress
   const totalTasks = tasks.length
@@ -46,16 +65,16 @@ export default function HorseRaceProgress() {
           style={{
             height: 125,
             top: 0,
-            background: '#79C7FD'
+            background: isDarkMode ? '#1a1a2e' : '#79C7FD'
           }}
         >
           <div
             className="absolute inset-0"
             style={{
-              backgroundImage: 'url(/sky.png)',
+              backgroundImage: isDarkMode ? 'url(/nightsky.png)' : 'url(/sky.png)',
               backgroundSize: 'cover',
               backgroundPosition: 'center',
-              opacity: 0.6
+              opacity: isDarkMode ? 1 : 0.6
             }}
           />
         </div>
