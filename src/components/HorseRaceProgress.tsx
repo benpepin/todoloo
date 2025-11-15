@@ -4,11 +4,27 @@ import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import { useToDoStore } from '@/store/toDoStore'
 
+const CHARACTERS = [
+  { name: 'horse', src: '/horse.png', alt: 'Horse and jockey' },
+  { name: 'biker', src: '/biker.png', alt: 'Biker' },
+  { name: 'bear', src: '/bear.png', alt: 'Bear' }
+]
+
 export default function HorseRaceProgress() {
   const tasks = useToDoStore((state) => state.tasks)
   const [prevProgress, setPrevProgress] = useState(0)
   const [isGalloping, setIsGalloping] = useState(false)
   const [isDarkMode, setIsDarkMode] = useState(false)
+  const [characterIndex, setCharacterIndex] = useState(0)
+
+  // Load saved character preference
+  useEffect(() => {
+    const saved = localStorage.getItem('progressCharacter')
+    if (saved) {
+      const index = CHARACTERS.findIndex(c => c.name === saved)
+      if (index !== -1) setCharacterIndex(index)
+    }
+  }, [])
 
   // Detect dark mode
   useEffect(() => {
@@ -27,6 +43,13 @@ export default function HorseRaceProgress() {
 
     return () => observer.disconnect()
   }, [])
+
+  // Cycle to next character
+  const handleCharacterClick = () => {
+    const nextIndex = (characterIndex + 1) % CHARACTERS.length
+    setCharacterIndex(nextIndex)
+    localStorage.setItem('progressCharacter', CHARACTERS[nextIndex].name)
+  }
 
   // Calculate progress
   const totalTasks = tasks.length
@@ -97,9 +120,9 @@ export default function HorseRaceProgress() {
           }}
         />
 
-        {/* Horse and Jockey */}
+        {/* Character */}
         <div
-          className="absolute transition-all duration-500 ease-out"
+          className="absolute transition-all duration-500 ease-out cursor-pointer"
           style={{
             left: `${Math.min(progress, 92)}%`,
             top: 14,
@@ -107,10 +130,12 @@ export default function HorseRaceProgress() {
             width: 160,
             height: 160
           }}
+          onClick={handleCharacterClick}
+          title="Click to change character"
         >
           <Image
-            src="/horse.png"
-            alt="Horse and jockey"
+            src={CHARACTERS[characterIndex].src}
+            alt={CHARACTERS[characterIndex].alt}
             width={160}
             height={160}
             className={isGalloping ? 'animate-gallop' : ''}
