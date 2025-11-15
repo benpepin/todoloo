@@ -12,6 +12,7 @@ const CHARACTERS = [
 
 export default function HorseRaceProgress() {
   const tasks = useToDoStore((state) => state.tasks)
+  const activeTaskId = useToDoStore((state) => state.activeTaskId)
   const [prevProgress, setPrevProgress] = useState(0)
   const [isGalloping, setIsGalloping] = useState(false)
   const [isDarkMode, setIsDarkMode] = useState(false)
@@ -55,6 +56,9 @@ export default function HorseRaceProgress() {
   const totalTasks = tasks.length
   const completedTasks = tasks.filter(task => task.isCompleted).length
   const progress = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0
+
+  // Check if we should show sprite animation (biker + active task)
+  const isBikerActive = CHARACTERS[characterIndex].name === 'biker' && activeTaskId !== null
 
   // Trigger galloping animation when progress changes
   useEffect(() => {
@@ -133,14 +137,29 @@ export default function HorseRaceProgress() {
           onClick={handleCharacterClick}
           title="Click to change character"
         >
-          <Image
-            src={CHARACTERS[characterIndex].src}
-            alt={CHARACTERS[characterIndex].alt}
-            width={160}
-            height={160}
-            className={isGalloping ? 'animate-gallop' : ''}
-            style={{ display: 'block' }}
-          />
+          {isBikerActive ? (
+            // Biker sprite animation when task is active
+            <div
+              className="animate-bike-sprite"
+              style={{
+                width: 160,
+                height: 160,
+                backgroundImage: 'url(/bike-sprite.png)',
+                backgroundSize: '400% 400%', // 4x4 grid = 400% in each direction
+                backgroundPosition: '0% 0%'
+              }}
+            />
+          ) : (
+            // Static image for other characters or inactive biker
+            <Image
+              src={CHARACTERS[characterIndex].src}
+              alt={CHARACTERS[characterIndex].alt}
+              width={160}
+              height={160}
+              className={isGalloping ? 'animate-gallop' : ''}
+              style={{ display: 'block' }}
+            />
+          )}
         </div>
 
       </div>
@@ -156,6 +175,30 @@ export default function HorseRaceProgress() {
 
         .animate-gallop {
           animation: gallop 0.3s ease-in-out 2;
+        }
+
+        @keyframes bike-sprite {
+          0% { background-position: 0% 0%; }
+          6.25% { background-position: 33.33% 0%; }
+          12.5% { background-position: 66.66% 0%; }
+          18.75% { background-position: 100% 0%; }
+          25% { background-position: 0% 33.33%; }
+          31.25% { background-position: 33.33% 33.33%; }
+          37.5% { background-position: 66.66% 33.33%; }
+          43.75% { background-position: 100% 33.33%; }
+          50% { background-position: 0% 66.66%; }
+          56.25% { background-position: 33.33% 66.66%; }
+          62.5% { background-position: 66.66% 66.66%; }
+          68.75% { background-position: 100% 66.66%; }
+          75% { background-position: 0% 100%; }
+          81.25% { background-position: 33.33% 100%; }
+          87.5% { background-position: 66.66% 100%; }
+          93.75% { background-position: 100% 100%; }
+          100% { background-position: 0% 0%; }
+        }
+
+        .animate-bike-sprite {
+          animation: bike-sprite 1.6s steps(1) infinite;
         }
       `}</style>
     </div>
