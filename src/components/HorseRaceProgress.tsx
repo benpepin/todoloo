@@ -145,10 +145,11 @@ export default function HorseRaceProgress() {
                 width: '160px',
                 height: '160px',
                 backgroundImage: 'url(/bike-sprite.png)',
-                backgroundSize: '400% 400%', // 4x4 grid = 400% in each direction
-                backgroundPosition: '0% 0%',
+                backgroundSize: '640px 640px', // 4x4 grid, each frame 160px = 640px total
+                backgroundPosition: '0px 0px',
                 backgroundRepeat: 'no-repeat',
-                display: 'block'
+                display: 'block',
+                imageRendering: 'crisp-edges'
               }}
             />
           ) : (
@@ -180,23 +181,23 @@ export default function HorseRaceProgress() {
         }
 
         @keyframes bike-sprite {
-          0% { background-position: 0% 0%; }
-          6.25% { background-position: 33.33% 0%; }
-          12.5% { background-position: 66.66% 0%; }
-          18.75% { background-position: 100% 0%; }
-          25% { background-position: 0% 33.33%; }
-          31.25% { background-position: 33.33% 33.33%; }
-          37.5% { background-position: 66.66% 33.33%; }
-          43.75% { background-position: 100% 33.33%; }
-          50% { background-position: 0% 66.66%; }
-          56.25% { background-position: 33.33% 66.66%; }
-          62.5% { background-position: 66.66% 66.66%; }
-          68.75% { background-position: 100% 66.66%; }
-          75% { background-position: 0% 100%; }
-          81.25% { background-position: 33.33% 100%; }
-          87.5% { background-position: 66.66% 100%; }
-          93.75% { background-position: 100% 100%; }
-          100% { background-position: 0% 0%; }
+          0% { background-position: 0px 0px; }
+          6.25% { background-position: -160px 0px; }
+          12.5% { background-position: -320px 0px; }
+          18.75% { background-position: -480px 0px; }
+          25% { background-position: 0px -160px; }
+          31.25% { background-position: -160px -160px; }
+          37.5% { background-position: -320px -160px; }
+          43.75% { background-position: -480px -160px; }
+          50% { background-position: 0px -320px; }
+          56.25% { background-position: -160px -320px; }
+          62.5% { background-position: -320px -320px; }
+          68.75% { background-position: -480px -320px; }
+          75% { background-position: 0px -480px; }
+          81.25% { background-position: -160px -480px; }
+          87.5% { background-position: -320px -480px; }
+          93.75% { background-position: -480px -480px; }
+          100% { background-position: 0px 0px; }
         }
 
         .animate-bike-sprite {
