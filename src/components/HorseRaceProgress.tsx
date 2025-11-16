@@ -142,11 +142,13 @@ export default function HorseRaceProgress() {
             <div
               className="animate-bike-sprite"
               style={{
-                width: 160,
-                height: 160,
+                width: '160px',
+                height: '160px',
                 backgroundImage: 'url(/bike-sprite.png)',
                 backgroundSize: '400% 400%', // 4x4 grid = 400% in each direction
-                backgroundPosition: '0% 0%'
+                backgroundPosition: '0% 0%',
+                backgroundRepeat: 'no-repeat',
+                display: 'block'
               }}
             />
           ) : (
