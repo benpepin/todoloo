@@ -5,14 +5,16 @@ import ToDoList from '@/components/ToDoList'
 import HorseRaceProgress from '@/components/HorseRaceProgress'
 import ShoppingCartProgress from '@/components/ShoppingCartProgress'
 import SettingsMenu from '@/components/SettingsMenu'
+import MobileListSheet from '@/components/MobileListSheet'
 import { useToDoStore } from '@/store/toDoStore'
 import { useSettingsStore } from '@/store/settingsStore'
 import { getCurrentDate, getCompletionTime } from '@/utils/timeUtils'
+import { ChevronDown } from 'lucide-react'
 import { migrateLocalStorageToSupabase } from '@/lib/migrate-to-supabase'
 import { useSupabase } from '@/components/SupabaseProvider'
 import Auth from '@/components/Auth'
 import ListSwitcher from '@/components/ListSwitcher'
-import { PersonalLists } from '@/components/PersonalLists'
+import PersonalLists from '@/components/PersonalLists'
 
 export default function Home() {
   const { user, loading: authLoading } = useSupabase()
@@ -31,6 +33,7 @@ export default function Home() {
   const cycleQuote = useToDoStore((state) => state.cycleQuote)
   const [showCompletionTime, setShowCompletionTime] = useState(false)
   const [migrationStatus, setMigrationStatus] = useState<string | null>(null)
+  const [isMobileListSheetOpen, setIsMobileListSheetOpen] = useState(false)
 
   // Calculate total time for incomplete to dos
   const totalMinutes = tasks
@@ -47,6 +50,7 @@ export default function Home() {
   const currentList = lists.find(list => list.id === currentListId)
   const isShoppingList = currentList ?
     /shopping|groceries|grocery/i.test(currentList.name) : false
+  const currentListName = currentList?.name || 'My List'
 
   // Initialize app when user changes
   useEffect(() => {
@@ -186,33 +190,56 @@ export default function Home() {
   return (
     <div className="w-full h-screen flex flex-col lg:flex-row" style={{ backgroundColor: 'var(--color-todoloo-bg)' }}>
       {/* Mobile Header - visible only on mobile/tablet */}
-      <div className="lg:hidden w-full p-4 border-b flex flex-col gap-4"
+      <div className="lg:hidden w-full p-4 border-b"
            style={{
              backgroundColor: 'var(--color-todoloo-sidebar)',
              borderColor: 'var(--color-todoloo-border)'
            }}>
-        <div className="flex justify-between items-start">
-          <div className="flex flex-col gap-1 flex-1">
-            <ListSwitcher />
-            <div
-              className="text-sm font-['Outfit'] font-normal"
-              style={{ color: 'var(--color-todoloo-text-secondary)' }}
-            >
-              {totalMinutes === 0 ? (
-                "You're done!"
-              ) : (
-                `Done at ${completionTime}`
-              )}
+        <div className="flex justify-between items-center gap-3">
+          {/* List Selection Button */}
+          <button
+            onClick={() => setIsMobileListSheetOpen(true)}
+            className="flex-1 flex items-center justify-between gap-2 py-3 px-4 rounded-lg transition-colors"
+            style={{
+              backgroundColor: 'var(--color-todoloo-card)',
+              minHeight: '44px'
+            }}
+          >
+            <div className="flex flex-col items-start gap-0.5 min-w-0 flex-1">
+              <span
+                className="text-base font-semibold font-['Outfit'] truncate w-full text-left"
+                style={{ color: 'var(--color-todoloo-text-primary)' }}
+              >
+                {currentListName}
+              </span>
+              <span
+                className="text-sm font-['Outfit'] font-normal"
+                style={{ color: 'var(--color-todoloo-text-secondary)' }}
+              >
+                {totalMinutes === 0 ? (
+                  "You're done!"
+                ) : (
+                  `Done at ${completionTime}`
+                )}
+              </span>
             </div>
-          </div>
+            <ChevronDown
+              size={20}
+              style={{ color: 'var(--color-todoloo-text-secondary)' }}
+              className="flex-shrink-0"
+            />
+          </button>
+
+          {/* Settings Menu */}
           <SettingsMenu />
         </div>
-
-        {/* Personal Lists on Mobile */}
-        <div className="w-full">
-          <PersonalLists />
-        </div>
       </div>
+
+      {/* Mobile List Sheet */}
+      <MobileListSheet
+        isOpen={isMobileListSheetOpen}
+        onClose={() => setIsMobileListSheetOpen(false)}
+      />
 
       {/* Desktop Sidebar - hidden on mobile/tablet */}
       <div className="hidden lg:flex lg:w-[20%] h-full p-8 flex-col items-start"

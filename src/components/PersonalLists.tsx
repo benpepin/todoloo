@@ -14,6 +14,7 @@ interface SortableListItemProps {
   isEditing: boolean
   editingName: string
   canDelete: boolean
+  disableDragAndDrop?: boolean
   onEdit: () => void
   onSaveEdit: () => void
   onCancelEdit: () => void
@@ -29,6 +30,7 @@ function SortableListItem({
   isEditing,
   editingName,
   canDelete,
+  disableDragAndDrop = false,
   onEdit,
   onSaveEdit,
   onCancelEdit,
@@ -108,16 +110,18 @@ function SortableListItem({
             </span>
             <div className="flex items-center gap-1 flex-shrink-0">
               {/* Drag Handle */}
-              <button
-                {...attributes}
-                {...listeners}
-                className="opacity-0 group-hover:opacity-100 transition-opacity
-                  text-[var(--color-todoloo-text-muted)] hover:text-[var(--color-todoloo-text-primary)]
-                  cursor-grab active:cursor-grabbing p-1"
-                aria-label="Drag to reorder"
-              >
-                <GripVertical className="w-4 h-4" />
-              </button>
+              {!disableDragAndDrop && (
+                <button
+                  {...attributes}
+                  {...listeners}
+                  className="opacity-0 group-hover:opacity-100 transition-opacity
+                    text-[var(--color-todoloo-text-muted)] hover:text-[var(--color-todoloo-text-primary)]
+                    cursor-grab active:cursor-grabbing p-1"
+                  aria-label="Drag to reorder"
+                >
+                  <GripVertical className="w-4 h-4" />
+                </button>
+              )}
               {isActive && canDelete && (
                 <button
                   onClick={(e) => {
@@ -140,7 +144,12 @@ function SortableListItem({
   )
 }
 
-export function PersonalLists() {
+interface PersonalListsProps {
+  disableDragAndDrop?: boolean
+  onListClick?: () => void
+}
+
+export default function PersonalLists({ disableDragAndDrop = false, onListClick }: PersonalListsProps = {}) {
   const { lists, currentListId, currentListOwnerId, currentListOwnerPermission, userId, switchToPersonalList, createList, updateListName, deleteList, reorderLists } = useToDoStore()
   const [isAddingList, setIsAddingList] = useState(false)
   const [newListName, setNewListName] = useState('')
@@ -213,42 +222,54 @@ export function PersonalLists() {
     setActiveId(null)
   }
 
+  const listsContent = (
+    <div className="space-y-0 overflow-x-hidden" onMouseLeave={() => setHoveredIndex(null)}>
+      {lists.map((list, index) => (
+        <div key={list.id} onMouseEnter={() => setHoveredIndex(index)}>
+          <SortableListItem
+            listId={list.id}
+            listName={list.name}
+            isActive={currentListId === list.id}
+            isEditing={editingListId === list.id}
+            editingName={editingName}
+            canDelete={lists.length > 1}
+            disableDragAndDrop={disableDragAndDrop}
+            onEdit={() => handleStartEdit(list.id, list.name)}
+            onSaveEdit={handleSaveEdit}
+            onCancelEdit={handleCancelEdit}
+            onDelete={() => handleDeleteList(list.id)}
+            onSwitch={() => {
+              switchToPersonalList(list.id)
+              if (onListClick) onListClick()
+            }}
+            setEditingName={setEditingName}
+          />
+        </div>
+      ))}
+    </div>
+  )
+
   return (
     <div className="w-full flex flex-col gap-2 overflow-x-hidden">
       {/* Personal Lists */}
-      <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-        <SortableContext items={lists.map(list => list.id)} strategy={verticalListSortingStrategy}>
-          <div className="space-y-0 overflow-x-hidden" onMouseLeave={() => setHoveredIndex(null)}>
-            {lists.map((list, index) => (
-              <div key={list.id} onMouseEnter={() => setHoveredIndex(index)}>
-                <SortableListItem
-                  listId={list.id}
-                  listName={list.name}
-                  isActive={currentListId === list.id}
-                  isEditing={editingListId === list.id}
-                  editingName={editingName}
-                  canDelete={lists.length > 1}
-                  onEdit={() => handleStartEdit(list.id, list.name)}
-                  onSaveEdit={handleSaveEdit}
-                  onCancelEdit={handleCancelEdit}
-                  onDelete={() => handleDeleteList(list.id)}
-                  onSwitch={() => switchToPersonalList(list.id)}
-                  setEditingName={setEditingName}
-                />
+      {disableDragAndDrop ? (
+        listsContent
+      ) : (
+        <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+          <SortableContext items={lists.map(list => list.id)} strategy={verticalListSortingStrategy}>
+            {listsContent}
+          </SortableContext>
+          <DragOverlay>
+            {activeList ? (
+              <div className="relative group w-full bg-[var(--color-todoloo-sidebar)] px-0 py-2">
+                <div className="text-lg font-normal font-outfit text-[var(--color-todoloo-text-primary)]">
+                  {activeList.name}
+                </div>
               </div>
-            ))}
-          </div>
-        </SortableContext>
-        <DragOverlay>
-          {activeList ? (
-            <div className="relative group w-full bg-[var(--color-todoloo-sidebar)] px-0 py-2">
-              <div className="text-lg font-normal font-outfit text-[var(--color-todoloo-text-primary)]">
-                {activeList.name}
-              </div>
-            </div>
-          ) : null}
-        </DragOverlay>
-      </DndContext>
+            ) : null}
+          </DragOverlay>
+        </DndContext>
+      )}
 
       {/* Add New List Button - only if user has permission */}
       {canAddList && (
