@@ -326,7 +326,7 @@ export default function Home() {
 
               {/* Scrollable Todo List Section */}
               <div className="w-full flex-1 overflow-y-auto flex flex-col items-center relative" style={{ paddingTop: '64px' }}>
-                <div className="w-full max-w-[520px] mx-auto px-4 pb-8">
+                <div className="w-full max-w-[520px] mx-auto px-4 pb-32 lg:pb-8">
                   <ToDoList />
                 </div>
               </div>
