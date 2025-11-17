@@ -233,8 +233,16 @@ export default function SettingsPage() {
            }}>
         <button
           onClick={() => router.push('/')}
-          className="p-2 rounded-lg hover:bg-opacity-10 hover:bg-gray-500 transition-colors"
-          style={{ color: 'var(--color-todoloo-text-secondary)' }}
+          className="p-2 rounded-lg transition-colors"
+          style={{
+            color: 'var(--color-todoloo-text-secondary)'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = 'var(--color-todoloo-muted)'
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = 'transparent'
+          }}
         >
           <ArrowLeft className="w-5 h-5" />
         </button>
