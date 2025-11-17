@@ -35,6 +35,9 @@ export default function SortableTaskItem({
   const [showMoveToSubmenu, setShowMoveToSubmenu] = useState(false)
   const [customMinutes, setCustomMinutes] = useState('')
   const customTimeTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const [isActualTimeDropdownOpen, setIsActualTimeDropdownOpen] = useState(false)
+  const [customActualMinutes, setCustomActualMinutes] = useState('')
+  const actualTimeDropdownRef = useRef<HTMLDivElement>(null)
   const [, setShowEditButtons] = useState(false)
   const [isAnimatingOut, setIsAnimatingOut] = useState(false)
   const [isScratching, setIsScratching] = useState(false)
@@ -132,6 +135,21 @@ export default function SortableTaskItem({
     function handleClickOutside(event: MouseEvent) {
       if (optionsDropdownRef.current && !optionsDropdownRef.current.contains(event.target as Node)) {
         setIsOptionsDropdownOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [])
+
+  // Handle click outside actual time dropdown
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (actualTimeDropdownRef.current && !actualTimeDropdownRef.current.contains(event.target as Node)) {
+        setIsActualTimeDropdownOpen(false)
+        setCustomActualMinutes('')
       }
     }
 
@@ -416,6 +434,21 @@ export default function SortableTaskItem({
     } else if (e.key === 'Escape') {
       e.preventDefault()
       handleCancel()
+    }
+  }
+
+  const handleActualTimeSelect = (minutes: number) => {
+    updateTaskActualTime(task.id, minutes)
+    setIsActualTimeDropdownOpen(false)
+  }
+
+  const handleCustomActualTimeSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    const minutes = parseInt(customActualMinutes)
+    if (minutes > 0) {
+      updateTaskActualTime(task.id, minutes)
+      setCustomActualMinutes('')
+      setIsActualTimeDropdownOpen(false)
     }
   }
 
@@ -853,14 +886,64 @@ export default function SortableTaskItem({
                       {task.description}
                     </p>
                     <div className="flex flex-col gap-1">
-                      <div className="flex items-center">
-                        <p className="text-sm" style={{ color: 'var(--color-todoloo-text-muted)', fontFamily: 'Outfit', fontWeight: 400 }}>
-                          {task.isCompleted && task.actualMinutes
-                            ? formatEstimatedTime(task.actualMinutes)
-                            : formatEstimatedTime(task.estimatedMinutes)
-                          }
-                        </p>
-                        {hasStarted && (
+                      <div className="flex items-center relative">
+                        {task.isCompleted ? (
+                          <div className="relative" ref={actualTimeDropdownRef}>
+                            <button
+                              onClick={() => setIsActualTimeDropdownOpen(!isActualTimeDropdownOpen)}
+                              className="text-sm cursor-pointer hover:underline"
+                              style={{ color: 'var(--color-todoloo-text-muted)', fontFamily: 'Outfit', fontWeight: 400 }}
+                            >
+                              {task.actualMinutes
+                                ? formatEstimatedTime(task.actualMinutes)
+                                : formatEstimatedTime(task.estimatedMinutes)
+                              }
+                            </button>
+
+                            {isActualTimeDropdownOpen && (
+                              <div className="absolute top-6 left-0 w-48 bg-[#FEFFFF] rounded-[20px] border border-[#D9D9D9] shadow-[0px_4px_54px_rgba(0,0,0,0.05)] p-2 z-10">
+                                <div className="space-y-1">
+                                  {commonTimes.map((time) => (
+                                    <button
+                                      key={time.value}
+                                      type="button"
+                                      onClick={() => handleActualTimeSelect(time.value)}
+                                      className="w-full text-left px-3 py-2 text-xs text-[#696969] font-['Outfit'] hover:bg-[#F5F5F5] rounded-[10px] transition-colors cursor-pointer"
+                                    >
+                                      {time.label}
+                                    </button>
+                                  ))}
+                                  <div className="border-t border-[#E6E6E6] my-1"></div>
+                                  <form onSubmit={handleCustomActualTimeSubmit} className="px-3 py-2">
+                                    <div className="flex items-center gap-2">
+                                      <input
+                                        type="number"
+                                        value={customActualMinutes}
+                                        onChange={(e) => setCustomActualMinutes(e.target.value)}
+                                        onKeyDown={(e) => {
+                                          if (e.key === 'Enter') {
+                                            e.preventDefault()
+                                            handleCustomActualTimeSubmit(e)
+                                          }
+                                        }}
+                                        placeholder="Custom"
+                                        min="1"
+                                        max="999"
+                                        className="flex-1 text-xs text-[#2D1B1B] font-['Outfit'] bg-transparent border-none outline-none placeholder:text-[#989999]"
+                                      />
+                                      <span className="text-xs text-[#696969] font-['Outfit']">minutes</span>
+                                    </div>
+                                  </form>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <p className="text-sm" style={{ color: 'var(--color-todoloo-text-muted)', fontFamily: 'Outfit', fontWeight: 400 }}>
+                            {formatEstimatedTime(task.estimatedMinutes)}
+                          </p>
+                        )}
+                        {hasStarted && !task.isCompleted && (
                           <>
                             <span className="text-sm mx-2" style={{ color: 'var(--color-todoloo-text-secondary)', fontFamily: 'Outfit', fontWeight: 400 }}>•</span>
                             <p className="text-sm"
