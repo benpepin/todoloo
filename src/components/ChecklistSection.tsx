@@ -87,9 +87,13 @@ function SortableChecklistItem({ item, onToggle, onDelete, onUpdate, onDeleteAnd
       e.preventDefault()
       setEditValue(item.description)
       setIsEditing(false)
-    } else if (e.key === 'Delete' || e.key === 'Backspace') {
-      // Only handle delete/backspace if input is empty and at start
-      if (!editValue && onDeleteAndFocusPrevious) {
+    } else if ((e.key === 'Delete' || e.key === 'Backspace') && onDeleteAndFocusPrevious) {
+      // Get cursor position
+      const input = e.currentTarget
+      const cursorPosition = input.selectionStart || 0
+
+      // Only handle if input is empty OR if backspace is pressed at position 0
+      if (!editValue || (e.key === 'Backspace' && cursorPosition === 0)) {
         e.preventDefault()
         onDeleteAndFocusPrevious()
       }
