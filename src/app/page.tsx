@@ -141,12 +141,6 @@ export default function Home() {
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      // Block Command+N / Ctrl+N
-      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'n') {
-        event.preventDefault()
-        return
-      }
-
       // Only trigger if no input/textarea is focused
       const activeElement = document.activeElement
       const isInputFocused = activeElement && (
