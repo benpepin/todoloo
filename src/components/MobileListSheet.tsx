@@ -41,7 +41,7 @@ export default function MobileListSheet({ isOpen, onClose }: MobileListSheetProp
         className="fixed bottom-0 left-0 right-0 z-[9999] lg:hidden rounded-t-3xl shadow-2xl overflow-hidden"
         style={{
           maxHeight: '85vh',
-          backgroundColor: 'var(--color-todoloo-background)',
+          backgroundColor: 'var(--color-todoloo-card)',
           animation: 'slideUp 0.3s ease-out'
         }}
       >
@@ -49,13 +49,13 @@ export default function MobileListSheet({ isOpen, onClose }: MobileListSheetProp
         <div
           className="sticky top-0 z-10 flex items-center justify-between px-6 py-4 border-b"
           style={{
-            backgroundColor: 'var(--color-todoloo-background)',
+            backgroundColor: 'var(--color-todoloo-card)',
             borderColor: 'var(--color-todoloo-border)'
           }}
         >
           <h2
             className="text-xl font-semibold"
-            style={{ color: 'var(--color-todoloo-text)' }}
+            style={{ color: 'var(--color-todoloo-text-primary)' }}
           >
             My Lists
           </h2>
@@ -64,7 +64,7 @@ export default function MobileListSheet({ isOpen, onClose }: MobileListSheetProp
             className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
             aria-label="Close"
           >
-            <X size={24} style={{ color: 'var(--color-todoloo-text)' }} />
+            <X size={24} style={{ color: 'var(--color-todoloo-text-primary)' }} />
           </button>
         </div>
 
