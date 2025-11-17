@@ -430,7 +430,8 @@ export default function SortableTaskItem({
     }
   }
 
-  const handleActualTimeClick = () => {
+  const handleActualTimeClick = (e: React.MouseEvent) => {
+    e.stopPropagation()
     const currentMinutes = task.actualMinutes || task.estimatedMinutes
     setEditActualMinutes(currentMinutes.toString())
     setIsEditingActualTime(true)
