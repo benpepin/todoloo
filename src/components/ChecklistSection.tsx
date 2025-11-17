@@ -251,6 +251,15 @@ export default function ChecklistSection({ taskId, checklistItems = [], isEditin
       e.preventDefault()
       setNewItemDescription('')
       setIsAddingItem(false)
+    } else if (e.key === 'Backspace' && !newItemDescription) {
+      // If backspace on empty "Add item" input, close it and focus previous item
+      e.preventDefault()
+      setIsAddingItem(false)
+      if (checklistItems.length > 0) {
+        const lastItem = checklistItems[checklistItems.length - 1]
+        setItemIdToEdit(lastItem.id)
+        setTimeout(() => setItemIdToEdit(null), 0)
+      }
     }
   }
 
