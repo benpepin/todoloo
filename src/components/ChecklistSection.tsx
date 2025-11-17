@@ -33,9 +33,11 @@ interface SortableChecklistItemProps {
   onToggle: (id: string) => void
   onDelete: (id: string) => void
   onUpdate: (id: string, description: string) => void
+  onDeleteAndFocusPrevious?: () => void
+  shouldStartEditing?: boolean
 }
 
-function SortableChecklistItem({ item, onToggle, onDelete, onUpdate }: SortableChecklistItemProps) {
+function SortableChecklistItem({ item, onToggle, onDelete, onUpdate, onDeleteAndFocusPrevious, shouldStartEditing }: SortableChecklistItemProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [editValue, setEditValue] = useState(item.description)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -58,8 +60,16 @@ function SortableChecklistItem({ item, onToggle, onDelete, onUpdate }: SortableC
   useEffect(() => {
     if (isEditing && inputRef.current) {
       inputRef.current.focus()
+      inputRef.current.select()
     }
   }, [isEditing])
+
+  // Handle shouldStartEditing prop
+  useEffect(() => {
+    if (shouldStartEditing && !isEditing) {
+      setIsEditing(true)
+    }
+  }, [shouldStartEditing, isEditing])
 
   const handleSave = () => {
     if (editValue.trim()) {
@@ -77,6 +87,12 @@ function SortableChecklistItem({ item, onToggle, onDelete, onUpdate }: SortableC
       e.preventDefault()
       setEditValue(item.description)
       setIsEditing(false)
+    } else if (e.key === 'Delete' || e.key === 'Backspace') {
+      // Only handle delete/backspace if input is empty and at start
+      if (!editValue && onDeleteAndFocusPrevious) {
+        e.preventDefault()
+        onDeleteAndFocusPrevious()
+      }
     }
   }
 
@@ -180,6 +196,7 @@ function SortableChecklistItem({ item, onToggle, onDelete, onUpdate }: SortableC
 export default function ChecklistSection({ taskId, checklistItems = [], isEditing = false }: ChecklistSectionProps) {
   const [newItemDescription, setNewItemDescription] = useState('')
   const [isAddingItem, setIsAddingItem] = useState(checklistItems.length === 0 && isEditing)
+  const [itemIdToEdit, setItemIdToEdit] = useState<string | null>(null)
   const newItemInputRef = useRef<HTMLInputElement>(null)
 
   const addChecklistItem = useToDoStore((state) => state.addChecklistItem)
@@ -289,13 +306,26 @@ export default function ChecklistSection({ taskId, checklistItems = [], isEditin
           strategy={verticalListSortingStrategy}
         >
           <div className="space-y-1">
-            {checklistItems.map((item) => (
+            {checklistItems.map((item, index) => (
               <SortableChecklistItem
                 key={item.id}
                 item={item}
                 onToggle={handleToggle}
                 onDelete={handleDelete}
                 onUpdate={handleUpdate}
+                shouldStartEditing={itemIdToEdit === item.id}
+                onDeleteAndFocusPrevious={
+                  index > 0
+                    ? async () => {
+                        const previousItem = checklistItems[index - 1]
+                        await handleDelete(item.id)
+                        // Set the previous item to be edited
+                        setItemIdToEdit(previousItem.id)
+                        // Reset after a frame to allow re-triggering
+                        setTimeout(() => setItemIdToEdit(null), 0)
+                      }
+                    : undefined
+                }
               />
             ))}
           </div>
