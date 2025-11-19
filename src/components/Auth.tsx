@@ -41,28 +41,6 @@ export default function Auth() {
     }
   }
 
-  const handleGitHubSignIn = async () => {
-    setLoading(true)
-    setMessage('')
-
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'github',
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
-        },
-      })
-
-      if (error) {
-        setMessage(`Error: ${error.message}`)
-        setLoading(false)
-      }
-    } catch (error) {
-      setMessage(`Error: ${error}`)
-      setLoading(false)
-    }
-  }
-
   return (
     <div className="w-full h-screen flex flex-col lg:flex-row">
       {/* Left Side - Typography Statement */}
@@ -91,7 +69,7 @@ export default function Auth() {
           </div>
 
           <div className="bg-white rounded-lg p-8 shadow-lg border border-gray-200 relative z-10">
-            <h2 className="text-xl font-semibold mb-6 text-gray-900">Sign in to Todoloo</h2>
+            <h2 className="text-xl font-semibold mb-6 text-gray-900">Sign Up for Todoloo</h2>
 
             <form onSubmit={handleSignIn} className="space-y-4">
               <div>
@@ -120,25 +98,6 @@ export default function Auth() {
                 {loading ? 'Sending...' : 'Send Magic Link'}
               </button>
             </form>
-
-            <div className="mt-6">
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-300" />
-                </div>
-                <div className="relative flex justify-center text-sm">
-                  <span className="px-2 bg-white text-gray-500">Or</span>
-                </div>
-              </div>
-
-              <button
-                onClick={handleGitHubSignIn}
-                disabled={loading}
-                className="w-full mt-6 py-3 px-4 bg-white text-gray-900 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors border border-gray-300"
-              >
-                {loading ? 'Signing in...' : 'Sign in with GitHub'}
-              </button>
-            </div>
 
             {message && (
               <div className={`mt-6 p-3 rounded-md text-sm ${

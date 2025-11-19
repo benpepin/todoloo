@@ -108,35 +108,19 @@ function SortableListItem({
             >
               {listName}
             </span>
-            <div className="flex items-center gap-1 flex-shrink-0">
-              {/* Drag Handle */}
-              {!disableDragAndDrop && (
-                <button
-                  {...attributes}
-                  {...listeners}
-                  className="opacity-0 group-hover:opacity-100 transition-opacity
-                    text-[var(--color-todoloo-text-muted)] hover:text-[var(--color-todoloo-text-primary)]
-                    cursor-grab active:cursor-grabbing p-1"
-                  aria-label="Drag to reorder"
-                >
-                  <GripVertical className="w-4 h-4" />
-                </button>
-              )}
-              {isActive && canDelete && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    onDelete()
-                  }}
-                  className="opacity-0 group-hover:opacity-100 transition-opacity
-                    text-[var(--color-todoloo-text-muted)] hover:text-red-500
-                    dark:hover:text-red-400 px-1"
-                  aria-label="Delete list"
-                >
-                  ×
-                </button>
-              )}
-            </div>
+            {/* Drag Handle - moved to right */}
+            {!disableDragAndDrop && (
+              <button
+                {...attributes}
+                {...listeners}
+                className="opacity-0 group-hover:opacity-100 transition-opacity
+                  text-[var(--color-todoloo-text-muted)] hover:text-[var(--color-todoloo-text-primary)]
+                  cursor-grab active:cursor-grabbing p-1 flex-shrink-0"
+                aria-label="Drag to reorder"
+              >
+                <GripVertical className="w-4 h-4" />
+              </button>
+            )}
           </div>
         </div>
       )}
