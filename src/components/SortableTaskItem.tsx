@@ -4,13 +4,16 @@ import { useState, useRef, useEffect } from 'react'
 import Image from 'next/image'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { Check, GripVertical, Timer, ChevronDown, Play, Pause, MoreHorizontal, Music } from 'lucide-react'
+import { Check, GripVertical, Play, Pause, Music } from 'lucide-react'
 import { Task } from '@/types'
 import { useToDoStore } from '@/store/toDoStore'
 import { useSimpleTimer } from '@/hooks/useSimpleTimer'
 import AnimatedBorder from './AnimatedBorder'
 import { AnimatedBars } from './AnimatedBars'
-import ChecklistSection from './ChecklistSection'
+import UnifiedChecklistSection from './shared/UnifiedChecklistSection'
+import TimeDropdown from './shared/TimeDropdown'
+import OptionsMenu from './shared/OptionsMenu'
+import { formatEstimatedTime } from '@/utils/timeFormatting'
 import { MusicPlayer } from './MusicPlayer'
 
 interface SortableTaskItemProps {
@@ -30,11 +33,6 @@ export default function SortableTaskItem({
 }: SortableTaskItemProps) {
   const [editDescription, setEditDescription] = useState(task.description)
   const [editEstimatedMinutes, setEditEstimatedMinutes] = useState(task.estimatedMinutes)
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false)
-  const [isOptionsDropdownOpen, setIsOptionsDropdownOpen] = useState(false)
-  const [showMoveToSubmenu, setShowMoveToSubmenu] = useState(false)
-  const [customMinutes, setCustomMinutes] = useState('')
-  const customTimeTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const [isEditingActualTime, setIsEditingActualTime] = useState(false)
   const [editActualMinutes, setEditActualMinutes] = useState('')
   const actualTimeInputRef = useRef<HTMLInputElement>(null)
@@ -45,18 +43,8 @@ export default function SortableTaskItem({
   const [showCheckmarkAnimation, setShowCheckmarkAnimation] = useState(false)
   const [showChecklist, setShowChecklist] = useState(false)
 
-
   const descriptionInputRef = useRef<HTMLTextAreaElement>(null)
-  const dropdownRef = useRef<HTMLDivElement>(null)
-  const optionsDropdownRef = useRef<HTMLDivElement>(null)
   const taskCardRef = useRef<HTMLDivElement>(null)
-  
-  const commonTimes = [
-    { label: '15 minutes', value: 15 },
-    { label: '30 minutes', value: 30 },
-    { label: '1 hour', value: 60 },
-    { label: '2 hours', value: 120 },
-  ]
   
   const updateTaskDescription = useToDoStore((state) => state.updateTaskDescription)
   const updateTaskEstimatedTime = useToDoStore((state) => state.updateTaskEstimatedTime)
@@ -108,41 +96,6 @@ export default function SortableTaskItem({
       descriptionInputRef.current.select()
     }
   }, [isEditing])
-
-  // Handle click outside dropdown
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        // Save custom time if there's a value in the input
-        const minutes = parseInt(customMinutes)
-        if (minutes > 0) {
-          setEditEstimatedMinutes(minutes)
-          setCustomMinutes('')
-          updateTaskEstimatedTime(task.id, minutes)
-        }
-        setIsDropdownOpen(false)
-      }
-    }
-
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside)
-    }
-  }, [customMinutes, task.id, updateTaskEstimatedTime])
-
-  // Handle click outside options dropdown
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (optionsDropdownRef.current && !optionsDropdownRef.current.contains(event.target as Node)) {
-        setIsOptionsDropdownOpen(false)
-      }
-    }
-
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside)
-    }
-  }, [])
 
   // Focus input when editing actual time starts
   useEffect(() => {
@@ -358,68 +311,6 @@ export default function SortableTaskItem({
     }, 150)
   }
 
-  const handleTimeSelect = (minutes: number) => {
-    setEditEstimatedMinutes(minutes)
-    setIsDropdownOpen(false)
-    // Return focus to description input so user can hit Enter to save
-    setTimeout(() => {
-      if (descriptionInputRef.current) {
-        descriptionInputRef.current.focus()
-      }
-    }, 0)
-  }
-
-  const handleCustomTimeSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    const minutes = parseInt(customMinutes)
-    if (minutes > 0) {
-      setEditEstimatedMinutes(minutes)
-      setCustomMinutes('')
-      // Save the time change to the store
-      updateTaskEstimatedTime(task.id, minutes)
-      setIsDropdownOpen(false)
-      // Return focus to description input so user can hit Enter to save
-      setTimeout(() => {
-        if (descriptionInputRef.current) {
-          descriptionInputRef.current.focus()
-        }
-      }, 0)
-    }
-  }
-
-  const handleCustomTimeBlur = () => {
-    const minutes = parseInt(customMinutes)
-    if (minutes > 0) {
-      setEditEstimatedMinutes(minutes)
-      setCustomMinutes('')
-      // Save the time change to the store
-      updateTaskEstimatedTime(task.id, minutes)
-      // Close dropdown after a short delay to allow the blur to complete
-      setTimeout(() => {
-        setIsDropdownOpen(false)
-      }, 100)
-    }
-  }
-
-  const handleCustomTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value
-    setCustomMinutes(value)
-    
-    // Clear existing timeout
-    if (customTimeTimeoutRef.current) {
-      clearTimeout(customTimeTimeoutRef.current)
-    }
-    
-    // Set a new timeout to save after user stops typing
-    customTimeTimeoutRef.current = setTimeout(() => {
-      const minutes = parseInt(value)
-      if (minutes > 0) {
-        setEditEstimatedMinutes(minutes)
-        updateTaskEstimatedTime(task.id, minutes)
-      }
-    }, 1000) // Save after 1 second of no typing
-  }
-
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       e.preventDefault()
@@ -474,15 +365,6 @@ export default function SortableTaskItem({
     transition: transition || 'transform 200ms cubic-bezier(0.2, 0, 0, 1), opacity 200ms ease-out',
     willChange: isDragging ? 'transform' : 'auto',
     opacity: isDragging ? 0.1 : 1,
-  }
-
-  const formatEstimatedTime = (minutes: number) => {
-    if (minutes < 60) {
-      return `${minutes} minute${minutes !== 1 ? 's' : ''}`
-    }
-    const hours = Math.floor(minutes / 60)
-    const remainingMinutes = minutes % 60
-    return remainingMinutes > 0 ? `${hours} hour${hours !== 1 ? 's' : ''} ${remainingMinutes}m` : `${hours} hour${hours !== 1 ? 's' : ''}`
   }
 
   return (
@@ -555,177 +437,57 @@ export default function SortableTaskItem({
 
               {/* Checklist Section - shown in edit mode */}
               {showChecklist && (
-                <ChecklistSection taskId={task.id} checklistItems={task.checklistItems} isEditing={isEditing} />
+                <UnifiedChecklistSection
+                  items={task.checklistItems || []}
+                  onAddItem={(description) => useToDoStore.getState().addChecklistItem(task.id, description)}
+                  onDeleteItem={(id) => useToDoStore.getState().deleteChecklistItem(id)}
+                  onToggleItem={(id) => useToDoStore.getState().toggleChecklistItemCompletion(id)}
+                  onUpdateItem={(id, description) => useToDoStore.getState().updateChecklistItemField(id, { description })}
+                  onReorderItems={(items) => useToDoStore.getState().updateChecklistItemOrder(task.id, items)}
+                  isEditing={isEditing}
+                />
               )}
 
               <div className="flex justify-between items-center">
                 <div className="flex items-center gap-2">
-                  <div className="relative" ref={dropdownRef}>
-                    <button
-                      type="button"
-                      onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                      className="h-8 px-3 rounded-[20px] border flex items-center gap-1 transition-colors cursor-pointer"
-                      style={{
-                        borderColor: 'var(--color-todoloo-border)',
-                        backgroundColor: isDropdownOpen ? 'var(--color-todoloo-muted)' : 'var(--color-todoloo-card)'
-                      }}
-                      onMouseEnter={(e) => {
-                        if (!isDropdownOpen) {
-                          e.currentTarget.style.backgroundColor = 'var(--color-todoloo-muted)'
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        if (!isDropdownOpen) {
-                          e.currentTarget.style.backgroundColor = 'var(--color-todoloo-card)'
-                        }
-                      }}
-                    >
-                      <Timer className="w-3.5 h-3.5" style={{ color: 'var(--color-todoloo-text-secondary)' }} />
-                      <span className="text-xs font-['Outfit']" style={{ color: 'var(--color-todoloo-text-secondary)', transform: 'translateY(1px)' }}>
-                        {formatEstimatedTime(editEstimatedMinutes)}
-                      </span>
-                      <ChevronDown className={`w-3 h-3 transition-transform translate-y-px ${isDropdownOpen ? 'rotate-180' : ''}`}
-                                   style={{ color: 'var(--color-todoloo-text-secondary)' }} />
-                    </button>
-
-                    {isDropdownOpen && (
-                      <div className="absolute top-9 left-0 w-48 bg-[#FEFFFF] rounded-[20px] border border-[#D9D9D9] shadow-[0px_4px_54px_rgba(0,0,0,0.05)] p-2 z-10">
-                        <div className="space-y-1">
-                          {commonTimes.map((time) => (
-                            <button
-                              key={time.value}
-                              type="button"
-                              onClick={() => handleTimeSelect(time.value)}
-                              className="w-full text-left px-3 py-2 text-xs text-[#696969] font-['Outfit'] hover:bg-[#F5F5F5] rounded-[10px] transition-colors cursor-pointer"
-                            >
-                              {time.label}
-                            </button>
-                          ))}
-                          <div className="border-t border-[#E6E6E6] my-1"></div>
-                          <form onSubmit={handleCustomTimeSubmit} className="px-3 py-2">
-                            <div className="flex items-center gap-2">
-                              <input
-                                type="number"
-                                value={customMinutes}
-                                onChange={handleCustomTimeChange}
-                                onKeyDown={(e) => {
-                                  if (e.key === 'Enter') {
-                                    e.preventDefault()
-                                    handleCustomTimeSubmit(e)
-                                  }
-                                }}
-                                onBlur={handleCustomTimeBlur}
-                                placeholder="Custom"
-                                min="1"
-                                max="999"
-                                className="flex-1 text-xs text-[#2D1B1B] font-['Outfit'] bg-transparent border-none outline-none placeholder:text-[#989999]"
-                              />
-                              <span className="text-xs text-[#696969] font-['Outfit']">minutes</span>
-                            </div>
-                          </form>
-                        </div>
-                      </div>
-                    )}
-                  </div>
+                  {/* Timer Dropdown */}
+                  <TimeDropdown
+                    value={editEstimatedMinutes}
+                    onChange={(minutes) => {
+                      setEditEstimatedMinutes(minutes)
+                      updateTaskEstimatedTime(task.id, minutes)
+                    }}
+                  />
 
                   {/* Ellipsis Options Menu */}
-                  <div className="relative" ref={optionsDropdownRef}>
-                    <button
-                      type="button"
-                      onClick={() => setIsOptionsDropdownOpen(!isOptionsDropdownOpen)}
-                      className="h-8 w-8 rounded-[20px] border flex items-center justify-center transition-colors cursor-pointer"
-                      style={{
-                        borderColor: 'var(--color-todoloo-border)',
-                        backgroundColor: isOptionsDropdownOpen ? 'var(--color-todoloo-muted)' : 'var(--color-todoloo-card)'
-                      }}
-                      onMouseEnter={(e) => {
-                        if (!isOptionsDropdownOpen) {
-                          e.currentTarget.style.backgroundColor = 'var(--color-todoloo-muted)'
+                  <OptionsMenu
+                    items={[
+                      {
+                        label: showChecklist ? 'Hide Checklist' : 'Add Checklist',
+                        onClick: () => {
+                          if (showChecklist) {
+                            setShowChecklist(false)
+                          } else {
+                            handleAddChecklist()
+                          }
                         }
-                      }}
-                      onMouseLeave={(e) => {
-                        if (!isOptionsDropdownOpen) {
-                          e.currentTarget.style.backgroundColor = 'var(--color-todoloo-card)'
-                        }
-                      }}
-                      aria-label="More options"
-                    >
-                      <MoreHorizontal className="w-4 h-4" style={{ color: 'var(--color-todoloo-text-secondary)' }} />
-                    </button>
-
-                    {isOptionsDropdownOpen && (
-                      <div className="absolute top-9 left-0 w-48 bg-[#FEFFFF] rounded-[20px] border border-[#D9D9D9] shadow-[0px_4px_54px_rgba(0,0,0,0.05)] p-2 z-10">
-                        <div className="space-y-1">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              if (showChecklist) {
-                                setShowChecklist(false)
-                              } else {
-                                handleAddChecklist()
-                              }
-                              setIsOptionsDropdownOpen(false)
-                            }}
-                            className="w-full text-left px-3 py-2 text-xs text-[#696969] font-['Outfit'] hover:bg-[#F5F5F5] rounded-[10px] transition-colors cursor-pointer"
-                          >
-                            {showChecklist ? 'Hide Checklist' : 'Add Checklist'}
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => {
-                              toggleTaskMusic(task.id)
-                              setIsOptionsDropdownOpen(false)
-                            }}
-                            className="w-full text-left px-3 py-2 text-xs text-[#696969] font-['Outfit'] hover:bg-[#F5F5F5] rounded-[10px] transition-colors cursor-pointer flex items-center gap-2"
-                          >
-                            <Music className="w-3 h-3" />
-                            {task.musicEnabled ? 'Disable Music' : 'Enable Music'}
-                          </button>
-
-                          {lists.length > 1 && (
-                            <div className="relative">
-                              <button
-                                type="button"
-                                onMouseEnter={() => setShowMoveToSubmenu(true)}
-                                onMouseLeave={() => setShowMoveToSubmenu(false)}
-                                className="w-full text-left px-3 py-2 text-xs text-[#696969] font-['Outfit'] hover:bg-[#F5F5F5] rounded-[10px] transition-colors cursor-pointer flex items-center justify-between"
-                              >
-                                Move to...
-                                <ChevronDown className="w-3 h-3 -rotate-90" />
-                              </button>
-
-                              {showMoveToSubmenu && (
-                                <div
-                                  className="absolute left-full top-0 ml-1 w-40 bg-[#FEFFFF] rounded-[20px] border border-[#D9D9D9] shadow-[0px_4px_54px_rgba(0,0,0,0.05)] p-2 z-20"
-                                  onMouseEnter={() => setShowMoveToSubmenu(true)}
-                                  onMouseLeave={() => setShowMoveToSubmenu(false)}
-                                >
-                                  {lists
-                                    .filter(list => list.id !== currentListId)
-                                    .map(list => (
-                                      <button
-                                        key={list.id}
-                                        type="button"
-                                        onClick={async () => {
-                                          await moveTaskToList(task.id, list.id)
-                                          setIsOptionsDropdownOpen(false)
-                                          setShowMoveToSubmenu(false)
-                                        }}
-                                        className="w-full text-left px-3 py-2 text-xs text-[#696969] font-['Outfit'] hover:bg-[#F5F5F5] rounded-[10px] transition-colors cursor-pointer"
-                                      >
-                                        {list.name}
-                                      </button>
-                                    ))
-                                  }
-                                </div>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    )}
-                  </div>
+                      },
+                      {
+                        label: task.musicEnabled ? 'Disable Music' : 'Enable Music',
+                        onClick: () => toggleTaskMusic(task.id),
+                        icon: <Music className="w-3 h-3" />
+                      },
+                      ...(lists.length > 1 ? [{
+                        label: 'Move to...',
+                        items: lists
+                          .filter(list => list.id !== currentListId)
+                          .map(list => ({
+                            label: list.name,
+                            onClick: async () => await moveTaskToList(task.id, list.id)
+                          }))
+                      }] : [])
+                    ]}
+                  />
                 </div>
 
                 <div className="flex items-center gap-4">
