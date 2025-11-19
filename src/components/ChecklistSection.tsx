@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { Check, X, Plus, GripVertical } from 'lucide-react'
+import { Check, Plus, GripVertical } from 'lucide-react'
 import { ChecklistItem } from '@/types'
 import { useToDoStore } from '@/store/toDoStore'
 import {
@@ -31,13 +31,12 @@ interface ChecklistSectionProps {
 interface SortableChecklistItemProps {
   item: ChecklistItem
   onToggle: (id: string) => void
-  onDelete: (id: string) => void
   onUpdate: (id: string, description: string) => void
   onDeleteAndFocusPrevious?: () => void
   shouldStartEditing?: boolean
 }
 
-function SortableChecklistItem({ item, onToggle, onDelete, onUpdate, onDeleteAndFocusPrevious, shouldStartEditing }: SortableChecklistItemProps) {
+function SortableChecklistItem({ item, onToggle, onUpdate, onDeleteAndFocusPrevious, shouldStartEditing }: SortableChecklistItemProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [editValue, setEditValue] = useState(item.description)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -111,24 +110,6 @@ function SortableChecklistItem({ item, onToggle, onDelete, onUpdate, onDeleteAnd
         e.stopPropagation()
       }}
     >
-      {/* Drag Handle - only visible on hover */}
-      <button
-        className="opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing p-1 hidden lg:block flex-shrink-0"
-        tabIndex={0}
-        onPointerDown={(e) => {
-          // Stop propagation to prevent parent task card from being selected
-          e.stopPropagation()
-        }}
-        onMouseDown={(e) => {
-          // Stop propagation to prevent parent task card from being selected
-          e.stopPropagation()
-        }}
-        {...attributes}
-        {...listeners}
-      >
-        <GripVertical className="w-3.5 h-3.5" style={{ color: 'var(--color-todoloo-text-muted)' }} />
-      </button>
-
       {/* Checkbox */}
       <button
         onClick={() => onToggle(item.id)}
@@ -165,14 +146,14 @@ function SortableChecklistItem({ item, onToggle, onDelete, onUpdate, onDeleteAnd
           }}
           onKeyDown={handleKeyDown}
           onBlur={handleSave}
-          className="flex-1 text-sm font-['Outfit'] bg-transparent border-none outline-none lg:pr-8"
+          className="flex-1 text-sm font-['Outfit'] bg-transparent border-none outline-none"
           style={{
             color: 'var(--color-todoloo-text-secondary)'
           }}
         />
       ) : (
         <span
-          className={`flex-1 text-sm font-['Outfit'] cursor-text lg:pr-8 ${item.isCompleted ? 'line-through' : ''}`}
+          className={`flex-1 text-sm font-['Outfit'] cursor-text ${item.isCompleted ? 'line-through' : ''}`}
           style={{
             color: item.isCompleted ? 'var(--color-todoloo-text-muted)' : 'var(--color-todoloo-text-secondary)'
           }}
@@ -185,13 +166,22 @@ function SortableChecklistItem({ item, onToggle, onDelete, onUpdate, onDeleteAnd
         </span>
       )}
 
-      {/* Delete button (shown on hover) - positioned absolutely to right-align with main checkbox */}
+      {/* Drag Handle - only visible on hover, positioned on the right */}
       <button
-        onClick={() => onDelete(item.id)}
-        className="opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer p-1 rounded hover:bg-[var(--color-todoloo-border)] lg:absolute lg:right-[10px]"
-        aria-label="Delete checklist item"
+        className="opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing p-1 hidden lg:block flex-shrink-0"
+        tabIndex={0}
+        onPointerDown={(e) => {
+          // Stop propagation to prevent parent task card from being selected
+          e.stopPropagation()
+        }}
+        onMouseDown={(e) => {
+          // Stop propagation to prevent parent task card from being selected
+          e.stopPropagation()
+        }}
+        {...attributes}
+        {...listeners}
       >
-        <X className="w-3.5 h-3.5" style={{ color: 'var(--color-todoloo-text-muted)' }} />
+        <GripVertical className="w-3.5 h-3.5" style={{ color: 'var(--color-todoloo-text-muted)' }} />
       </button>
     </div>
   )
@@ -324,7 +314,6 @@ export default function ChecklistSection({ taskId, checklistItems = [], isEditin
                 key={item.id}
                 item={item}
                 onToggle={handleToggle}
-                onDelete={handleDelete}
                 onUpdate={handleUpdate}
                 shouldStartEditing={itemIdToEdit === item.id}
                 onDeleteAndFocusPrevious={

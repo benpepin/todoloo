@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { Check, X, Plus, GripVertical } from 'lucide-react'
+import { Check, Plus, GripVertical } from 'lucide-react'
 import { ChecklistItem } from '@/types'
 import {
   DndContext,
@@ -37,7 +37,6 @@ interface UnifiedChecklistSectionProps {
 interface SortableChecklistItemProps {
   item: ChecklistItem
   onToggle: (id: string) => void
-  onDelete: (id: string) => void
   onUpdate: (id: string, description: string) => void
   onDeleteAndFocusPrevious?: () => void
   shouldStartEditing?: boolean
@@ -47,7 +46,6 @@ interface SortableChecklistItemProps {
 function SortableChecklistItem({
   item,
   onToggle,
-  onDelete,
   onUpdate,
   onDeleteAndFocusPrevious,
   shouldStartEditing,
@@ -130,27 +128,6 @@ function SortableChecklistItem({
         e.stopPropagation()
       }}
     >
-      {/* Drag Handle - only visible on hover */}
-      <button
-        className={compact
-          ? "opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing p-1"
-          : "opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing p-1 hidden lg:block flex-shrink-0"
-        }
-        tabIndex={0}
-        onPointerDown={(e) => {
-          // Stop propagation to prevent parent task card from being selected
-          e.stopPropagation()
-        }}
-        onMouseDown={(e) => {
-          // Stop propagation to prevent parent task card from being selected
-          e.stopPropagation()
-        }}
-        {...attributes}
-        {...listeners}
-      >
-        <GripVertical className="w-3.5 h-3.5" style={{ color: 'var(--color-todoloo-text-muted)' }} />
-      </button>
-
       {/* Checkbox */}
       <button
         onClick={() => onToggle(item.id)}
@@ -187,17 +164,14 @@ function SortableChecklistItem({
           }}
           onKeyDown={handleKeyDown}
           onBlur={handleSave}
-          className={compact
-            ? "flex-1 text-sm font-['Outfit'] bg-transparent border-none outline-none"
-            : "flex-1 text-sm font-['Outfit'] bg-transparent border-none outline-none lg:pr-8"
-          }
+          className="flex-1 text-sm font-['Outfit'] bg-transparent border-none outline-none"
           style={{
             color: 'var(--color-todoloo-text-secondary)'
           }}
         />
       ) : (
         <span
-          className={`flex-1 text-sm font-['Outfit'] cursor-text ${compact ? '' : 'lg:pr-8'} ${item.isCompleted ? 'line-through' : ''}`}
+          className={`flex-1 text-sm font-['Outfit'] cursor-text ${item.isCompleted ? 'line-through' : ''}`}
           style={{
             color: item.isCompleted ? 'var(--color-todoloo-text-muted)' : 'var(--color-todoloo-text-secondary)'
           }}
@@ -210,16 +184,25 @@ function SortableChecklistItem({
         </span>
       )}
 
-      {/* Delete button (shown on hover) */}
+      {/* Drag Handle - only visible on hover, positioned on the right */}
       <button
-        onClick={() => onDelete(item.id)}
         className={compact
-          ? "opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer p-1 rounded hover:bg-[var(--color-todoloo-border)]"
-          : "opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer p-1 rounded hover:bg-[var(--color-todoloo-border)] lg:absolute lg:right-[10px]"
+          ? "opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing p-1"
+          : "opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing p-1 hidden lg:block flex-shrink-0"
         }
-        aria-label="Delete checklist item"
+        tabIndex={0}
+        onPointerDown={(e) => {
+          // Stop propagation to prevent parent task card from being selected
+          e.stopPropagation()
+        }}
+        onMouseDown={(e) => {
+          // Stop propagation to prevent parent task card from being selected
+          e.stopPropagation()
+        }}
+        {...attributes}
+        {...listeners}
       >
-        <X className="w-3.5 h-3.5" style={{ color: 'var(--color-todoloo-text-muted)' }} />
+        <GripVertical className="w-3.5 h-3.5" style={{ color: 'var(--color-todoloo-text-muted)' }} />
       </button>
     </div>
   )
@@ -366,7 +349,6 @@ export default function UnifiedChecklistSection({
                 key={item.id}
                 item={item}
                 onToggle={handleToggle}
-                onDelete={handleDelete}
                 onUpdate={handleUpdate}
                 shouldStartEditing={itemIdToEdit === item.id}
                 compact={compact}
