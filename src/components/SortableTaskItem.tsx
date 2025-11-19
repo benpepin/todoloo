@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import Image from 'next/image'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { Check, GripVertical, Play, Pause, Music } from 'lucide-react'
+import { Check, GripVertical, Play, Pause, Music, Timer } from 'lucide-react'
 import { Task } from '@/types'
 import { useToDoStore } from '@/store/toDoStore'
 import { useSimpleTimer } from '@/hooks/useSimpleTimer'
@@ -175,15 +175,6 @@ export default function SortableTaskItem({
     // Note: We don't automatically pause when inactive - timer continues in background
   }, [isActive, start, hasStarted])
 
-  // Cleanup timeout on unmount
-  useEffect(() => {
-    return () => {
-      if (customTimeTimeoutRef.current) {
-        clearTimeout(customTimeTimeoutRef.current)
-      }
-    }
-  }, [])
-
   const handleStartTask = () => {
     startTask(task.id)
 
@@ -349,8 +340,6 @@ export default function SortableTaskItem({
   }
 
   const handleAddChecklist = async () => {
-    setIsOptionsDropdownOpen(false)
-
     // If checklist items haven't been loaded yet, load them
     if (!task.checklistItems) {
       await loadChecklistItems(task.id)
@@ -797,7 +786,15 @@ export default function SortableTaskItem({
 
             {/* Checklist Section - only shown in normal mode */}
             {showChecklist && (
-              <ChecklistSection taskId={task.id} checklistItems={task.checklistItems} isEditing={isEditing} />
+              <UnifiedChecklistSection
+                items={task.checklistItems || []}
+                onAddItem={(description) => useToDoStore.getState().addChecklistItem(task.id, description)}
+                onDeleteItem={(id) => useToDoStore.getState().deleteChecklistItem(id)}
+                onToggleItem={(id) => useToDoStore.getState().toggleChecklistItemCompletion(id)}
+                onUpdateItem={(id, description) => useToDoStore.getState().updateChecklistItemField(id, { description })}
+                onReorderItems={(items) => useToDoStore.getState().updateChecklistItemOrder(task.id, items)}
+                isEditing={false}
+              />
             )}
             </>
           )}
