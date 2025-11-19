@@ -103,7 +103,7 @@ function SortableChecklistItem({ item, onToggle, onUpdate, onDeleteAndFocusPrevi
     <div
       ref={setNodeRef}
       style={style}
-      className="group flex items-center gap-2 py-2 rounded-lg transition-colors hover:bg-[var(--color-todoloo-muted)] relative lg:ml-6"
+      className="group flex items-center gap-2 py-2 rounded-lg transition-colors hover:bg-[var(--color-todoloo-muted)] relative lg:pl-[56px]"
       tabIndex={-1}
       onKeyDown={(e) => {
         // Stop keyboard events from bubbling to parent task
@@ -338,9 +338,7 @@ export default function ChecklistSection({ taskId, checklistItems = [], isEditin
       {isEditing && (
         <div style={{ marginTop: '16px' }}>
           {isAddingItem ? (
-          <div className="flex items-center gap-2 py-2 rounded-lg lg:ml-6">
-            {/* Spacer for drag handle alignment */}
-            <div className="w-[22px] hidden lg:block flex-shrink-0" />
+          <div className="flex items-center gap-2 py-2 rounded-lg lg:pl-[56px]">
             <div className="w-5 h-5 rounded border-2 flex-shrink-0" style={{ borderColor: 'var(--color-todoloo-border)' }} />
             <input
               ref={newItemInputRef}
@@ -368,10 +366,8 @@ export default function ChecklistSection({ taskId, checklistItems = [], isEditin
         ) : (
           <button
             onClick={() => setIsAddingItem(true)}
-            className="flex items-center gap-2 py-2 pb-4 rounded-lg transition-colors hover:bg-[var(--color-todoloo-muted)] cursor-pointer w-full lg:ml-6"
+            className="flex items-center gap-2 py-2 pb-4 rounded-lg transition-colors hover:bg-[var(--color-todoloo-muted)] cursor-pointer w-full lg:pl-[56px]"
           >
-            {/* Spacer for drag handle alignment */}
-            <div className="w-[22px] hidden lg:block flex-shrink-0" />
             <div className="w-5 h-5 flex items-center justify-center flex-shrink-0">
               <Plus className="w-4 h-4" style={{ color: 'var(--color-todoloo-text-muted)' }} />
             </div>

@@ -115,7 +115,7 @@ function SortableChecklistItem({
 
   const baseClasses = compact
     ? "group flex items-center gap-3 py-2 px-3 rounded-lg transition-colors hover:bg-[var(--color-todoloo-muted)]"
-    : "group flex items-center gap-2 py-2 rounded-lg transition-colors hover:bg-[var(--color-todoloo-muted)] relative lg:ml-6"
+    : "group flex items-center gap-2 py-2 rounded-lg transition-colors hover:bg-[var(--color-todoloo-muted)] relative lg:pl-[56px]"
 
   return (
     <div
@@ -325,11 +325,11 @@ export default function UnifiedChecklistSection({
 
   const addItemContainerClasses = compact
     ? "flex items-center gap-3 py-1 px-0"
-    : "flex items-center gap-2 py-2 rounded-lg lg:ml-6"
+    : "flex items-center gap-2 py-2 rounded-lg lg:pl-[56px]"
 
   const addItemButtonClasses = compact
     ? "flex items-center gap-2 py-2 px-3 rounded-lg transition-colors hover:bg-[var(--color-todoloo-muted)] cursor-pointer w-full"
-    : "flex items-center gap-2 py-2 pb-4 rounded-lg transition-colors hover:bg-[var(--color-todoloo-muted)] cursor-pointer w-full lg:ml-6"
+    : "flex items-center gap-2 py-2 pb-4 rounded-lg transition-colors hover:bg-[var(--color-todoloo-muted)] cursor-pointer w-full lg:pl-[56px]"
 
   return (
     <div className={containerClasses}>
@@ -375,8 +375,6 @@ export default function UnifiedChecklistSection({
         <div style={compact ? {} : { marginTop: '16px' }}>
           {isAddingItem ? (
             <div className={addItemContainerClasses}>
-              {/* Spacer for drag handle alignment (non-compact only) */}
-              {!compact && <div className="w-[22px] hidden lg:block flex-shrink-0" />}
               <div className="w-5 h-5 rounded border-2 flex-shrink-0" style={{ borderColor: 'var(--color-todoloo-border)' }} />
               <input
                 ref={newItemInputRef}
@@ -406,8 +404,6 @@ export default function UnifiedChecklistSection({
               onClick={() => setIsAddingItem(true)}
               className={addItemButtonClasses}
             >
-              {/* Spacer for drag handle alignment (non-compact only) */}
-              {!compact && <div className="w-[22px] hidden lg:block flex-shrink-0" />}
               <div className="w-5 h-5 flex items-center justify-center flex-shrink-0">
                 <Plus className="w-4 h-4" style={{ color: 'var(--color-todoloo-text-muted)' }} />
               </div>

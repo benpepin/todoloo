@@ -434,6 +434,7 @@ export default function SortableTaskItem({
                   onUpdateItem={(id, description) => useToDoStore.getState().updateChecklistItemField(id, { description })}
                   onReorderItems={(items) => useToDoStore.getState().updateChecklistItemOrder(task.id, items)}
                   isEditing={isEditing}
+                  compact={false}
                 />
               )}
 
@@ -794,6 +795,7 @@ export default function SortableTaskItem({
                 onUpdateItem={(id, description) => useToDoStore.getState().updateChecklistItemField(id, { description })}
                 onReorderItems={(items) => useToDoStore.getState().updateChecklistItemOrder(task.id, items)}
                 isEditing={false}
+                compact={false}
               />
             )}
             </>
