@@ -103,11 +103,16 @@ function SortableChecklistItem({
     e.stopPropagation() // Prevent all key events from bubbling
     if (e.key === 'Enter') {
       e.preventDefault()
-      handleSave()
-      // Create a new item after this one
-      if (onAddNext) {
-        onAddNext()
+
+      // Only create next item if current item has content
+      if (editValue.trim()) {
+        handleSave()
+        // Create a new item after this one
+        if (onAddNext) {
+          onAddNext()
+        }
       }
+      // If empty, do nothing (stay in editing mode)
     } else if (e.key === 'Escape') {
       e.preventDefault()
       setEditValue(item.description)
@@ -234,6 +239,7 @@ export default function UnifiedChecklistSection({
 }: UnifiedChecklistSectionProps) {
   const [itemIdToEdit, setItemIdToEdit] = useState<string | null>(null)
   const [hasCreatedInitialItem, setHasCreatedInitialItem] = useState(false)
+  const [needsInitialFocus, setNeedsInitialFocus] = useState(false)
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -246,17 +252,22 @@ export default function UnifiedChecklistSection({
   useEffect(() => {
     if (isEditing && items.length === 0 && !hasCreatedInitialItem) {
       setHasCreatedInitialItem(true)
-      onAddItem('').then(() => {
-        // Focus the newly created item
-        setTimeout(() => {
-          if (items.length > 0) {
-            setItemIdToEdit(items[0].id)
-            setTimeout(() => setItemIdToEdit(null), 0)
-          }
-        }, 100)
-      })
+      setNeedsInitialFocus(true)
+      onAddItem('')
     }
-  }, [isEditing, items.length, hasCreatedInitialItem, onAddItem, items])
+  }, [isEditing, items.length, hasCreatedInitialItem, onAddItem])
+
+  // Focus the first item when it gets added (after creation)
+  useEffect(() => {
+    if (needsInitialFocus && items.length > 0) {
+      setNeedsInitialFocus(false)
+      const firstItem = items[0]
+      if (firstItem) {
+        setItemIdToEdit(firstItem.id)
+        setTimeout(() => setItemIdToEdit(null), 0)
+      }
+    }
+  }, [needsInitialFocus, items])
 
   // Reset flag when items exist
   useEffect(() => {

@@ -88,11 +88,16 @@ function SortableChecklistItem({ item, onToggle, onUpdate, onDeleteAndFocusPrevi
     e.stopPropagation() // Prevent all key events from bubbling
     if (e.key === 'Enter') {
       e.preventDefault()
-      handleSave()
-      // Create a new item after this one
-      if (onAddNext) {
-        onAddNext()
+
+      // Only create next item if current item has content
+      if (editValue.trim()) {
+        handleSave()
+        // Create a new item after this one
+        if (onAddNext) {
+          onAddNext()
+        }
       }
+      // If empty, do nothing (stay in editing mode)
     } else if (e.key === 'Escape') {
       e.preventDefault()
       setEditValue(item.description)
@@ -202,6 +207,7 @@ function SortableChecklistItem({ item, onToggle, onUpdate, onDeleteAndFocusPrevi
 export default function ChecklistSection({ taskId, checklistItems = [], isEditing = false }: ChecklistSectionProps) {
   const [itemIdToEdit, setItemIdToEdit] = useState<string | null>(null)
   const [hasCreatedInitialItem, setHasCreatedInitialItem] = useState(false)
+  const [needsInitialFocus, setNeedsInitialFocus] = useState(false)
 
   const addChecklistItem = useToDoStore((state) => state.addChecklistItem)
   const deleteChecklistItem = useToDoStore((state) => state.deleteChecklistItem)
@@ -222,17 +228,22 @@ export default function ChecklistSection({ taskId, checklistItems = [], isEditin
   useEffect(() => {
     if (isEditing && checklistItems.length === 0 && !hasCreatedInitialItem) {
       setHasCreatedInitialItem(true)
-      addChecklistItem(taskId, '').then(() => {
-        // Focus the newly created item
-        setTimeout(() => {
-          if (checklistItems.length > 0) {
-            setItemIdToEdit(checklistItems[0].id)
-            setTimeout(() => setItemIdToEdit(null), 0)
-          }
-        }, 100)
-      })
+      setNeedsInitialFocus(true)
+      addChecklistItem(taskId, '')
     }
-  }, [isEditing, checklistItems.length, hasCreatedInitialItem, addChecklistItem, taskId, checklistItems])
+  }, [isEditing, checklistItems.length, hasCreatedInitialItem, addChecklistItem, taskId])
+
+  // Focus the first item when it gets added (after creation)
+  useEffect(() => {
+    if (needsInitialFocus && checklistItems.length > 0) {
+      setNeedsInitialFocus(false)
+      const firstItem = checklistItems[0]
+      if (firstItem) {
+        setItemIdToEdit(firstItem.id)
+        setTimeout(() => setItemIdToEdit(null), 0)
+      }
+    }
+  }, [needsInitialFocus, checklistItems])
 
   // Reset flag when items exist
   useEffect(() => {
