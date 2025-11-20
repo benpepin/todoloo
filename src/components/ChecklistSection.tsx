@@ -218,6 +218,7 @@ export default function ChecklistSection({ taskId, checklistItems = [], isEditin
   const [itemIdToEdit, setItemIdToEdit] = useState<string | null>(null)
   const [hasCreatedInitialItem, setHasCreatedInitialItem] = useState(false)
   const [needsInitialFocus, setNeedsInitialFocus] = useState(false)
+  const [pendingItemCount, setPendingItemCount] = useState<number | null>(null)
 
   const addChecklistItem = useToDoStore((state) => state.addChecklistItem)
   const deleteChecklistItem = useToDoStore((state) => state.deleteChecklistItem)
@@ -262,20 +263,23 @@ export default function ChecklistSection({ taskId, checklistItems = [], isEditin
     }
   }, [checklistItems.length])
 
+  // Focus the newly added item when items array changes
+  useEffect(() => {
+    if (pendingItemCount !== null && checklistItems.length > pendingItemCount) {
+      const newItem = checklistItems[checklistItems.length - 1]
+      setItemIdToEdit(newItem.id)
+      setTimeout(() => setItemIdToEdit(null), 0)
+      setPendingItemCount(null)
+    }
+  }, [checklistItems.length, pendingItemCount, checklistItems])
+
   const handleAddItemAfter = async (currentItemId: string) => {
     try {
+      setPendingItemCount(checklistItems.length)
       await addChecklistItem(taskId, '')
-      // After the new item is created, find it and set it to edit mode
-      // The new item will be the last one in the list
-      setTimeout(() => {
-        if (checklistItems.length > 0) {
-          const newItem = checklistItems[checklistItems.length - 1]
-          setItemIdToEdit(newItem.id)
-          setTimeout(() => setItemIdToEdit(null), 0)
-        }
-      }, 100)
     } catch (error) {
       console.error('Failed to add checklist item:', error)
+      setPendingItemCount(null)
     }
   }
 

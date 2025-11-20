@@ -250,6 +250,7 @@ export default function UnifiedChecklistSection({
   const [itemIdToEdit, setItemIdToEdit] = useState<string | null>(null)
   const [hasCreatedInitialItem, setHasCreatedInitialItem] = useState(false)
   const [needsInitialFocus, setNeedsInitialFocus] = useState(false)
+  const [pendingItemCount, setPendingItemCount] = useState<number | null>(null)
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -286,20 +287,23 @@ export default function UnifiedChecklistSection({
     }
   }, [items.length])
 
+  // Focus the newly added item when items array changes
+  useEffect(() => {
+    if (pendingItemCount !== null && items.length > pendingItemCount) {
+      const newItem = items[items.length - 1]
+      setItemIdToEdit(newItem.id)
+      setTimeout(() => setItemIdToEdit(null), 0)
+      setPendingItemCount(null)
+    }
+  }, [items.length, pendingItemCount, items])
+
   const handleAddItemAfter = async (currentItemId: string) => {
     try {
+      setPendingItemCount(items.length)
       await onAddItem('')
-      // After the new item is created, find it and set it to edit mode
-      // The new item will be the last one in the list
-      setTimeout(() => {
-        if (items.length > 0) {
-          const newItem = items[items.length - 1]
-          setItemIdToEdit(newItem.id)
-          setTimeout(() => setItemIdToEdit(null), 0)
-        }
-      }, 100)
     } catch (error) {
       console.error('Failed to add checklist item:', error)
+      setPendingItemCount(null)
     }
   }
 
