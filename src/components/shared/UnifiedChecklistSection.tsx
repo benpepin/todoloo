@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { Check, Plus, GripVertical } from 'lucide-react'
+import { Check, GripVertical } from 'lucide-react'
 import { ChecklistItem } from '@/types'
 import {
   DndContext,
@@ -220,7 +220,6 @@ export default function UnifiedChecklistSection({
   compact = false
 }: UnifiedChecklistSectionProps) {
   const [newItemDescription, setNewItemDescription] = useState('')
-  const [isAddingItem, setIsAddingItem] = useState(items.length === 0 && isEditing)
   const [itemIdToEdit, setItemIdToEdit] = useState<string | null>(null)
   const newItemInputRef = useRef<HTMLInputElement>(null)
 
@@ -231,23 +230,22 @@ export default function UnifiedChecklistSection({
     })
   )
 
-  // Focus input when starting to add an item
+  // Focus input when editing mode is enabled
   useEffect(() => {
-    if (isAddingItem && newItemInputRef.current) {
+    if (isEditing && newItemInputRef.current) {
       newItemInputRef.current.focus()
     }
-  }, [isAddingItem])
+  }, [isEditing])
 
   const handleAddItem = async () => {
     if (!newItemDescription.trim()) {
-      setIsAddingItem(false)
       return
     }
 
     try {
       await onAddItem(newItemDescription.trim())
       setNewItemDescription('')
-      // Keep the input open for adding more items
+      // Keep the input focused for adding more items
       if (newItemInputRef.current) {
         newItemInputRef.current.focus()
       }
@@ -263,11 +261,9 @@ export default function UnifiedChecklistSection({
     } else if (e.key === 'Escape') {
       e.preventDefault()
       setNewItemDescription('')
-      setIsAddingItem(false)
-    } else if (e.key === 'Backspace' && !newItemDescription) {
-      // If backspace on empty "Add item" input, close it and focus previous item
+    } else if ((e.key === 'Backspace' || e.key === 'Delete') && !newItemDescription) {
+      // If backspace/delete on empty "Add item" input, focus previous item
       e.preventDefault()
-      setIsAddingItem(false)
       if (items.length > 0) {
         const lastItem = items[items.length - 1]
         setItemIdToEdit(lastItem.id)
@@ -327,10 +323,6 @@ export default function UnifiedChecklistSection({
     ? "flex items-center gap-3 py-1 px-0"
     : "flex items-center gap-2 py-2 rounded-lg lg:pl-[56px]"
 
-  const addItemButtonClasses = compact
-    ? "flex items-center gap-2 py-2 px-3 rounded-lg transition-colors hover:bg-[var(--color-todoloo-muted)] cursor-pointer w-full"
-    : "flex items-center gap-2 py-2 pb-4 rounded-lg transition-colors hover:bg-[var(--color-todoloo-muted)] cursor-pointer w-full lg:pl-[56px]"
-
   return (
     <div className={containerClasses}>
       {/* Checklist items */}
@@ -370,48 +362,31 @@ export default function UnifiedChecklistSection({
         </SortableContext>
       </DndContext>
 
-      {/* Add new item - only show when editing */}
+      {/* Add new item input - always visible when editing */}
       {isEditing && (
         <div style={compact ? {} : { marginTop: '16px' }}>
-          {isAddingItem ? (
-            <div className={addItemContainerClasses}>
-              <div className="w-5 h-5 rounded border-2 flex-shrink-0" style={{ borderColor: 'var(--color-todoloo-border)' }} />
-              <input
-                ref={newItemInputRef}
-                type="text"
-                value={newItemDescription}
-                onChange={(e) => {
-                  e.stopPropagation() // Prevent space bar from triggering drag
-                  setNewItemDescription(e.target.value)
-                }}
-                onKeyDown={handleKeyDown}
-                onBlur={() => {
-                  // If input is empty, close it
-                  if (!newItemDescription.trim()) {
-                    setIsAddingItem(false)
-                  } else {
-                    // Otherwise, add the item
-                    handleAddItem()
-                  }
-                }}
-                placeholder="Add item..."
-                className="flex-1 text-sm font-['Outfit'] bg-transparent border-none outline-none"
-                style={{ color: 'var(--color-todoloo-text-primary)' }}
-              />
-            </div>
-          ) : (
-            <button
-              onClick={() => setIsAddingItem(true)}
-              className={addItemButtonClasses}
-            >
-              <div className="w-5 h-5 flex items-center justify-center flex-shrink-0">
-                <Plus className="w-4 h-4" style={{ color: 'var(--color-todoloo-text-muted)' }} />
-              </div>
-              <span className="text-sm font-['Outfit']" style={{ color: 'var(--color-todoloo-text-muted)' }}>
-                Add item
-              </span>
-            </button>
-          )}
+          <div className={addItemContainerClasses}>
+            <div className="w-5 h-5 rounded border-2 flex-shrink-0" style={{ borderColor: 'var(--color-todoloo-border)' }} />
+            <input
+              ref={newItemInputRef}
+              type="text"
+              value={newItemDescription}
+              onChange={(e) => {
+                e.stopPropagation() // Prevent space bar from triggering drag
+                setNewItemDescription(e.target.value)
+              }}
+              onKeyDown={handleKeyDown}
+              onBlur={() => {
+                // If input has text, add the item
+                if (newItemDescription.trim()) {
+                  handleAddItem()
+                }
+              }}
+              placeholder="Add item..."
+              className="flex-1 text-sm font-['Outfit'] bg-transparent border-none outline-none"
+              style={{ color: 'var(--color-todoloo-text-primary)' }}
+            />
+          </div>
         </div>
       )}
     </div>

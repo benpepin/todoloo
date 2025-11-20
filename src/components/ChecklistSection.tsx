@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { Check, Plus, GripVertical } from 'lucide-react'
+import { Check, GripVertical } from 'lucide-react'
 import { ChecklistItem } from '@/types'
 import { useToDoStore } from '@/store/toDoStore'
 import {
@@ -189,7 +189,6 @@ function SortableChecklistItem({ item, onToggle, onUpdate, onDeleteAndFocusPrevi
 
 export default function ChecklistSection({ taskId, checklistItems = [], isEditing = false }: ChecklistSectionProps) {
   const [newItemDescription, setNewItemDescription] = useState('')
-  const [isAddingItem, setIsAddingItem] = useState(checklistItems.length === 0 && isEditing)
   const [itemIdToEdit, setItemIdToEdit] = useState<string | null>(null)
   const newItemInputRef = useRef<HTMLInputElement>(null)
 
@@ -208,23 +207,22 @@ export default function ChecklistSection({ taskId, checklistItems = [], isEditin
     })
   )
 
-  // Focus input when starting to add an item
+  // Focus input when editing mode is enabled
   useEffect(() => {
-    if (isAddingItem && newItemInputRef.current) {
+    if (isEditing && newItemInputRef.current) {
       newItemInputRef.current.focus()
     }
-  }, [isAddingItem])
+  }, [isEditing])
 
   const handleAddItem = async () => {
     if (!newItemDescription.trim()) {
-      setIsAddingItem(false)
       return
     }
 
     try {
       await addChecklistItem(taskId, newItemDescription.trim())
       setNewItemDescription('')
-      // Keep the input open for adding more items
+      // Keep the input focused for adding more items
       if (newItemInputRef.current) {
         newItemInputRef.current.focus()
       }
@@ -240,11 +238,9 @@ export default function ChecklistSection({ taskId, checklistItems = [], isEditin
     } else if (e.key === 'Escape') {
       e.preventDefault()
       setNewItemDescription('')
-      setIsAddingItem(false)
-    } else if (e.key === 'Backspace' && !newItemDescription) {
-      // If backspace on empty "Add item" input, close it and focus previous item
+    } else if ((e.key === 'Backspace' || e.key === 'Delete') && !newItemDescription) {
+      // If backspace/delete on empty "Add item" input, focus previous item
       e.preventDefault()
-      setIsAddingItem(false)
       if (checklistItems.length > 0) {
         const lastItem = checklistItems[checklistItems.length - 1]
         setItemIdToEdit(lastItem.id)
@@ -334,10 +330,9 @@ export default function ChecklistSection({ taskId, checklistItems = [], isEditin
         </SortableContext>
       </DndContext>
 
-      {/* Add new item - only show when editing */}
+      {/* Add new item input - always visible when editing */}
       {isEditing && (
         <div style={{ marginTop: '16px' }}>
-          {isAddingItem ? (
           <div className="flex items-center gap-2 py-2 rounded-lg lg:pl-[56px]">
             <div className="w-5 h-5 rounded border-2 flex-shrink-0" style={{ borderColor: 'var(--color-todoloo-border)' }} />
             <input
@@ -350,11 +345,8 @@ export default function ChecklistSection({ taskId, checklistItems = [], isEditin
               }}
               onKeyDown={handleKeyDown}
               onBlur={() => {
-                // If input is empty, close it
-                if (!newItemDescription.trim()) {
-                  setIsAddingItem(false)
-                } else {
-                  // Otherwise, add the item
+                // If input has text, add the item
+                if (newItemDescription.trim()) {
                   handleAddItem()
                 }
               }}
@@ -363,19 +355,6 @@ export default function ChecklistSection({ taskId, checklistItems = [], isEditin
               style={{ color: 'var(--color-todoloo-text-primary)' }}
             />
           </div>
-        ) : (
-          <button
-            onClick={() => setIsAddingItem(true)}
-            className="flex items-center gap-2 py-2 pb-4 rounded-lg transition-colors hover:bg-[var(--color-todoloo-muted)] cursor-pointer w-full lg:pl-[56px]"
-          >
-            <div className="w-5 h-5 flex items-center justify-center flex-shrink-0">
-              <Plus className="w-4 h-4" style={{ color: 'var(--color-todoloo-text-muted)' }} />
-            </div>
-            <span className="text-sm font-['Outfit']" style={{ color: 'var(--color-todoloo-text-muted)' }}>
-              Add item
-            </span>
-          </button>
-          )}
         </div>
       )}
     </div>
