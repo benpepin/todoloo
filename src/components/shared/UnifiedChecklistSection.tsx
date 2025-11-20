@@ -56,6 +56,7 @@ function SortableChecklistItem({
   const [isEditing, setIsEditing] = useState(false)
   const [editValue, setEditValue] = useState(item.description)
   const inputRef = useRef<HTMLInputElement>(null)
+  const isSubmittingRef = useRef(false)
   const {
     attributes,
     listeners,
@@ -106,11 +107,16 @@ function SortableChecklistItem({
 
       // Only create next item if current item has content
       if (editValue.trim()) {
-        handleSave()
+        isSubmittingRef.current = true
+        onUpdate(item.id, editValue.trim())
+        // Don't set isEditing to false - keep the item in view mode
         // Create a new item after this one
         if (onAddNext) {
           onAddNext()
         }
+        setTimeout(() => {
+          isSubmittingRef.current = false
+        }, 100)
       }
       // If empty, do nothing (stay in editing mode)
     } else if (e.key === 'Escape') {
@@ -180,7 +186,11 @@ function SortableChecklistItem({
             setEditValue(e.target.value)
           }}
           onKeyDown={(e) => handleKeyDown(e, onAddNext)}
-          onBlur={handleSave}
+          onBlur={() => {
+            if (!isSubmittingRef.current) {
+              handleSave()
+            }
+          }}
           placeholder="Add todo"
           className="flex-1 text-sm font-['Outfit'] bg-transparent border-none outline-none"
           style={{
