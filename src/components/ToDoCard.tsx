@@ -63,6 +63,7 @@ function ToDoCardContent() {
   const [tempChecklistItems, setTempChecklistItems] = useState<ChecklistItem[]>([])
   const [musicEnabled, setMusicEnabled] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
+  const checklistRef = useRef<{ saveAllItems: () => Promise<ChecklistItem[]> }>(null)
   const addTask = useToDoStore((state) => state.addTask)
   const addChecklistItem = useToDoStore((state) => state.addChecklistItem)
   const setShowCreateTask = useToDoStore((state) => state.setShowCreateTask)
@@ -135,6 +136,11 @@ function ToDoCardContent() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    // Get the current checklist items with their latest values
+    let checklistItemsToAdd = [...tempChecklistItems]
+    if (checklistRef.current) {
+      checklistItemsToAdd = await checklistRef.current.saveAllItems()
+    }
     if (description.trim()) {
       console.log('handleSubmit called with:', description)
       // Check for bulk add mode - ends with " and", " AND", or " &"
@@ -188,7 +194,9 @@ function ToDoCardContent() {
             const newTask = await addTask(taskDescription, estimatedMinutes, groupId, musicEnabled)
             // Add checklist items if any
             if (tempChecklistItems.length > 0 && newTask) {
+              console.log('Creating checklist items from tempChecklistItems:', tempChecklistItems)
               for (const item of tempChecklistItems) {
+                console.log('Adding checklist item:', item.description)
                 await addChecklistItem(newTask.id, item.description)
               }
             }
@@ -267,8 +275,10 @@ function ToDoCardContent() {
           const taskDescription = taskCount > 1 ? `${baseDescription.trim()} (${i + 1})` : baseDescription.trim()
           const newTask = await addTask(taskDescription, estimatedMinutes, undefined, musicEnabled)
           // Add checklist items if any
-          if (tempChecklistItems.length > 0 && newTask) {
-            for (const item of tempChecklistItems) {
+          if (checklistItemsToAdd.length > 0 && newTask) {
+            console.log('Creating checklist items from checklistItemsToAdd:', checklistItemsToAdd)
+            for (const item of checklistItemsToAdd) {
+              console.log('Adding checklist item:', item.description)
               await addChecklistItem(newTask.id, item.description)
             }
           }
@@ -277,8 +287,10 @@ function ToDoCardContent() {
         // Single to do (no group)
         const newTask = await addTask(description.trim(), estimatedMinutes, undefined, musicEnabled)
         // Add checklist items if any
-        if (tempChecklistItems.length > 0 && newTask) {
-          for (const item of tempChecklistItems) {
+        if (checklistItemsToAdd.length > 0 && newTask) {
+          console.log('Creating checklist items from checklistItemsToAdd:', checklistItemsToAdd)
+          for (const item of checklistItemsToAdd) {
+            console.log('Adding checklist item:', item.description)
             await addChecklistItem(newTask.id, item.description)
           }
         }
@@ -314,9 +326,11 @@ function ToDoCardContent() {
   }
 
   const handleUpdateTempChecklistItem = (id: string, description: string) => {
+    console.log('handleUpdateTempChecklistItem called:', id, description)
     setTempChecklistItems(tempChecklistItems.map(item =>
       item.id === id ? { ...item, description } : item
     ))
+    console.log('Updated tempChecklistItems:', tempChecklistItems)
   }
 
   const handleReorderTempChecklistItems = (reorderedItems: ChecklistItem[]) => {
@@ -448,6 +462,7 @@ function ToDoCardContent() {
         {/* Temporary Checklist Section (for new todos) */}
         {showChecklist && (
           <UnifiedChecklistSection
+            ref={checklistRef}
             items={tempChecklistItems}
             onAddItem={handleAddTempChecklistItem}
             onDeleteItem={handleDeleteTempChecklistItem}

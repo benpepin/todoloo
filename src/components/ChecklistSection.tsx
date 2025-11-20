@@ -100,15 +100,16 @@ function SortableChecklistItem({ item, onToggle, onUpdate, onDeleteAndFocusPrevi
       // Only create next item if current item has content
       if (editValue.trim()) {
         isSubmittingRef.current = true
+        // Update the current item
         onUpdate(item.id, editValue.trim())
-        setIsEditing(false) // Exit editing mode on current item
-        // Create a new item after this one
+        // Create a new item after this one - the new item will steal focus
         if (onAddNext) {
           onAddNext()
         }
+        // Reset the submitting flag after new item is created
         setTimeout(() => {
           isSubmittingRef.current = false
-        }, 100)
+        }, 150)
       }
       // If empty, do nothing (stay in editing mode)
     } else if (e.key === 'Escape') {
@@ -258,7 +259,7 @@ export default function ChecklistSection({ taskId, checklistItems = [], isEditin
       const firstItem = checklistItems[0]
       if (firstItem) {
         setItemIdToEdit(firstItem.id)
-        setTimeout(() => setItemIdToEdit(null), 0)
+        // Don't reset itemIdToEdit immediately - let the separate cleanup effect handle it
       }
     }
   }, [needsInitialFocus, checklistItems])

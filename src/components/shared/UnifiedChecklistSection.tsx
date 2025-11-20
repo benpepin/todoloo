@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, forwardRef, useImperativeHandle } from 'react'
 import { Check, GripVertical } from 'lucide-react'
 import { ChecklistItem } from '@/types'
 import {
@@ -42,6 +42,7 @@ interface SortableChecklistItemProps {
   onAddNext?: () => void
   shouldStartEditing?: boolean
   compact?: boolean
+  innerRef?: React.MutableRefObject<{ getCurrentValue: () => string } | null>
 }
 
 function SortableChecklistItem({
@@ -51,12 +52,22 @@ function SortableChecklistItem({
   onDeleteAndFocusPrevious,
   onAddNext,
   shouldStartEditing,
-  compact = false
+  compact = false,
+  innerRef
 }: SortableChecklistItemProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [editValue, setEditValue] = useState(item.description)
   const inputRef = useRef<HTMLInputElement>(null)
   const isSubmittingRef = useRef(false)
+
+  // Expose getCurrentValue method via ref
+  useEffect(() => {
+    if (innerRef) {
+      innerRef.current = {
+        getCurrentValue: () => editValue
+      }
+    }
+  }, [editValue, innerRef])
   const {
     attributes,
     listeners,
@@ -96,6 +107,7 @@ function SortableChecklistItem({
   // Handle shouldStartEditing prop
   useEffect(() => {
     if (shouldStartEditing && !isEditing) {
+      console.log('shouldStartEditing triggered for item:', item.id, item.description)
       setIsEditing(true)
     }
   }, [shouldStartEditing, isEditing])
@@ -115,15 +127,16 @@ function SortableChecklistItem({
       // Only create next item if current item has content
       if (editValue.trim()) {
         isSubmittingRef.current = true
+        // Update the current item
         onUpdate(item.id, editValue.trim())
-        setIsEditing(false) // Exit editing mode on current item
-        // Create a new item after this one
+        // Create a new item after this one - the new item will steal focus
         if (onAddNext) {
           onAddNext()
         }
+        // Reset the submitting flag after new item is created
         setTimeout(() => {
           isSubmittingRef.current = false
-        }, 100)
+        }, 150)
       }
       // If empty, do nothing (stay in editing mode)
     } else if (e.key === 'Escape') {
@@ -243,7 +256,7 @@ function SortableChecklistItem({
   )
 }
 
-export default function UnifiedChecklistSection({
+const UnifiedChecklistSection = forwardRef<{ saveAllItems: () => Promise<ChecklistItem[]> }, UnifiedChecklistSectionProps>(({
   items,
   onAddItem,
   onDeleteItem,
@@ -253,11 +266,48 @@ export default function UnifiedChecklistSection({
   isEditing = false,
   className = '',
   compact = false
-}: UnifiedChecklistSectionProps) {
+}, ref) => {
   const [itemIdToEdit, setItemIdToEdit] = useState<string | null>(null)
   const [hasCreatedInitialItem, setHasCreatedInitialItem] = useState(false)
   const [needsInitialFocus, setNeedsInitialFocus] = useState(false)
   const [pendingItemCount, setPendingItemCount] = useState<number | null>(null)
+  const itemRefsMap = useRef<Map<string, React.MutableRefObject<{ getCurrentValue: () => string } | null>>>(new Map())
+
+  // Expose saveAllItems method to parent via ref
+  useImperativeHandle(ref, () => ({
+    saveAllItems: async () => {
+      console.log('saveAllItems called, items.length:', items.length)
+      const savePromises: Promise<void>[] = []
+      const updatedItems: ChecklistItem[] = []
+
+      items.forEach(item => {
+        const itemRef = itemRefsMap.current.get(item.id)
+        if (itemRef?.current) {
+          const currentValue = itemRef.current.getCurrentValue()
+          console.log('Saving item:', item.id, 'currentValue:', currentValue, 'item.description:', item.description)
+
+          // Always add the item with the current value
+          updatedItems.push({
+            ...item,
+            description: currentValue.trim() || item.description
+          })
+
+          // Only call onUpdateItem if the value changed
+          if (currentValue.trim() && currentValue !== item.description) {
+            const promise = Promise.resolve(onUpdateItem(item.id, currentValue.trim()))
+            savePromises.push(promise)
+          }
+        } else {
+          // No ref, use the existing item
+          updatedItems.push(item)
+        }
+      })
+
+      await Promise.all(savePromises)
+      console.log('All items saved, returning:', updatedItems)
+      return updatedItems
+    }
+  }), [items, onUpdateItem])
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -282,7 +332,7 @@ export default function UnifiedChecklistSection({
       const firstItem = items[0]
       if (firstItem) {
         setItemIdToEdit(firstItem.id)
-        setTimeout(() => setItemIdToEdit(null), 0)
+        // Don't reset itemIdToEdit immediately - let the separate cleanup effect handle it
       }
     }
   }, [needsInitialFocus, items])
@@ -298,6 +348,7 @@ export default function UnifiedChecklistSection({
   useEffect(() => {
     if (pendingItemCount !== null && items.length > pendingItemCount) {
       const newItem = items[items.length - 1]
+      console.log('New item detected, setting itemIdToEdit:', newItem.id)
       setItemIdToEdit(newItem.id)
       // Don't reset itemIdToEdit immediately - let the item stay in editing mode
       setPendingItemCount(null)
@@ -314,8 +365,10 @@ export default function UnifiedChecklistSection({
 
   const handleAddItemAfter = async (currentItemId: string) => {
     try {
+      console.log('handleAddItemAfter called, current items.length:', items.length)
       setPendingItemCount(items.length)
       await onAddItem('')
+      console.log('onAddItem completed, new items.length:', items.length)
     } catch (error) {
       console.error('Failed to add checklist item:', error)
       setPendingItemCount(null)
@@ -382,32 +435,45 @@ export default function UnifiedChecklistSection({
           strategy={verticalListSortingStrategy}
         >
           <div className={compact ? "space-y-0" : "space-y-1"}>
-            {items.map((item, index) => (
-              <SortableChecklistItem
-                key={item.id}
-                item={item}
-                onToggle={handleToggle}
-                onUpdate={handleUpdate}
-                shouldStartEditing={itemIdToEdit === item.id}
-                compact={compact}
-                onAddNext={() => handleAddItemAfter(item.id)}
-                onDeleteAndFocusPrevious={
-                  index > 0
-                    ? async () => {
-                        const previousItem = items[index - 1]
-                        await handleDelete(item.id)
-                        // Set the previous item to be edited
-                        setItemIdToEdit(previousItem.id)
-                        // Reset after a frame to allow re-triggering
-                        setTimeout(() => setItemIdToEdit(null), 0)
-                      }
-                    : undefined
-                }
-              />
-            ))}
+            {items.map((item, index) => {
+              // Create or get ref for this item
+              if (!itemRefsMap.current.has(item.id)) {
+                itemRefsMap.current.set(item.id, { current: null })
+              }
+              const itemRef = itemRefsMap.current.get(item.id)!
+
+              return (
+                <SortableChecklistItem
+                  key={item.id}
+                  item={item}
+                  onToggle={handleToggle}
+                  onUpdate={handleUpdate}
+                  shouldStartEditing={itemIdToEdit === item.id}
+                  compact={compact}
+                  innerRef={itemRef}
+                  onAddNext={() => handleAddItemAfter(item.id)}
+                  onDeleteAndFocusPrevious={
+                    index > 0
+                      ? async () => {
+                          const previousItem = items[index - 1]
+                          await handleDelete(item.id)
+                          // Set the previous item to be edited
+                          setItemIdToEdit(previousItem.id)
+                          // Reset after a frame to allow re-triggering
+                          setTimeout(() => setItemIdToEdit(null), 0)
+                        }
+                      : undefined
+                  }
+                />
+              )
+            })}
           </div>
         </SortableContext>
       </DndContext>
     </div>
   )
-}
+})
+
+UnifiedChecklistSection.displayName = 'UnifiedChecklistSection'
+
+export default UnifiedChecklistSection
