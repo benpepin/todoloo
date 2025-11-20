@@ -39,6 +39,7 @@ interface SortableChecklistItemProps {
   onToggle: (id: string) => void
   onUpdate: (id: string, description: string) => void
   onDeleteAndFocusPrevious?: () => void
+  onAddNext?: () => void
   shouldStartEditing?: boolean
   compact?: boolean
 }
@@ -48,6 +49,7 @@ function SortableChecklistItem({
   onToggle,
   onUpdate,
   onDeleteAndFocusPrevious,
+  onAddNext,
   shouldStartEditing,
   compact = false
 }: SortableChecklistItemProps) {
@@ -73,9 +75,15 @@ function SortableChecklistItem({
   useEffect(() => {
     if (isEditing && inputRef.current) {
       inputRef.current.focus()
-      inputRef.current.select()
+      // Position cursor at the end if triggered by shouldStartEditing, otherwise select all
+      if (shouldStartEditing) {
+        const length = inputRef.current.value.length
+        inputRef.current.setSelectionRange(length, length)
+      } else {
+        inputRef.current.select()
+      }
     }
-  }, [isEditing])
+  }, [isEditing, shouldStartEditing])
 
   // Handle shouldStartEditing prop
   useEffect(() => {
@@ -91,11 +99,15 @@ function SortableChecklistItem({
     setIsEditing(false)
   }
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, onAddNext?: () => void) => {
     e.stopPropagation() // Prevent all key events from bubbling
     if (e.key === 'Enter') {
       e.preventDefault()
       handleSave()
+      // Create a new item after this one
+      if (onAddNext) {
+        onAddNext()
+      }
     } else if (e.key === 'Escape') {
       e.preventDefault()
       setEditValue(item.description)
@@ -162,8 +174,9 @@ function SortableChecklistItem({
             e.stopPropagation() // Prevent space bar from triggering drag
             setEditValue(e.target.value)
           }}
-          onKeyDown={handleKeyDown}
+          onKeyDown={(e) => handleKeyDown(e, onAddNext)}
           onBlur={handleSave}
+          placeholder="Add todo"
           className="flex-1 text-sm font-['Outfit'] bg-transparent border-none outline-none"
           style={{
             color: 'var(--color-todoloo-text-secondary)'
@@ -173,14 +186,14 @@ function SortableChecklistItem({
         <span
           className={`flex-1 text-sm font-['Outfit'] cursor-text ${item.isCompleted ? 'line-through' : ''}`}
           style={{
-            color: item.isCompleted ? 'var(--color-todoloo-text-muted)' : 'var(--color-todoloo-text-secondary)'
+            color: item.isCompleted ? 'var(--color-todoloo-text-muted)' : (item.description ? 'var(--color-todoloo-text-secondary)' : 'var(--color-todoloo-text-muted)')
           }}
           onClick={(e) => {
             e.stopPropagation()
             setIsEditing(true)
           }}
         >
-          {item.description}
+          {item.description || 'Add todo'}
         </span>
       )}
 
@@ -219,9 +232,8 @@ export default function UnifiedChecklistSection({
   className = '',
   compact = false
 }: UnifiedChecklistSectionProps) {
-  const [newItemDescription, setNewItemDescription] = useState('')
   const [itemIdToEdit, setItemIdToEdit] = useState<string | null>(null)
-  const newItemInputRef = useRef<HTMLInputElement>(null)
+  const [hasCreatedInitialItem, setHasCreatedInitialItem] = useState(false)
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -230,45 +242,43 @@ export default function UnifiedChecklistSection({
     })
   )
 
-  // Focus input when editing mode is enabled
+  // Automatically create first empty item when entering edit mode with no items
   useEffect(() => {
-    if (isEditing && newItemInputRef.current) {
-      newItemInputRef.current.focus()
+    if (isEditing && items.length === 0 && !hasCreatedInitialItem) {
+      setHasCreatedInitialItem(true)
+      onAddItem('').then(() => {
+        // Focus the newly created item
+        setTimeout(() => {
+          if (items.length > 0) {
+            setItemIdToEdit(items[0].id)
+            setTimeout(() => setItemIdToEdit(null), 0)
+          }
+        }, 100)
+      })
     }
-  }, [isEditing])
+  }, [isEditing, items.length, hasCreatedInitialItem, onAddItem, items])
 
-  const handleAddItem = async () => {
-    if (!newItemDescription.trim()) {
-      return
+  // Reset flag when items exist
+  useEffect(() => {
+    if (items.length > 0) {
+      setHasCreatedInitialItem(false)
     }
+  }, [items.length])
 
+  const handleAddItemAfter = async (currentItemId: string) => {
     try {
-      await onAddItem(newItemDescription.trim())
-      setNewItemDescription('')
-      // Keep the input focused for adding more items
-      if (newItemInputRef.current) {
-        newItemInputRef.current.focus()
-      }
+      await onAddItem('')
+      // After the new item is created, find it and set it to edit mode
+      // The new item will be the last one in the list
+      setTimeout(() => {
+        if (items.length > 0) {
+          const newItem = items[items.length - 1]
+          setItemIdToEdit(newItem.id)
+          setTimeout(() => setItemIdToEdit(null), 0)
+        }
+      }, 100)
     } catch (error) {
       console.error('Failed to add checklist item:', error)
-    }
-  }
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      e.preventDefault()
-      handleAddItem()
-    } else if (e.key === 'Escape') {
-      e.preventDefault()
-      setNewItemDescription('')
-    } else if ((e.key === 'Backspace' || e.key === 'Delete') && !newItemDescription) {
-      // If backspace/delete on empty "Add item" input, focus previous item
-      e.preventDefault()
-      if (items.length > 0) {
-        const lastItem = items[items.length - 1]
-        setItemIdToEdit(lastItem.id)
-        setTimeout(() => setItemIdToEdit(null), 0)
-      }
     }
   }
 
@@ -319,10 +329,6 @@ export default function UnifiedChecklistSection({
     ? `space-y-0 ${className}`
     : `mt-4 flex flex-col ${className}`
 
-  const addItemContainerClasses = compact
-    ? "flex items-center gap-3 py-1 px-0"
-    : "flex items-center gap-2 py-2 rounded-lg lg:pl-[56px]"
-
   return (
     <div className={containerClasses}>
       {/* Checklist items */}
@@ -344,6 +350,7 @@ export default function UnifiedChecklistSection({
                 onUpdate={handleUpdate}
                 shouldStartEditing={itemIdToEdit === item.id}
                 compact={compact}
+                onAddNext={() => handleAddItemAfter(item.id)}
                 onDeleteAndFocusPrevious={
                   index > 0
                     ? async () => {
@@ -361,34 +368,6 @@ export default function UnifiedChecklistSection({
           </div>
         </SortableContext>
       </DndContext>
-
-      {/* Add new item input - always visible when editing */}
-      {isEditing && (
-        <div style={compact ? {} : { marginTop: '16px' }}>
-          <div className={addItemContainerClasses}>
-            <div className="w-5 h-5 rounded border-2 flex-shrink-0" style={{ borderColor: 'var(--color-todoloo-border)' }} />
-            <input
-              ref={newItemInputRef}
-              type="text"
-              value={newItemDescription}
-              onChange={(e) => {
-                e.stopPropagation() // Prevent space bar from triggering drag
-                setNewItemDescription(e.target.value)
-              }}
-              onKeyDown={handleKeyDown}
-              onBlur={() => {
-                // If input has text, add the item
-                if (newItemDescription.trim()) {
-                  handleAddItem()
-                }
-              }}
-              placeholder="Add item..."
-              className="flex-1 text-sm font-['Outfit'] bg-transparent border-none outline-none"
-              style={{ color: 'var(--color-todoloo-text-primary)' }}
-            />
-          </div>
-        </div>
-      )}
     </div>
   )
 }
