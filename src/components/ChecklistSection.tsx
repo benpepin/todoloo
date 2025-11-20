@@ -57,6 +57,11 @@ function SortableChecklistItem({ item, onToggle, onUpdate, onDeleteAndFocusPrevi
     opacity: isDragging ? 0.5 : 1,
   }
 
+  // Sync editValue with item.description when it changes
+  useEffect(() => {
+    setEditValue(item.description)
+  }, [item.description])
+
   // Focus input when editing starts
   useEffect(() => {
     if (isEditing && inputRef.current) {
