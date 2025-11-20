@@ -299,10 +299,18 @@ export default function UnifiedChecklistSection({
     if (pendingItemCount !== null && items.length > pendingItemCount) {
       const newItem = items[items.length - 1]
       setItemIdToEdit(newItem.id)
-      setTimeout(() => setItemIdToEdit(null), 0)
+      // Don't reset itemIdToEdit immediately - let the item stay in editing mode
       setPendingItemCount(null)
     }
   }, [items.length, pendingItemCount, items])
+
+  // Reset itemIdToEdit when it's been set (to allow re-triggering)
+  useEffect(() => {
+    if (itemIdToEdit !== null) {
+      const timer = setTimeout(() => setItemIdToEdit(null), 100)
+      return () => clearTimeout(timer)
+    }
+  }, [itemIdToEdit])
 
   const handleAddItemAfter = async (currentItemId: string) => {
     try {

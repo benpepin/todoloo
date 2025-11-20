@@ -275,10 +275,18 @@ export default function ChecklistSection({ taskId, checklistItems = [], isEditin
     if (pendingItemCount !== null && checklistItems.length > pendingItemCount) {
       const newItem = checklistItems[checklistItems.length - 1]
       setItemIdToEdit(newItem.id)
-      setTimeout(() => setItemIdToEdit(null), 0)
+      // Don't reset itemIdToEdit immediately - let the item stay in editing mode
       setPendingItemCount(null)
     }
   }, [checklistItems.length, pendingItemCount, checklistItems])
+
+  // Reset itemIdToEdit when it's been set (to allow re-triggering)
+  useEffect(() => {
+    if (itemIdToEdit !== null) {
+      const timer = setTimeout(() => setItemIdToEdit(null), 100)
+      return () => clearTimeout(timer)
+    }
+  }, [itemIdToEdit])
 
   const handleAddItemAfter = async (currentItemId: string) => {
     try {
