@@ -109,7 +109,7 @@ function SortableChecklistItem({
       if (editValue.trim()) {
         isSubmittingRef.current = true
         onUpdate(item.id, editValue.trim())
-        // Don't set isEditing to false - keep the item in view mode
+        setIsEditing(false) // Exit editing mode on current item
         // Create a new item after this one
         if (onAddNext) {
           onAddNext()
