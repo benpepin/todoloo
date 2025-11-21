@@ -471,6 +471,10 @@ function ToDoCardContent() {
             onReorderItems={handleReorderTempChecklistItems}
             isEditing={true}
             compact={true}
+            onDeleteFirstItem={() => {
+              setShowChecklist(false)
+              setTempChecklistItems([])
+            }}
           />
         )}
 

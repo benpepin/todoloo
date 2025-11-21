@@ -32,6 +32,8 @@ interface UnifiedChecklistSectionProps {
   className?: string
   /** Use compact styling (for temp checklists in create card) */
   compact?: boolean
+  /** Callback when the first item is deleted (to remove the checklist entirely) */
+  onDeleteFirstItem?: () => void | Promise<void>
 }
 
 interface SortableChecklistItemProps {
@@ -265,7 +267,8 @@ const UnifiedChecklistSection = forwardRef<{ saveAllItems: () => Promise<Checkli
   onReorderItems,
   isEditing = false,
   className = '',
-  compact = false
+  compact = false,
+  onDeleteFirstItem
 }, ref) => {
   const [itemIdToEdit, setItemIdToEdit] = useState<string | null>(null)
   const [hasCreatedInitialItem, setHasCreatedInitialItem] = useState(false)
@@ -461,6 +464,11 @@ const UnifiedChecklistSection = forwardRef<{ saveAllItems: () => Promise<Checkli
                           setItemIdToEdit(previousItem.id)
                           // Reset after a frame to allow re-triggering
                           setTimeout(() => setItemIdToEdit(null), 0)
+                        }
+                      : index === 0 && onDeleteFirstItem
+                      ? async () => {
+                          // First item - remove the entire checklist
+                          await onDeleteFirstItem()
                         }
                       : undefined
                   }
