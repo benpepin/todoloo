@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import Image from 'next/image'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { Check, GripVertical, Play, Pause, Music, Timer } from 'lucide-react'
+import { Check, GripVertical, Play, Pause, Music, Timer, ListChecks } from 'lucide-react'
 import { Task } from '@/types'
 import { useToDoStore } from '@/store/toDoStore'
 import { useSimpleTimer } from '@/hooks/useSimpleTimer'
@@ -460,7 +460,8 @@ export default function SortableTaskItem({
                           } else {
                             handleAddChecklist()
                           }
-                        }
+                        },
+                        icon: <ListChecks className="w-3 h-3" />
                       },
                       {
                         label: task.musicEnabled ? 'Disable Music' : 'Enable Music',

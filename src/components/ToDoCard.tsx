@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Plus, CornerDownLeft, Music } from 'lucide-react'
+import { Plus, CornerDownLeft, Music, ListChecks } from 'lucide-react'
 import { useToDoStore } from '@/store/toDoStore'
 import { useHistoryStore } from '@/store/historyStore'
 import { useSettingsStore } from '@/store/settingsStore'
@@ -491,7 +491,8 @@ function ToDoCardContent() {
               items={[
                 {
                   label: showChecklist ? 'Hide Checklist' : 'Add Checklist',
-                  onClick: handleAddChecklist
+                  onClick: handleAddChecklist,
+                  icon: <ListChecks className="w-3 h-3" />
                 },
                 {
                   label: musicEnabled ? 'Disable Music' : 'Enable Music',
