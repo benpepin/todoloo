@@ -136,13 +136,25 @@ function ToDoCardContent() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    console.log('[ToDoCard] handleSubmit called', {
+      description,
+      tempChecklistItemsLength: tempChecklistItems.length,
+      hasChecklistRef: !!checklistRef.current,
+      timestamp: new Date().toISOString()
+    })
     // Get the current checklist items with their latest values
     let checklistItemsToAdd = [...tempChecklistItems]
     if (checklistRef.current) {
+      console.log('[ToDoCard] handleSubmit - calling checklistRef.saveAllItems()')
       checklistItemsToAdd = await checklistRef.current.saveAllItems()
+      console.log('[ToDoCard] handleSubmit - saveAllItems returned', {
+        checklistItemsLength: checklistItemsToAdd.length,
+        items: checklistItemsToAdd.map(i => ({ id: i.id, description: i.description })),
+        timestamp: new Date().toISOString()
+      })
     }
     if (description.trim()) {
-      console.log('handleSubmit called with:', description)
+      console.log('[ToDoCard] handleSubmit - description valid, proceeding with task creation', { description })
       // Check for bulk add mode - ends with " and", " AND", or " &"
       const bulkAddMatch = description.match(/^(.+)\s+(and|AND|&)$/i)
       console.log('bulkAddMatch:', bulkAddMatch)
@@ -180,10 +192,12 @@ function ToDoCardContent() {
               for (let i = 0; i < taskCount; i++) {
                 const numberedDescription = `${baseDescription.trim()} (${i + 1})`
                 const newTask = await addTask(numberedDescription, estimatedMinutes, groupId, musicEnabled)
-                // Add checklist items if any
+                // Add checklist items if any (filter out empty items)
                 if (tempChecklistItems.length > 0 && newTask) {
                   for (const item of tempChecklistItems) {
-                    await addChecklistItem(newTask.id, item.description)
+                    if (item.description && item.description.trim()) {
+                      await addChecklistItem(newTask.id, item.description)
+                    }
                   }
                 }
               }
@@ -192,12 +206,14 @@ function ToDoCardContent() {
             // Create single task in the current group
             console.log('Adding task to group:', groupId, taskDescription)
             const newTask = await addTask(taskDescription, estimatedMinutes, groupId, musicEnabled)
-            // Add checklist items if any
+            // Add checklist items if any (filter out empty items)
             if (tempChecklistItems.length > 0 && newTask) {
               console.log('Creating checklist items from tempChecklistItems:', tempChecklistItems)
               for (const item of tempChecklistItems) {
-                console.log('Adding checklist item:', item.description)
-                await addChecklistItem(newTask.id, item.description)
+                if (item.description && item.description.trim()) {
+                  console.log('Adding checklist item:', item.description)
+                  await addChecklistItem(newTask.id, item.description)
+                }
               }
             }
           }
@@ -226,10 +242,12 @@ function ToDoCardContent() {
           // This task is part of the current group
           console.log('Adding task to group:', currentGroupId, description.trim())
           const newTask = await addTask(description.trim(), estimatedMinutes, currentGroupId, musicEnabled)
-          // Add checklist items if any
+          // Add checklist items if any (filter out empty items)
           if (tempChecklistItems.length > 0 && newTask) {
             for (const item of tempChecklistItems) {
-              await addChecklistItem(newTask.id, item.description)
+              if (item.description && item.description.trim()) {
+                await addChecklistItem(newTask.id, item.description)
+              }
             }
           }
 
@@ -274,24 +292,28 @@ function ToDoCardContent() {
         for (let i = 0; i < taskCount; i++) {
           const taskDescription = taskCount > 1 ? `${baseDescription.trim()} (${i + 1})` : baseDescription.trim()
           const newTask = await addTask(taskDescription, estimatedMinutes, undefined, musicEnabled)
-          // Add checklist items if any
+          // Add checklist items if any (filter out empty items)
           if (checklistItemsToAdd.length > 0 && newTask) {
             console.log('Creating checklist items from checklistItemsToAdd:', checklistItemsToAdd)
             for (const item of checklistItemsToAdd) {
-              console.log('Adding checklist item:', item.description)
-              await addChecklistItem(newTask.id, item.description)
+              if (item.description && item.description.trim()) {
+                console.log('Adding checklist item:', item.description)
+                await addChecklistItem(newTask.id, item.description)
+              }
             }
           }
         }
       } else {
         // Single to do (no group)
         const newTask = await addTask(description.trim(), estimatedMinutes, undefined, musicEnabled)
-        // Add checklist items if any
+        // Add checklist items if any (filter out empty items)
         if (checklistItemsToAdd.length > 0 && newTask) {
           console.log('Creating checklist items from checklistItemsToAdd:', checklistItemsToAdd)
           for (const item of checklistItemsToAdd) {
-            console.log('Adding checklist item:', item.description)
-            await addChecklistItem(newTask.id, item.description)
+            if (item.description && item.description.trim()) {
+              console.log('Adding checklist item:', item.description)
+              await addChecklistItem(newTask.id, item.description)
+            }
           }
         }
       }
@@ -299,11 +321,28 @@ function ToDoCardContent() {
   }
 
   const handleAddChecklist = () => {
+    console.log('[ToDoCard] handleAddChecklist called', {
+      currentShowChecklist: showChecklist,
+      tempChecklistItemsLength: tempChecklistItems.length,
+      timestamp: new Date().toISOString()
+    })
+
+    // Create first empty item if checklist is being opened and no items exist
+    if (!showChecklist && tempChecklistItems.length === 0) {
+      console.log('[ToDoCard] handleAddChecklist - creating first empty item')
+      handleAddTempChecklistItem('')
+    }
+
     setShowChecklist(!showChecklist)
   }
 
   // Temporary checklist item handlers (stored locally until task is created)
   const handleAddTempChecklistItem = (description: string) => {
+    console.log('[ToDoCard] handleAddTempChecklistItem called', {
+      description,
+      currentTempItemsLength: tempChecklistItems.length,
+      timestamp: new Date().toISOString()
+    })
     const newItem: ChecklistItem = {
       id: crypto.randomUUID(),
       taskId: '', // Will be set when task is created
@@ -312,6 +351,12 @@ function ToDoCardContent() {
       order: tempChecklistItems.length,
       createdAt: new Date()
     }
+    console.log('[ToDoCard] handleAddTempChecklistItem - new item created', {
+      itemId: newItem.id,
+      description: newItem.description,
+      newTempItemsLength: tempChecklistItems.length + 1,
+      timestamp: new Date().toISOString()
+    })
     setTempChecklistItems([...tempChecklistItems, newItem])
   }
 

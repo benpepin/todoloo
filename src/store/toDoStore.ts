@@ -744,11 +744,24 @@ export const useToDoStore = create<ToDoStore>()((set, get) => ({
 
   // Add a new checklist item
   addChecklistItem: async (taskId: string, description: string) => {
+    console.log('[toDoStore] addChecklistItem called', {
+      taskId,
+      description,
+      timestamp: new Date().toISOString()
+    })
     const task = get().tasks.find(t => t.id === taskId)
-    if (!task) return
+    if (!task) {
+      console.log('[toDoStore] addChecklistItem - task not found', { taskId })
+      return
+    }
 
     const existingItems = task.checklistItems || []
     const nextOrder = existingItems.length
+    console.log('[toDoStore] addChecklistItem - creating optimistic item', {
+      taskId,
+      existingItemsLength: existingItems.length,
+      nextOrder
+    })
 
     // Optimistic item
     const optimisticItem: ChecklistItem = {
@@ -760,6 +773,11 @@ export const useToDoStore = create<ToDoStore>()((set, get) => ({
       createdAt: new Date()
     }
 
+    console.log('[toDoStore] addChecklistItem - optimistic item created', {
+      itemId: optimisticItem.id,
+      description: optimisticItem.description
+    })
+
     // Optimistic update
     set((state) => ({
       tasks: state.tasks.map(t =>
@@ -769,9 +787,16 @@ export const useToDoStore = create<ToDoStore>()((set, get) => ({
       )
     }))
 
+    console.log('[toDoStore] addChecklistItem - optimistic update applied')
+
     try {
       set({ error: null })
+      console.log('[toDoStore] addChecklistItem - calling createChecklistItem DB function')
       const newItem = await createChecklistItem(taskId, description, nextOrder)
+      console.log('[toDoStore] addChecklistItem - DB item created', {
+        newItemId: newItem.id,
+        description: newItem.description
+      })
 
       // Replace optimistic item with real one
       set((state) => ({

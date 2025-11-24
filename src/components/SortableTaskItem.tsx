@@ -82,12 +82,15 @@ export default function SortableTaskItem({
     setEditEstimatedMinutes(task.estimatedMinutes)
   }, [task.description, task.estimatedMinutes])
 
-  // Show checklist if task has checklist items
+  // Show checklist if task has checklist items, hide if all items deleted
   useEffect(() => {
     if (task.checklistItems && task.checklistItems.length > 0) {
       setShowChecklist(true)
+    } else if (task.checklistItems && task.checklistItems.length === 0 && showChecklist) {
+      // All items deleted - hide the checklist section
+      setShowChecklist(false)
     }
-  }, [task.checklistItems])
+  }, [task.checklistItems, showChecklist])
 
   // Focus input when editing starts
   useEffect(() => {
@@ -340,12 +343,30 @@ export default function SortableTaskItem({
   }
 
   const handleAddChecklist = async () => {
+    console.log('[SortableTaskItem] handleAddChecklist called', {
+      taskId: task.id,
+      hasChecklistItems: !!task.checklistItems,
+      checklistItemsLength: task.checklistItems?.length || 0,
+      timestamp: new Date().toISOString()
+    })
     // If checklist items haven't been loaded yet, load them
     if (!task.checklistItems) {
+      console.log('[SortableTaskItem] handleAddChecklist - loading checklist items')
       await loadChecklistItems(task.id)
+      console.log('[SortableTaskItem] handleAddChecklist - checklist items loaded', {
+        itemsLength: task.checklistItems?.length || 0
+      })
+    }
+
+    // Create first empty item if no items exist
+    const itemsLength = task.checklistItems?.length || 0
+    if (itemsLength === 0) {
+      console.log('[SortableTaskItem] handleAddChecklist - creating first empty item')
+      await useToDoStore.getState().addChecklistItem(task.id, '')
     }
 
     // Show the checklist section
+    console.log('[SortableTaskItem] handleAddChecklist - showing checklist')
     setShowChecklist(true)
   }
 
@@ -453,9 +474,9 @@ export default function SortableTaskItem({
                   <OptionsMenu
                     items={[
                       {
-                        label: showChecklist ? 'Hide Checklist' : 'Add Checklist',
+                        label: (showChecklist && task.checklistItems && task.checklistItems.length > 0) ? 'Hide Checklist' : 'Add Checklist',
                         onClick: () => {
-                          if (showChecklist) {
+                          if (showChecklist && task.checklistItems && task.checklistItems.length > 0) {
                             setShowChecklist(false)
                           } else {
                             handleAddChecklist()

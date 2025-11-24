@@ -160,7 +160,7 @@ function SortableChecklistItem({
 
   const baseClasses = compact
     ? "group flex items-center gap-3 py-2 px-3 rounded-lg transition-colors hover:bg-[var(--color-todoloo-muted)]"
-    : "group flex items-center gap-2 py-2 rounded-lg transition-colors hover:bg-[var(--color-todoloo-muted)] relative lg:pl-[56px]"
+    : "group flex items-center gap-3 py-2 px-3 pl-16 rounded-lg transition-colors hover:bg-[var(--color-todoloo-muted)]"
 
   return (
     <div
@@ -279,7 +279,11 @@ const UnifiedChecklistSection = forwardRef<{ saveAllItems: () => Promise<Checkli
   // Expose saveAllItems method to parent via ref
   useImperativeHandle(ref, () => ({
     saveAllItems: async () => {
-      console.log('saveAllItems called, items.length:', items.length)
+      console.log('[UnifiedChecklistSection] saveAllItems called', {
+        itemsLength: items.length,
+        items: items.map(i => ({ id: i.id, description: i.description })),
+        timestamp: new Date().toISOString()
+      })
       const savePromises: Promise<void>[] = []
       const updatedItems: ChecklistItem[] = []
 
@@ -287,7 +291,13 @@ const UnifiedChecklistSection = forwardRef<{ saveAllItems: () => Promise<Checkli
         const itemRef = itemRefsMap.current.get(item.id)
         if (itemRef?.current) {
           const currentValue = itemRef.current.getCurrentValue()
-          console.log('Saving item:', item.id, 'currentValue:', currentValue, 'item.description:', item.description)
+          console.log('[UnifiedChecklistSection] saveAllItems - processing item', {
+            itemId: item.id,
+            currentValue,
+            itemDescription: item.description,
+            hasRef: !!itemRef,
+            timestamp: new Date().toISOString()
+          })
 
           // Always add the item with the current value
           updatedItems.push({
@@ -297,17 +307,30 @@ const UnifiedChecklistSection = forwardRef<{ saveAllItems: () => Promise<Checkli
 
           // Only call onUpdateItem if the value changed
           if (currentValue.trim() && currentValue !== item.description) {
+            console.log('[UnifiedChecklistSection] saveAllItems - value changed, calling onUpdateItem', {
+              itemId: item.id,
+              oldValue: item.description,
+              newValue: currentValue.trim()
+            })
             const promise = Promise.resolve(onUpdateItem(item.id, currentValue.trim()))
             savePromises.push(promise)
           }
         } else {
+          console.log('[UnifiedChecklistSection] saveAllItems - no ref found for item', {
+            itemId: item.id,
+            description: item.description
+          })
           // No ref, use the existing item
           updatedItems.push(item)
         }
       })
 
       await Promise.all(savePromises)
-      console.log('All items saved, returning:', updatedItems)
+      console.log('[UnifiedChecklistSection] saveAllItems - all saves completed, returning', {
+        updatedItemsCount: updatedItems.length,
+        updatedItems: updatedItems.map(i => ({ id: i.id, description: i.description })),
+        timestamp: new Date().toISOString()
+      })
       return updatedItems
     }
   }), [items, onUpdateItem])
@@ -319,14 +342,8 @@ const UnifiedChecklistSection = forwardRef<{ saveAllItems: () => Promise<Checkli
     })
   )
 
-  // Automatically create first empty item when entering edit mode with no items
-  useEffect(() => {
-    if (isEditing && items.length === 0 && !hasCreatedInitialItem) {
-      setHasCreatedInitialItem(true)
-      setNeedsInitialFocus(true)
-      onAddItem('')
-    }
-  }, [isEditing, items.length, hasCreatedInitialItem, onAddItem])
+  // REMOVED: Auto-create first item - parents are now responsible
+  // This was causing confusion about who creates the first item
 
   // Focus the first item when it gets added (after creation)
   useEffect(() => {
@@ -358,6 +375,15 @@ const UnifiedChecklistSection = forwardRef<{ saveAllItems: () => Promise<Checkli
     }
   }, [items.length, pendingItemCount, items])
 
+  // Auto-focus first item when checklist first appears
+  useEffect(() => {
+    if (isEditing && items.length === 1 && items[0].description === '') {
+      // First empty item just created - focus it
+      console.log('Auto-focusing first empty item:', items[0].id)
+      setItemIdToEdit(items[0].id)
+    }
+  }, [isEditing, items])
+
   // Reset itemIdToEdit when it's been set (to allow re-triggering)
   useEffect(() => {
     if (itemIdToEdit !== null) {
@@ -368,12 +394,19 @@ const UnifiedChecklistSection = forwardRef<{ saveAllItems: () => Promise<Checkli
 
   const handleAddItemAfter = async (currentItemId: string) => {
     try {
-      console.log('handleAddItemAfter called, current items.length:', items.length)
+      console.log('[UnifiedChecklistSection] handleAddItemAfter called', {
+        currentItemId,
+        currentItemsLength: items.length,
+        timestamp: new Date().toISOString()
+      })
       setPendingItemCount(items.length)
       await onAddItem('')
-      console.log('onAddItem completed, new items.length:', items.length)
+      console.log('[UnifiedChecklistSection] handleAddItemAfter - onAddItem completed', {
+        newItemsLength: items.length,
+        timestamp: new Date().toISOString()
+      })
     } catch (error) {
-      console.error('Failed to add checklist item:', error)
+      console.error('[UnifiedChecklistSection] Failed to add checklist item:', error)
       setPendingItemCount(null)
     }
   }
@@ -465,10 +498,25 @@ const UnifiedChecklistSection = forwardRef<{ saveAllItems: () => Promise<Checkli
                           // Reset after a frame to allow re-triggering
                           setTimeout(() => setItemIdToEdit(null), 0)
                         }
-                      : index === 0 && onDeleteFirstItem
+                      : index === 0 && items.length > 1
                       ? async () => {
-                          // First item - remove the entire checklist
+                          // First item but not last - just delete it normally
+                          await handleDelete(item.id)
+                          // Focus will go to the next item (which becomes first)
+                          if (items[1]) {
+                            setItemIdToEdit(items[1].id)
+                            setTimeout(() => setItemIdToEdit(null), 0)
+                          }
+                        }
+                      : index === 0 && items.length === 1 && onDeleteFirstItem
+                      ? async () => {
+                          // Last remaining item - remove the entire checklist (only if callback provided)
                           await onDeleteFirstItem()
+                        }
+                      : index === 0 && items.length === 1 && !onDeleteFirstItem
+                      ? async () => {
+                          // Last remaining item but no special handler - just delete it
+                          await handleDelete(item.id)
                         }
                       : undefined
                   }
