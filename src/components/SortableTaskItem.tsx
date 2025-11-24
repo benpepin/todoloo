@@ -484,7 +484,7 @@ export default function SortableTaskItem({
                 <div className="flex items-center gap-4">
                   <button
                     onClick={() => onDelete(task.id)}
-                    className="text-sm font-['Outfit'] cursor-pointer transition-colors"
+                    className="text-xs font-['Outfit'] cursor-pointer transition-colors"
                     style={{
                       backgroundColor: 'transparent',
                       color: 'var(--color-todoloo-text-secondary)',
@@ -509,7 +509,7 @@ export default function SortableTaskItem({
                       border: 'none'
                     }}
                   >
-                    <span className="text-white text-sm font-medium" style={{ fontFamily: 'Outfit' }}>Save</span>
+                    <span className="text-white text-xs font-medium" style={{ fontFamily: 'Outfit' }}>Save</span>
                   </button>
                 </div>
               </div>
