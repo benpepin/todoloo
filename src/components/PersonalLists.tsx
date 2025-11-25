@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useDroppable, DndContext, DragEndEvent, DragStartEvent, DragOverlay, PointerSensor, useSensor, useSensors, DragCancelEvent } from '@dnd-kit/core'
 import { SortableContext, useSortable, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { GripVertical } from 'lucide-react'
+import { GripVertical, Trash2 } from 'lucide-react'
 import { useToDoStore } from '@/store/toDoStore'
 
 interface SortableListItemProps {
@@ -14,6 +14,7 @@ interface SortableListItemProps {
   isEditing: boolean
   editingName: string
   canDelete: boolean
+  canEdit: boolean
   disableDragAndDrop?: boolean
   onEdit: () => void
   onSaveEdit: () => void
@@ -30,6 +31,7 @@ function SortableListItem({
   isEditing,
   editingName,
   canDelete,
+  canEdit,
   disableDragAndDrop = false,
   onEdit,
   onSaveEdit,
@@ -104,10 +106,25 @@ function SortableListItem({
             <span
               className="flex-1 truncate"
               onClick={onSwitch}
-              onDoubleClick={onEdit}
+              onDoubleClick={canEdit ? onEdit : undefined}
             >
               {listName}
             </span>
+            {/* Delete Button - appears on hover */}
+            {canDelete && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onDelete()
+                }}
+                className={`transition-opacity p-1 flex-shrink-0
+                  text-[var(--color-todoloo-text-muted)] hover:text-red-500
+                  ${disableDragAndDrop ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
+                aria-label="Delete list"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            )}
             {/* Drag Handle - moved to right */}
             {!disableDragAndDrop && (
               <button
@@ -208,28 +225,34 @@ export default function PersonalLists({ disableDragAndDrop = false, onListClick 
 
   const listsContent = (
     <div className="space-y-0 overflow-x-hidden" onMouseLeave={() => setHoveredIndex(null)}>
-      {lists.map((list, index) => (
-        <div key={list.id} onMouseEnter={() => setHoveredIndex(index)}>
-          <SortableListItem
-            listId={list.id}
-            listName={list.name}
-            isActive={currentListId === list.id}
-            isEditing={editingListId === list.id}
-            editingName={editingName}
-            canDelete={lists.length > 1}
-            disableDragAndDrop={disableDragAndDrop}
-            onEdit={() => handleStartEdit(list.id, list.name)}
-            onSaveEdit={handleSaveEdit}
-            onCancelEdit={handleCancelEdit}
-            onDelete={() => handleDeleteList(list.id)}
-            onSwitch={() => {
-              switchToPersonalList(list.id)
-              if (onListClick) onListClick()
-            }}
-            setEditingName={setEditingName}
-          />
-        </div>
-      ))}
+      {lists.map((list, index) => {
+        // Can edit if it's user's own list OR viewing any shared list (owner's lists)
+        const canEdit = list.userId === userId || currentListOwnerId !== null
+
+        return (
+          <div key={list.id} onMouseEnter={() => setHoveredIndex(index)}>
+            <SortableListItem
+              listId={list.id}
+              listName={list.name}
+              isActive={currentListId === list.id}
+              isEditing={editingListId === list.id}
+              editingName={editingName}
+              canDelete={lists.length > 1}
+              canEdit={canEdit}
+              disableDragAndDrop={disableDragAndDrop}
+              onEdit={() => handleStartEdit(list.id, list.name)}
+              onSaveEdit={handleSaveEdit}
+              onCancelEdit={handleCancelEdit}
+              onDelete={() => handleDeleteList(list.id)}
+              onSwitch={() => {
+                switchToPersonalList(list.id)
+                if (onListClick) onListClick()
+              }}
+              setEditingName={setEditingName}
+            />
+          </div>
+        )
+      })}
     </div>
   )
 

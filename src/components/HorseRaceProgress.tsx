@@ -128,7 +128,7 @@ export default function HorseRaceProgress() {
         <div
           className="absolute transition-all duration-500 ease-out cursor-pointer"
           style={{
-            left: `${Math.min(progress, 92)}%`,
+            left: `calc(${Math.min(progress, 92)}% + 56px)`,
             top: 14,
             transform: 'translateX(-50%)',
             width: 160,
