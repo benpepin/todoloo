@@ -160,7 +160,7 @@ function SortableChecklistItem({
 
   const baseClasses = compact
     ? "group flex items-center gap-3 py-2 px-3 rounded-lg transition-colors hover:bg-[var(--color-todoloo-muted)]"
-    : "group flex items-center gap-3 py-2 px-3 pl-16 rounded-lg transition-colors hover:bg-[var(--color-todoloo-muted)]"
+    : "group flex items-center gap-3 py-2 pr-3 pl-[56px] rounded-lg transition-colors hover:bg-[var(--color-todoloo-muted)]"
 
   return (
     <div
