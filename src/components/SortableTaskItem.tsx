@@ -412,7 +412,7 @@ export default function SortableTaskItem({
           } ${!isEditing && !task.isCompleted ? 'lg:cursor-default touch-manipulation hover:shadow-[4px_4px_8px_rgba(0,0,0,0.2)] transition-shadow duration-200' : ''}`}
           style={{
             ...style,
-            backgroundColor: 'var(--color-todoloo-card)'
+            backgroundColor: 'var(--color-todoloo-task)'
           }}
           onMouseEnter={() => setShowEditButtons(true)}
           onMouseLeave={() => !isEditing && setShowEditButtons(false)}

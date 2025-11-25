@@ -290,7 +290,7 @@ export default function Home() {
             <div
               className="w-full h-full rounded-t-[60px] overflow-hidden flex flex-col"
               style={{
-                backgroundColor: 'var(--color-todoloo-bg)',
+                backgroundColor: 'var(--color-todoloo-card)',
                 boxShadow: '0px 4px 14px 10px rgba(0, 0, 0, 0.02)',
                 ...(tasks.length === 0 && !showCreateTask
                   ? {

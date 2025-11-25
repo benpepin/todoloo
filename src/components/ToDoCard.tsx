@@ -385,7 +385,7 @@ function ToDoCardContent() {
   return (
     <motion.div
       className="w-full max-w-[520px] rounded-[20px] shadow-[2px_2px_4px_rgba(0,0,0,0.15)] p-6"
-      style={{ backgroundColor: 'var(--color-todoloo-card)' }}
+      style={{ backgroundColor: 'var(--color-todoloo-task)' }}
       initial={{ opacity: 1 }}
       animate={{
         opacity: 1
