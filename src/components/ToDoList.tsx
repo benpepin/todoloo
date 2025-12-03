@@ -171,7 +171,7 @@ function ToDoListContent() {
     return (
       <div className="w-full flex flex-col justify-start items-start gap-8">
         {/* Todo Section */}
-        <div className="w-full flex flex-col justify-start items-start gap-4">
+        <div className="w-full flex flex-col justify-start items-start gap-0 lg:gap-4">
           {/* Only show header when there are tasks - hidden on mobile */}
           {todoTasks.length > 0 && (
             <div className="hidden lg:flex w-full justify-start items-center gap-1.5">
@@ -245,8 +245,8 @@ function ToDoListContent() {
     >
       <div className="w-full flex flex-col justify-start items-start gap-8">
         {/* Todo Section */}
-        <div className="w-full flex flex-col justify-start items-start gap-4">
-          <div className="w-full inline-flex justify-start items-center gap-1.5">
+        <div className="w-full flex flex-col justify-start items-start gap-0 lg:gap-4">
+          <div className="hidden lg:flex w-full justify-start items-center gap-1.5">
             <div className="text-base font-normal font-['Outfit']" style={{ color: 'var(--color-todoloo-text-secondary)' }}>Todos</div>
             <div className="flex-1 h-px transform translate-y-0.5" style={{ backgroundColor: 'var(--color-todoloo-text-secondary)' }} />
           </div>

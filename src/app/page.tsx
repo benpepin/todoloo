@@ -289,30 +289,22 @@ export default function Home() {
               </div>
 
               {/* Scrollable Todo List Section */}
-              <div className="w-full flex-1 lg:overflow-y-auto flex flex-col items-center relative pt-0 lg:pt-16">
+              <div className="w-full flex-1 lg:overflow-y-auto flex flex-col items-center relative">
                 {/* Progress Indicator - Scrollable on mobile only */}
-                <div className="lg:hidden w-full">
+                <div className="lg:hidden w-full mb-4">
                   {showProgressIndicator && isShoppingList && showShoppingCartProgress && (tasks.length > 0 || showCreateTask) && (
-                    <div className="w-full rounded-t-[56px] overflow-hidden mb-4"
-                         style={{
-                           backgroundColor: 'var(--color-todoloo-bg)',
-                           outline: '1px var(--color-todoloo-border) solid'
-                         }}>
+                    <div className="w-full overflow-hidden">
                       <ShoppingCartProgress />
                     </div>
                   )}
                   {showProgressIndicator && !isShoppingList && (tasks.length > 0 || showCreateTask) && (
-                    <div className="w-full rounded-t-[56px] overflow-hidden mb-4"
-                         style={{
-                           backgroundColor: 'var(--color-todoloo-bg)',
-                           outline: '1px var(--color-todoloo-border) solid'
-                         }}>
+                    <div className="w-full overflow-hidden">
                       <HorseRaceProgress />
                     </div>
                   )}
                 </div>
 
-                <div className="w-full max-w-[520px] mx-auto px-4 pb-32 lg:pb-8 pt-8 lg:pt-8">
+                <div className="w-full max-w-[520px] mx-auto px-4 pb-32 lg:pb-8 lg:pt-8">
                   <ToDoList />
                 </div>
               </div>

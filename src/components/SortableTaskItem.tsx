@@ -400,10 +400,10 @@ export default function SortableTaskItem({
           }}
           className={`w-full shadow-[2px_2px_4px_rgba(0,0,0,0.15)] group ${isEditing ? 'overflow-visible' : 'overflow-hidden'} ${isActive ? 'ring-2' : ''} ${
             isEditing
-              ? 'p-6 md:p-6'
+              ? 'p-5 max-[400px]:p-5 md:p-6'
               : task.createdByName && task.createdByUserId && task.userId !== task.createdByUserId
-                ? 'p-6 md:p-6 pb-10 md:pb-12'
-                : 'p-6 md:p-6'
+                ? 'p-5 max-[400px]:p-5 md:p-6 pb-10 md:pb-12'
+                : 'p-5 max-[400px]:p-5 md:p-6'
           } ${
             groupPosition === 'single' ? 'rounded-[20px]' :
             groupPosition === 'first' ? 'rounded-t-[20px]' :
