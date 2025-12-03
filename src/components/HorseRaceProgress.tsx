@@ -81,16 +81,12 @@ export default function HorseRaceProgress() {
     <div className="w-full">
       {/* Track Container */}
       <div
-        className="relative w-full overflow-hidden"
-        style={{
-          height: 160
-        }}
+        className="relative w-full overflow-hidden h-[120px] lg:h-[160px]"
       >
         {/* Sky background */}
         <div
-          className="absolute top-0 left-0 right-0"
+          className="absolute top-0 left-0 right-0 h-[95px] lg:h-[125px]"
           style={{
-            height: 125,
             top: 0,
             background: isDarkMode ? '#1a1a2e' : '#79C7FD'
           }}
@@ -108,31 +104,26 @@ export default function HorseRaceProgress() {
 
         {/* Dark green grass layer (bottom) */}
         <div
-          className="absolute bottom-0 left-0 right-0"
+          className="absolute bottom-0 left-0 right-0 h-[25px] lg:h-[35px]"
           style={{
-            height: 35,
             background: '#103F2A'
           }}
         />
 
         {/* Lighter green grass layer (top) */}
         <div
-          className="absolute bottom-0 left-0 right-0"
+          className="absolute bottom-0 left-0 right-0 h-[20px] lg:h-[30px]"
           style={{
-            height: 30,
             background: '#009959'
           }}
         />
 
         {/* Character */}
         <div
-          className="absolute transition-all duration-500 ease-out cursor-pointer"
+          className="absolute transition-all duration-500 ease-out cursor-pointer top-[16px] lg:top-[14px] w-[120px] h-[120px] lg:w-[160px] lg:h-[160px]"
           style={{
             left: `calc(${Math.min(progress, 92)}% + 56px)`,
-            top: 14,
-            transform: 'translateX(-50%)',
-            width: 160,
-            height: 160
+            transform: 'translateX(-50%)'
           }}
           onClick={handleCharacterClick}
           title="Click to change character"
@@ -140,12 +131,10 @@ export default function HorseRaceProgress() {
           {isBikerActive ? (
             // Biker sprite animation when task is active
             <div
-              className="animate-bike-sprite"
+              className="animate-bike-sprite w-full h-full"
               style={{
-                width: '160px',
-                height: '160px',
                 backgroundImage: 'url(/bike-sprite.png)',
-                backgroundSize: '640px 640px', // 4x4 grid, each frame 160px = 640px total
+                backgroundSize: '400% 400%', // 4x4 grid
                 backgroundPosition: '0px 0px',
                 backgroundRepeat: 'no-repeat',
                 display: 'block'
@@ -158,8 +147,8 @@ export default function HorseRaceProgress() {
               alt={CHARACTERS[characterIndex].alt}
               width={160}
               height={160}
-              className={isGalloping ? 'animate-gallop' : ''}
-              style={{ display: 'block' }}
+              className={isGalloping ? 'animate-gallop w-full h-full' : 'w-full h-full'}
+              style={{ display: 'block', objectFit: 'contain' }}
             />
           )}
         </div>

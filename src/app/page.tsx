@@ -181,10 +181,9 @@ export default function Home() {
   return (
     <div className="w-full min-h-screen flex flex-col lg:flex-row lg:h-screen" style={{ backgroundColor: 'var(--color-todoloo-bg)' }}>
       {/* Mobile Header - visible only on mobile/tablet - scrolls with page */}
-      <div className="lg:hidden w-full flex flex-col gap-3 p-4 border-b rounded-b-[20px]"
+      <div className="lg:hidden w-full flex flex-col gap-3 p-4"
            style={{
-             backgroundColor: 'var(--color-todoloo-sidebar)',
-             borderColor: 'var(--color-todoloo-border)'
+             backgroundColor: 'var(--color-todoloo-sidebar)'
            }}>
         {/* Top row: ListSwitcher + SettingsMenu */}
         <div className="flex gap-3 items-center">
