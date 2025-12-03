@@ -343,18 +343,56 @@ export default function Home() {
       {!(tasks.length === 0 && !showCreateTask) && (
         <button
           onClick={toggleCreateTask}
-          className="fixed w-[72px] h-[72px] rounded-full shadow-lg flex items-center justify-center active:scale-95 transition-transform hover:shadow-xl hover:scale-110 hover:cursor-pointer z-50"
+          className="fixed rounded-full flex items-center justify-center active:scale-95 transition-transform hover:scale-110 hover:cursor-pointer z-50"
           style={{
+            width: 64,
+            height: 64,
+            padding: 4,
             bottom: '24px',
             right: '24px',
-            backgroundColor: 'var(--color-todoloo-card)',
-            outline: '1px var(--color-todoloo-border) solid',
+            background: 'transparent',
+            boxShadow: '0px 2px 7px rgba(0, 0, 0, 0.05)',
+            overflow: 'hidden',
+            outline: '1px #FFFDFA solid',
             outlineOffset: '-1px'
           }}
           aria-label="New Todo"
         >
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12 5V19M5 12H19" stroke="var(--color-todoloo-text-secondary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          {/* Gradient overlay - clipped to circle */}
+          <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ position: 'absolute', top: 0, left: 0, pointerEvents: 'none' }}>
+            <defs>
+              <clipPath id="circleClip">
+                <circle cx="32" cy="32" r="32" />
+              </clipPath>
+              <filter id="filter0_g_640_7" x="0" y="0" width="64" height="64" filterUnits="userSpaceOnUse" colorInterpolationFilters="sRGB">
+                <feFlood floodOpacity="0" result="BackgroundImageFix"/>
+                <feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
+                <feTurbulence type="fractalNoise" baseFrequency="2 2" numOctaves="3" seed="9553" />
+                <feDisplacementMap in="shape" scale="8" xChannelSelector="R" yChannelSelector="G" result="displacedImage" width="100%" height="100%" />
+                <feMerge result="effect1_texture_640_7">
+                  <feMergeNode in="displacedImage"/>
+                </feMerge>
+              </filter>
+              <linearGradient id="paint0_linear_640_7" x1="0" y1="64" x2="64" y2="0" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stopColor="#D0A69B"/>
+                <stop offset="12%" stopColor="#E5BB95"/>
+                <stop offset="23%" stopColor="#F0D7A0"/>
+                <stop offset="30%" stopColor="#DFE8C7"/>
+                <stop offset="40%" stopColor="#E4E9D7"/>
+                <stop offset="50%" stopColor="#DFE4E2"/>
+                <stop offset="70%" stopColor="#CFDADF"/>
+                <stop offset="90%" stopColor="#A4BBD3"/>
+                <stop offset="100%" stopColor="#A7A6BC"/>
+              </linearGradient>
+            </defs>
+            <g clipPath="url(#circleClip)">
+              <rect x="0" y="0" width="64" height="64" fill="url(#paint0_linear_640_7)" filter="url(#filter0_g_640_7)"/>
+            </g>
+          </svg>
+          {/* Logo icon */}
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ position: 'relative', zIndex: 1 }}>
+            <rect x="0.5" y="0.5" width="19" height="19" rx="2.5" stroke="#2F3735" strokeOpacity="0.16"/>
+            <path d="M12.199 14.92V9.35739C12.199 8.71478 11.9914 8.18596 11.5764 7.77094C11.1748 7.35592 10.6527 7.14841 10.0101 7.14841C9.58165 7.14841 9.2001 7.24212 8.86541 7.42955C8.53071 7.61698 8.26965 7.87804 8.08222 8.21274C7.8948 8.54743 7.80108 8.92898 7.80108 9.35739L6.93757 8.87543C6.93757 8.1391 7.09822 7.4898 7.41953 6.92751C7.74084 6.35184 8.18263 5.90335 8.74492 5.58204C9.32059 5.24735 9.9632 5.08 10.6728 5.08C11.3957 5.08 12.0383 5.26743 12.6006 5.64229C13.1629 6.00376 13.6047 6.47902 13.926 7.06808C14.2473 7.64376 14.4079 8.24621 14.4079 8.87543V14.92H12.199ZM5.5921 14.92V5.28082H7.80108V14.92H5.5921Z" fill="#2F3735"/>
           </svg>
         </button>
       )}
