@@ -735,7 +735,7 @@ export default function SortableTaskItem({
               <div className="flex items-center justify-center relative min-w-[56px]" style={{ width: 56, height: 56 }}>
                 <button
                   onClick={handleToggleCompletion}
-                  className={`w-10 h-10 md:w-8 md:h-8 rounded-full border-2 flex items-center justify-center cursor-pointer relative ${
+                  className={`w-6 h-6 lg:w-8 lg:h-8 rounded-full border-2 flex items-center justify-center cursor-pointer relative ${
                     !task.isCompleted && !isScratching ? 'hover:scale-90 transition-transform duration-150 ease-out' : ''
                   } ${
                     task.isCompleted || isScratching
@@ -765,7 +765,7 @@ export default function SortableTaskItem({
                     const completed = task.checklistItems.filter(item => item.isCompleted).length
                     const total = task.checklistItems.length
                     const percentage = (completed / total) * 100
-                    const radius = 14 // for w-8 h-8 (32px)
+                    const radius = window.innerWidth >= 1024 ? 14 : 10 // for lg:w-8 lg:h-8 (32px) or w-6 h-6 (24px)
                     const circumference = 2 * Math.PI * radius
                     const offset = circumference - (percentage / 100) * circumference
 
@@ -789,7 +789,7 @@ export default function SortableTaskItem({
                   {(task.isCompleted || isScratching || showCheckmarkAnimation) && (
                     <>
                       <Check
-                        className="w-4 h-4"
+                        className="w-3 h-3 lg:w-4 lg:h-4"
                         style={{
                           animation: showCheckmarkAnimation ? 'checkmarkBounce 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55)' : undefined
                         }}
