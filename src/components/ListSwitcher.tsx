@@ -70,11 +70,6 @@ export default function ListSwitcher() {
     return currentListOwnerId === ownerId
   }
 
-  // Don't render if no shared lists and we're on our own list
-  if (sharedLists.length === 0 && (!currentListOwnerId || currentListOwnerId === userId)) {
-    return null
-  }
-
   return (
     <div className="w-full" ref={menuRef}>
       <div className="relative">

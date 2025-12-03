@@ -161,6 +161,15 @@
   .touch-manipulation {
     touch-action: manipulation;
   }
+
+  /* Hide scrollbar for mobile tabs */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 /* Spotify-like bars animation */

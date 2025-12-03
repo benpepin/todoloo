@@ -5,11 +5,10 @@ import ToDoList from '@/components/ToDoList'
 import HorseRaceProgress from '@/components/HorseRaceProgress'
 import ShoppingCartProgress from '@/components/ShoppingCartProgress'
 import SettingsMenu from '@/components/SettingsMenu'
-import MobileListSheet from '@/components/MobileListSheet'
+import MobileListTabs from '@/components/MobileListTabs'
 import { useToDoStore } from '@/store/toDoStore'
 import { useSettingsStore } from '@/store/settingsStore'
 import { getCurrentDate, getCompletionTime } from '@/utils/timeUtils'
-import { ChevronDown } from 'lucide-react'
 import { migrateLocalStorageToSupabase } from '@/lib/migrate-to-supabase'
 import { useSupabase } from '@/components/SupabaseProvider'
 import Auth from '@/components/Auth'
@@ -33,7 +32,6 @@ export default function Home() {
   const cycleQuote = useToDoStore((state) => state.cycleQuote)
   const [showCompletionTime, setShowCompletionTime] = useState(false)
   const [migrationStatus, setMigrationStatus] = useState<string | null>(null)
-  const [isMobileListSheetOpen, setIsMobileListSheetOpen] = useState(false)
 
   // Calculate total time for incomplete to dos
   const totalMinutes = tasks
@@ -50,7 +48,6 @@ export default function Home() {
   const currentList = lists.find(list => list.id === currentListId)
   const isShoppingList = currentList ?
     /shopping|groceries|grocery/i.test(currentList.name) : false
-  const currentListName = currentList?.name || 'My List'
 
   // Initialize app when user changes
   useEffect(() => {
@@ -184,56 +181,22 @@ export default function Home() {
   return (
     <div className="w-full h-screen flex flex-col lg:flex-row" style={{ backgroundColor: 'var(--color-todoloo-bg)' }}>
       {/* Mobile Header - visible only on mobile/tablet */}
-      <div className="lg:hidden w-full p-4 border-b"
+      <div className="lg:hidden w-full flex flex-col gap-3 p-4 border-b rounded-b-[20px]"
            style={{
              backgroundColor: 'var(--color-todoloo-sidebar)',
              borderColor: 'var(--color-todoloo-border)'
            }}>
-        <div className="flex justify-between items-center gap-3">
-          {/* List Selection Button */}
-          <button
-            onClick={() => setIsMobileListSheetOpen(true)}
-            className="flex-1 flex items-center justify-between gap-2 py-3 px-4 rounded-lg transition-colors"
-            style={{
-              backgroundColor: 'var(--color-todoloo-card)',
-              minHeight: '44px'
-            }}
-          >
-            <div className="flex flex-col items-start gap-0.5 min-w-0 flex-1">
-              <span
-                className="text-base font-semibold font-['Outfit'] truncate w-full text-left"
-                style={{ color: 'var(--color-todoloo-text-primary)' }}
-              >
-                {currentListName}
-              </span>
-              <span
-                className="text-sm font-['Outfit'] font-normal"
-                style={{ color: 'var(--color-todoloo-text-secondary)' }}
-              >
-                {totalMinutes === 0 ? (
-                  "You're done!"
-                ) : (
-                  `Done at ${completionTime}`
-                )}
-              </span>
-            </div>
-            <ChevronDown
-              size={20}
-              style={{ color: 'var(--color-todoloo-text-secondary)' }}
-              className="flex-shrink-0"
-            />
-          </button>
-
-          {/* Settings Menu */}
+        {/* Top row: ListSwitcher + SettingsMenu */}
+        <div className="flex gap-3 items-center">
+          <div className="flex-1">
+            <ListSwitcher />
+          </div>
           <SettingsMenu />
         </div>
-      </div>
 
-      {/* Mobile List Sheet */}
-      <MobileListSheet
-        isOpen={isMobileListSheetOpen}
-        onClose={() => setIsMobileListSheetOpen(false)}
-      />
+        {/* Horizontal tabs */}
+        <MobileListTabs />
+      </div>
 
       {/* Desktop Sidebar - hidden on mobile/tablet */}
       <div className="hidden lg:flex lg:w-[20%] h-full p-8 flex-col items-start"
@@ -288,10 +251,10 @@ export default function Home() {
           <div className="w-full max-w-[640px] flex flex-col justify-start items-start h-full pointer-events-auto">
             {/* Large Unified Card Container */}
             <div
-              className="w-full h-full rounded-t-[60px] overflow-hidden flex flex-col"
+              className="w-full h-full rounded-t-[32px] overflow-hidden flex flex-col"
               style={{
                 backgroundColor: 'var(--color-todoloo-card)',
-                boxShadow: '0px 4px 14px 10px rgba(0, 0, 0, 0.02)',
+                boxShadow: '0px 2px 8px 0px rgba(0, 0, 0, 0.04)',
                 ...(tasks.length === 0 && !showCreateTask
                   ? {
                       border: '1px var(--color-todoloo-border) solid'
@@ -304,28 +267,28 @@ export default function Home() {
                 )
               }}
             >
-              {/* Progress Indicator - Fixed at top - Shopping Cart for shopping lists, Horse for others - Full Width */}
-              {showProgressIndicator && isShoppingList && showShoppingCartProgress && (tasks.length > 0 || showCreateTask) && (
-                <div className="w-full rounded-t-[56px] overflow-hidden flex-shrink-0"
-                     style={{
-                       backgroundColor: 'var(--color-todoloo-bg)',
-                       outline: '1px var(--color-todoloo-border) solid'
-                     }}>
-                  <ShoppingCartProgress />
-                </div>
-              )}
-              {showProgressIndicator && !isShoppingList && (tasks.length > 0 || showCreateTask) && (
-                <div className="w-full rounded-t-[56px] overflow-hidden flex-shrink-0"
-                     style={{
-                       backgroundColor: 'var(--color-todoloo-bg)',
-                       outline: '1px var(--color-todoloo-border) solid'
-                     }}>
-                  <HorseRaceProgress />
-                </div>
-              )}
-
               {/* Scrollable Todo List Section */}
-              <div className="w-full flex-1 overflow-y-auto flex flex-col items-center relative" style={{ paddingTop: '64px' }}>
+              <div className="w-full flex-1 overflow-y-auto flex flex-col items-center relative" style={{ paddingTop: '32px' }}>
+                {/* Progress Indicator - Scrollable - Shopping Cart for shopping lists, Horse for others */}
+                {showProgressIndicator && isShoppingList && showShoppingCartProgress && (tasks.length > 0 || showCreateTask) && (
+                  <div className="w-full max-w-[520px] mx-auto rounded-t-[56px] overflow-hidden mb-4"
+                       style={{
+                         backgroundColor: 'var(--color-todoloo-bg)',
+                         outline: '1px var(--color-todoloo-border) solid'
+                       }}>
+                    <ShoppingCartProgress />
+                  </div>
+                )}
+                {showProgressIndicator && !isShoppingList && (tasks.length > 0 || showCreateTask) && (
+                  <div className="w-full max-w-[520px] mx-auto rounded-t-[56px] overflow-hidden mb-4"
+                       style={{
+                         backgroundColor: 'var(--color-todoloo-bg)',
+                         outline: '1px var(--color-todoloo-border) solid'
+                       }}>
+                    <HorseRaceProgress />
+                  </div>
+                )}
+
                 <div className="w-full max-w-[520px] mx-auto px-4 pb-32 lg:pb-8">
                   <ToDoList />
                 </div>
@@ -349,7 +312,8 @@ export default function Home() {
             height: 64,
             padding: 4,
             bottom: '24px',
-            right: '24px',
+            left: '50%',
+            transform: 'translateX(-50%)',
             background: 'transparent',
             boxShadow: '0px 2px 7px rgba(0, 0, 0, 0.05)',
             overflow: 'hidden',
