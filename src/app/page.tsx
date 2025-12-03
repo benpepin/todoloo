@@ -246,7 +246,7 @@ export default function Home() {
       <div className="w-full lg:w-[80%] lg:h-full lg:overflow-y-auto flex flex-col justify-start items-start gap-2.5 relative"
            style={{ backgroundColor: 'var(--color-todoloo-bg)' }}>
 
-        <div className="lg:fixed left-0 right-0 lg:h-full flex justify-center items-stretch lg:pointer-events-none w-full" style={{ paddingTop: '32px' }}>
+        <div className="lg:fixed left-0 right-0 lg:h-full flex justify-center items-stretch lg:pointer-events-none w-full pt-4 lg:pt-8 px-4 lg:px-0">
           <div className="w-full max-w-[640px] flex flex-col justify-start items-start lg:h-full lg:pointer-events-auto">
             {/* Large Unified Card Container */}
             <div
