@@ -179,8 +179,8 @@ export default function Home() {
   // Sign out moved to Settings page
 
   return (
-    <div className="w-full h-screen flex flex-col lg:flex-row" style={{ backgroundColor: 'var(--color-todoloo-bg)' }}>
-      {/* Mobile Header - visible only on mobile/tablet */}
+    <div className="w-full min-h-screen flex flex-col lg:flex-row lg:h-screen" style={{ backgroundColor: 'var(--color-todoloo-bg)' }}>
+      {/* Mobile Header - visible only on mobile/tablet - scrolls with page */}
       <div className="lg:hidden w-full flex flex-col gap-3 p-4 border-b rounded-b-[20px]"
            style={{
              backgroundColor: 'var(--color-todoloo-sidebar)',
@@ -244,14 +244,14 @@ export default function Home() {
       </div>
 
       {/* Main Content - full width on mobile, 80% on desktop */}
-      <div className="w-full lg:w-[80%] h-full overflow-y-auto flex flex-col justify-start items-start gap-2.5 relative"
+      <div className="w-full lg:w-[80%] lg:h-full lg:overflow-y-auto flex flex-col justify-start items-start gap-2.5 relative"
            style={{ backgroundColor: 'var(--color-todoloo-bg)' }}>
 
-        <div className="fixed left-0 right-0 h-full flex justify-center items-stretch pointer-events-none" style={{ paddingTop: '32px' }}>
-          <div className="w-full max-w-[640px] flex flex-col justify-start items-start h-full pointer-events-auto">
+        <div className="lg:fixed left-0 right-0 lg:h-full flex justify-center items-stretch lg:pointer-events-none w-full" style={{ paddingTop: '32px' }}>
+          <div className="w-full max-w-[640px] flex flex-col justify-start items-start lg:h-full lg:pointer-events-auto">
             {/* Large Unified Card Container */}
             <div
-              className="w-full h-full rounded-t-[60px] overflow-hidden flex flex-col"
+              className="w-full lg:h-full rounded-t-[60px] overflow-hidden flex flex-col"
               style={{
                 backgroundColor: 'var(--color-todoloo-card)',
                 boxShadow: '0px 4px 14px 10px rgba(0, 0, 0, 0.02)',
@@ -290,7 +290,7 @@ export default function Home() {
               </div>
 
               {/* Scrollable Todo List Section */}
-              <div className="w-full flex-1 overflow-y-auto flex flex-col items-center relative pt-0 lg:pt-16">
+              <div className="w-full flex-1 lg:overflow-y-auto flex flex-col items-center relative pt-0 lg:pt-16">
                 {/* Progress Indicator - Scrollable on mobile only */}
                 <div className="lg:hidden w-full">
                   {showProgressIndicator && isShoppingList && showShoppingCartProgress && (tasks.length > 0 || showCreateTask) && (
