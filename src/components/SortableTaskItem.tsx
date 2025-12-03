@@ -732,7 +732,7 @@ export default function SortableTaskItem({
               </div>
 
               {/* Checkbox - always visible */}
-              <div className="flex items-center justify-center relative min-w-[56px]" style={{ width: 56, height: 56 }}>
+              <div className="flex items-center justify-center relative min-w-[44px] max-[400px]:min-w-[44px] lg:min-w-[56px]" style={{ width: 44, height: 56 }}>
                 <button
                   onClick={handleToggleCompletion}
                   className={`w-6 h-6 lg:w-8 lg:h-8 rounded-full border-2 flex items-center justify-center cursor-pointer relative ${
