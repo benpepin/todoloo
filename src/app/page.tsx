@@ -250,7 +250,7 @@ export default function Home() {
           <div className="w-full max-w-[640px] flex flex-col justify-start items-start lg:h-full lg:pointer-events-auto">
             {/* Large Unified Card Container */}
             <div
-              className="w-full lg:h-full rounded-t-[60px] overflow-hidden flex flex-col"
+              className="w-full min-h-screen lg:h-full rounded-t-[60px] overflow-hidden flex flex-col"
               style={{
                 backgroundColor: 'var(--color-todoloo-card)',
                 boxShadow: '0px 4px 14px 10px rgba(0, 0, 0, 0.02)',
@@ -290,6 +290,28 @@ export default function Home() {
 
               {/* Scrollable Todo List Section */}
               <div className="w-full flex-1 lg:overflow-y-auto flex flex-col items-center relative pt-0 lg:pt-16">
+                {/* Progress Indicator - Scrollable on mobile only */}
+                <div className="lg:hidden w-full">
+                  {showProgressIndicator && isShoppingList && showShoppingCartProgress && (tasks.length > 0 || showCreateTask) && (
+                    <div className="w-full rounded-t-[56px] overflow-hidden mb-4"
+                         style={{
+                           backgroundColor: 'var(--color-todoloo-bg)',
+                           outline: '1px var(--color-todoloo-border) solid'
+                         }}>
+                      <ShoppingCartProgress />
+                    </div>
+                  )}
+                  {showProgressIndicator && !isShoppingList && (tasks.length > 0 || showCreateTask) && (
+                    <div className="w-full rounded-t-[56px] overflow-hidden mb-4"
+                         style={{
+                           backgroundColor: 'var(--color-todoloo-bg)',
+                           outline: '1px var(--color-todoloo-border) solid'
+                         }}>
+                      <HorseRaceProgress />
+                    </div>
+                  )}
+                </div>
+
                 <div className="w-full max-w-[520px] mx-auto px-4 pb-32 lg:pb-8 pt-8 lg:pt-8">
                   <ToDoList />
                 </div>
