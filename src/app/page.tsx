@@ -251,10 +251,10 @@ export default function Home() {
           <div className="w-full max-w-[640px] flex flex-col justify-start items-start h-full pointer-events-auto">
             {/* Large Unified Card Container */}
             <div
-              className="w-full h-full rounded-t-[32px] overflow-hidden flex flex-col"
+              className="w-full h-full rounded-t-[60px] overflow-hidden flex flex-col"
               style={{
                 backgroundColor: 'var(--color-todoloo-card)',
-                boxShadow: '0px 2px 8px 0px rgba(0, 0, 0, 0.04)',
+                boxShadow: '0px 4px 14px 10px rgba(0, 0, 0, 0.02)',
                 ...(tasks.length === 0 && !showCreateTask
                   ? {
                       border: '1px var(--color-todoloo-border) solid'
@@ -267,29 +267,29 @@ export default function Home() {
                 )
               }}
             >
+              {/* Progress Indicator - Fixed on desktop, scrollable on mobile */}
+              {showProgressIndicator && isShoppingList && showShoppingCartProgress && (tasks.length > 0 || showCreateTask) && (
+                <div className="w-full rounded-t-[56px] overflow-hidden lg:flex-shrink-0"
+                     style={{
+                       backgroundColor: 'var(--color-todoloo-bg)',
+                       outline: '1px var(--color-todoloo-border) solid'
+                     }}>
+                  <ShoppingCartProgress />
+                </div>
+              )}
+              {showProgressIndicator && !isShoppingList && (tasks.length > 0 || showCreateTask) && (
+                <div className="w-full rounded-t-[56px] overflow-hidden lg:flex-shrink-0"
+                     style={{
+                       backgroundColor: 'var(--color-todoloo-bg)',
+                       outline: '1px var(--color-todoloo-border) solid'
+                     }}>
+                  <HorseRaceProgress />
+                </div>
+              )}
+
               {/* Scrollable Todo List Section */}
               <div className="w-full flex-1 overflow-y-auto flex flex-col items-center relative" style={{ paddingTop: '32px' }}>
-                {/* Progress Indicator - Scrollable - Shopping Cart for shopping lists, Horse for others */}
-                {showProgressIndicator && isShoppingList && showShoppingCartProgress && (tasks.length > 0 || showCreateTask) && (
-                  <div className="w-full max-w-[520px] mx-auto rounded-t-[56px] overflow-hidden mb-4"
-                       style={{
-                         backgroundColor: 'var(--color-todoloo-bg)',
-                         outline: '1px var(--color-todoloo-border) solid'
-                       }}>
-                    <ShoppingCartProgress />
-                  </div>
-                )}
-                {showProgressIndicator && !isShoppingList && (tasks.length > 0 || showCreateTask) && (
-                  <div className="w-full max-w-[520px] mx-auto rounded-t-[56px] overflow-hidden mb-4"
-                       style={{
-                         backgroundColor: 'var(--color-todoloo-bg)',
-                         outline: '1px var(--color-todoloo-border) solid'
-                       }}>
-                    <HorseRaceProgress />
-                  </div>
-                )}
-
-                <div className="w-full max-w-[520px] mx-auto px-4 pb-32 lg:pb-8">
+                <div className="w-full max-w-[520px] mx-auto px-4 pb-32 lg:pb-8" style={{ paddingTop: '32px' }}>
                   <ToDoList />
                 </div>
               </div>
@@ -306,14 +306,12 @@ export default function Home() {
       {!(tasks.length === 0 && !showCreateTask) && (
         <button
           onClick={toggleCreateTask}
-          className="fixed rounded-full flex items-center justify-center active:scale-95 transition-transform hover:scale-110 hover:cursor-pointer z-50"
+          className="fixed rounded-full flex items-center justify-center active:scale-95 transition-transform hover:scale-110 hover:cursor-pointer z-50 left-1/2 -translate-x-1/2 lg:left-auto lg:right-6 lg:translate-x-0"
           style={{
             width: 64,
             height: 64,
             padding: 4,
             bottom: '24px',
-            left: '50%',
-            transform: 'translateX(-50%)',
             background: 'transparent',
             boxShadow: '0px 2px 7px rgba(0, 0, 0, 0.05)',
             overflow: 'hidden',

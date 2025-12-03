@@ -1,5 +1,9 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## ⚠️ IMPORTANT: GitHub Push Policy
+
+**DO NOT push to GitHub automatically.** Always ask the user for permission before pushing changes.
+
 ## Getting Started
 
 First, run the development server:
