@@ -267,28 +267,52 @@ export default function Home() {
                 )
               }}
             >
-              {/* Progress Indicator - Fixed on desktop, scrollable on mobile */}
-              {showProgressIndicator && isShoppingList && showShoppingCartProgress && (tasks.length > 0 || showCreateTask) && (
-                <div className="w-full rounded-t-[56px] overflow-hidden lg:flex-shrink-0"
-                     style={{
-                       backgroundColor: 'var(--color-todoloo-bg)',
-                       outline: '1px var(--color-todoloo-border) solid'
-                     }}>
-                  <ShoppingCartProgress />
-                </div>
-              )}
-              {showProgressIndicator && !isShoppingList && (tasks.length > 0 || showCreateTask) && (
-                <div className="w-full rounded-t-[56px] overflow-hidden lg:flex-shrink-0"
-                     style={{
-                       backgroundColor: 'var(--color-todoloo-bg)',
-                       outline: '1px var(--color-todoloo-border) solid'
-                     }}>
-                  <HorseRaceProgress />
-                </div>
-              )}
+              {/* Progress Indicator - Fixed on desktop only */}
+              <div className="hidden lg:block w-full">
+                {showProgressIndicator && isShoppingList && showShoppingCartProgress && (tasks.length > 0 || showCreateTask) && (
+                  <div className="w-full rounded-t-[56px] overflow-hidden flex-shrink-0"
+                       style={{
+                         backgroundColor: 'var(--color-todoloo-bg)',
+                         outline: '1px var(--color-todoloo-border) solid'
+                       }}>
+                    <ShoppingCartProgress />
+                  </div>
+                )}
+                {showProgressIndicator && !isShoppingList && (tasks.length > 0 || showCreateTask) && (
+                  <div className="w-full rounded-t-[56px] overflow-hidden flex-shrink-0"
+                       style={{
+                         backgroundColor: 'var(--color-todoloo-bg)',
+                         outline: '1px var(--color-todoloo-border) solid'
+                       }}>
+                    <HorseRaceProgress />
+                  </div>
+                )}
+              </div>
 
               {/* Scrollable Todo List Section */}
-              <div className="w-full flex-1 overflow-y-auto flex flex-col items-center relative" style={{ paddingTop: '32px' }}>
+              <div className="w-full flex-1 overflow-y-auto flex flex-col items-center relative pt-0 lg:pt-16">
+                {/* Progress Indicator - Scrollable on mobile only */}
+                <div className="lg:hidden w-full">
+                  {showProgressIndicator && isShoppingList && showShoppingCartProgress && (tasks.length > 0 || showCreateTask) && (
+                    <div className="w-full rounded-t-[56px] overflow-hidden mb-4"
+                         style={{
+                           backgroundColor: 'var(--color-todoloo-bg)',
+                           outline: '1px var(--color-todoloo-border) solid'
+                         }}>
+                      <ShoppingCartProgress />
+                    </div>
+                  )}
+                  {showProgressIndicator && !isShoppingList && (tasks.length > 0 || showCreateTask) && (
+                    <div className="w-full rounded-t-[56px] overflow-hidden mb-4"
+                         style={{
+                           backgroundColor: 'var(--color-todoloo-bg)',
+                           outline: '1px var(--color-todoloo-border) solid'
+                         }}>
+                      <HorseRaceProgress />
+                    </div>
+                  )}
+                </div>
+
                 <div className="w-full max-w-[520px] mx-auto px-4 pb-32 lg:pb-8" style={{ paddingTop: '32px' }}>
                   <ToDoList />
                 </div>
