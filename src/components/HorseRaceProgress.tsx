@@ -57,8 +57,9 @@ export default function HorseRaceProgress() {
   const completedTasks = tasks.filter(task => task.isCompleted).length
   const progress = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0
 
-  // Check if we should show sprite animation (biker + active task)
+  // Check if we should show sprite animation (biker or horse + active task)
   const isBikerActive = CHARACTERS[characterIndex].name === 'biker' && activeTaskId !== null
+  const isHorseActive = CHARACTERS[characterIndex].name === 'horse' && activeTaskId !== null
 
   // Trigger galloping animation when progress changes
   useEffect(() => {
@@ -128,7 +129,19 @@ export default function HorseRaceProgress() {
           onClick={handleCharacterClick}
           title="Click to change character"
         >
-          {isBikerActive ? (
+          {isHorseActive ? (
+            // Horse sprite animation when task is active
+            <div
+              className="animate-horse-sprite w-full h-full"
+              style={{
+                backgroundImage: 'url(/gallopinghorse-sprite.png)',
+                backgroundSize: '400% 400%', // 4x4 grid
+                backgroundPosition: '0px 0px',
+                backgroundRepeat: 'no-repeat',
+                display: 'block'
+              }}
+            />
+          ) : isBikerActive ? (
             // Biker sprite animation when task is active
             <div
               className="animate-bike-sprite w-full h-full"
@@ -141,7 +154,7 @@ export default function HorseRaceProgress() {
               }}
             />
           ) : (
-            // Static image for other characters or inactive biker
+            // Static image for other characters or inactive biker/horse
             <Image
               src={CHARACTERS[characterIndex].src}
               alt={CHARACTERS[characterIndex].alt}
@@ -190,6 +203,30 @@ export default function HorseRaceProgress() {
 
         .animate-bike-sprite {
           animation: bike-sprite 1.6s steps(1) infinite;
+        }
+
+        @keyframes horse-sprite {
+          0% { background-position: 0% 0%; }
+          6.25% { background-position: 33.333% 0%; }
+          12.5% { background-position: 66.666% 0%; }
+          18.75% { background-position: 100% 0%; }
+          25% { background-position: 0% 33.333%; }
+          31.25% { background-position: 33.333% 33.333%; }
+          37.5% { background-position: 66.666% 33.333%; }
+          43.75% { background-position: 100% 33.333%; }
+          50% { background-position: 0% 66.666%; }
+          56.25% { background-position: 33.333% 66.666%; }
+          62.5% { background-position: 66.666% 66.666%; }
+          68.75% { background-position: 100% 66.666%; }
+          75% { background-position: 0% 100%; }
+          81.25% { background-position: 33.333% 100%; }
+          87.5% { background-position: 66.666% 100%; }
+          93.75% { background-position: 100% 100%; }
+          100% { background-position: 0% 0%; }
+        }
+
+        .animate-horse-sprite {
+          animation: horse-sprite 1.2s steps(1) infinite;
         }
       `}</style>
     </div>
