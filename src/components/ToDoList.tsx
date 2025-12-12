@@ -243,7 +243,7 @@ function ToDoListContent() {
       onDragEnd={handleDragEnd}
       onDragCancel={handleDragCancel}
     >
-      <div className="w-full flex flex-col justify-start items-start gap-8">
+      <div className="w-full flex flex-col justify-start items-start gap-8 pb-8">
         {/* Todo Section */}
         <div className="w-full flex flex-col justify-start items-start gap-0 lg:gap-4">
           <div className="hidden lg:flex w-full justify-start items-center gap-1.5">
