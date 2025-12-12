@@ -304,7 +304,7 @@ export default function Home() {
                   )}
                 </div>
 
-                <div className="w-full max-w-[520px] mx-auto px-4 pb-32 lg:pb-8 lg:pt-8">
+                <div className="w-full max-w-[520px] mx-auto px-4 pb-32 lg:pb-24 lg:pt-8">
                   <ToDoList />
                 </div>
               </div>
