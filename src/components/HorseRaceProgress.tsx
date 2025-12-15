@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Image from 'next/image'
+import { motion } from 'framer-motion'
 import { useToDoStore } from '@/store/toDoStore'
 
 const CHARACTERS = [
@@ -17,6 +18,11 @@ export default function HorseRaceProgress() {
   const [isGalloping, setIsGalloping] = useState(false)
   const [isDarkMode, setIsDarkMode] = useState(false)
   const [characterIndex, setCharacterIndex] = useState(0)
+  const [isRunningOff, setIsRunningOff] = useState(false)
+  const [showCompletionAnimation, setShowCompletionAnimation] = useState(false)
+
+  // Check if all tasks are completed
+  const allTasksComplete = tasks.length > 0 && tasks.every(task => task.isCompleted)
 
   // Load saved character preference
   useEffect(() => {
@@ -73,6 +79,18 @@ export default function HorseRaceProgress() {
     setPrevProgress(progress)
   }, [progress, prevProgress])
 
+  // Trigger run-off animation when all tasks complete
+  useEffect(() => {
+    if (progress === 100 && tasks.length > 0 && prevProgress < 100) {
+      // Only trigger animation when transitioning from incomplete to complete
+      setIsRunningOff(true)
+      setShowCompletionAnimation(true)
+    } else if (progress < 100) {
+      setIsRunningOff(false)
+      setShowCompletionAnimation(false)
+    }
+  }, [progress, tasks.length, prevProgress])
+
   // Don't show if no tasks
   if (totalTasks === 0) {
     return null
@@ -101,6 +119,76 @@ export default function HorseRaceProgress() {
               opacity: isDarkMode ? 1 : 0.6
             }}
           />
+
+          {/* Rainbow overlay when all tasks complete */}
+          {allTasksComplete && showCompletionAnimation && (
+            <>
+              {/* Rainbow slides in from right */}
+              <motion.div
+                className="absolute inset-0 flex items-center justify-end overflow-hidden"
+                initial={{ opacity: 0, x: 100 }}
+                animate={{ opacity: 0.7, x: 0 }}
+                transition={{ duration: 0.5, delay: 2.6, ease: "easeOut" }}
+              >
+                <div className="relative w-full h-full max-w-[520px]">
+                  <Image
+                    src="/rainbow.png"
+                    alt="Rainbow"
+                    fill
+                    className="object-contain object-right"
+                    priority
+                  />
+                </div>
+              </motion.div>
+              {/* Text appears first */}
+              <motion.div
+                className="absolute inset-0 flex items-center justify-center z-10"
+                style={{ paddingTop: '16px' }}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 2.3, ease: "easeOut" }}
+              >
+                <h1
+                  style={{
+                    fontFamily: 'Outfit',
+                    color: '#2d2d2d',
+                    fontWeight: 900,
+                    fontSize: '44px'
+                  }}
+                >
+                  You're All Done!
+                </h1>
+              </motion.div>
+            </>
+          )}
+          {/* Static completion display when reloading a completed list */}
+          {allTasksComplete && !showCompletionAnimation && (
+            <>
+              <div className="absolute inset-0 flex items-center justify-end overflow-hidden" style={{ opacity: 0.7 }}>
+                <div className="relative w-full h-full max-w-[520px]">
+                  <Image
+                    src="/rainbow.png"
+                    alt="Rainbow"
+                    fill
+                    className="object-contain object-right"
+                    priority
+                  />
+                </div>
+              </div>
+              <div className="absolute inset-0 flex items-center justify-center z-10" style={{ paddingTop: '16px' }}>
+                <h1
+                  style={{
+                    fontFamily: 'Outfit',
+                    color: '#2d2d2d',
+                    fontWeight: 900,
+                    fontSize: '44px'
+                  }}
+                >
+                  You're All Done!
+                </h1>
+              </div>
+            </>
+          )}
         </div>
 
         {/* Dark green grass layer (bottom) */}
@@ -121,10 +209,11 @@ export default function HorseRaceProgress() {
 
         {/* Character */}
         <div
-          className="absolute transition-all duration-500 ease-out cursor-pointer top-[16px] lg:top-[14px] w-[120px] h-[120px] lg:w-[160px] lg:h-[160px]"
+          className="absolute cursor-pointer top-[16px] lg:top-[14px] w-[120px] h-[120px] lg:w-[160px] lg:h-[160px]"
           style={{
-            left: `calc(${Math.min(progress, 92)}% + 56px)`,
-            transform: 'translateX(-50%)'
+            left: isRunningOff ? '120%' : `calc(${Math.min(progress, 92)}% + 56px)`,
+            transform: 'translateX(-50%)',
+            transition: isRunningOff ? 'left 2s ease-in' : 'left 500ms ease-out'
           }}
           onClick={handleCharacterClick}
           title="Click to change character"

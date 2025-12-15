@@ -134,6 +134,7 @@
   /* Todoloo Custom Colors - Dark Mode */
   --color-todoloo-bg: #1a1a1a;
   --color-todoloo-card: #2a2a2a;
+  --color-todoloo-task: #2a2a2a;
   --color-todoloo-border: #404040;
   --color-todoloo-text-primary: #e5e5e5;
   --color-todoloo-text-secondary: #a3a3a3;
@@ -425,6 +426,29 @@
   100% {
     opacity: 1;
     transform: scale(1);
+  }
+}
+
+/* Completion state animations */
+@keyframes completionFadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes gradientSlideDown {
+  0% {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 

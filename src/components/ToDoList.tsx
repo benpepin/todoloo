@@ -7,6 +7,7 @@ import { arrayMove, SortableContext, verticalListSortingStrategy } from '@dnd-ki
 import { useToDoStore } from '@/store/toDoStore'
 import SortableTaskItem from './SortableTaskItem'
 import ToDoCard from './ToDoCard'
+import CompletionState from './CompletionState'
 import { Check } from 'lucide-react'
 
 function ToDoListContent() {
@@ -167,6 +168,9 @@ function ToDoListContent() {
     return new Date(a.completedAt).getTime() - new Date(b.completedAt).getTime()
   })
 
+  // Check if all tasks are completed
+  const allTasksComplete = tasks.length > 0 && tasks.every(task => task.isCompleted)
+
   if (tasks.length === 0) {
     return (
       <div className="w-full flex flex-col justify-start items-start gap-8">
@@ -210,6 +214,22 @@ function ToDoListContent() {
             </div>
           )}
         </div>
+      </div>
+    )
+  }
+
+  // Show completion state when all tasks are completed
+  if (allTasksComplete) {
+    return (
+      <div className="w-full flex flex-col items-center">
+        {/* Task Creation Card overlay */}
+        {showCreateTask && (
+          <div className="w-full flex flex-col justify-start items-start gap-0 lg:gap-4 mb-8">
+            <ToDoCard />
+          </div>
+        )}
+        {/* Completion state - just the task list portion */}
+        <CompletionState tasks={tasks} />
       </div>
     )
   }
