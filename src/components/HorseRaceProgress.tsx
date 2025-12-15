@@ -156,7 +156,7 @@ export default function HorseRaceProgress() {
                     fontSize: '44px'
                   }}
                 >
-                  You're All Done!
+                  You&apos;re All Done!
                 </h1>
               </motion.div>
             </>
@@ -184,7 +184,7 @@ export default function HorseRaceProgress() {
                     fontSize: '44px'
                   }}
                 >
-                  You're All Done!
+                  You&apos;re All Done!
                 </h1>
               </div>
             </>
