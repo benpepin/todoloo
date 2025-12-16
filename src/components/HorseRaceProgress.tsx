@@ -100,14 +100,28 @@ export default function HorseRaceProgress() {
     <div className="w-full">
       {/* Track Container */}
       <div
-        className="relative w-full overflow-hidden h-[120px] lg:h-[160px]"
+        className="relative w-full h-[120px] lg:h-[160px]"
+        style={{
+          overflow: 'hidden',
+          borderRadius: '60px 60px 0 0'
+        }}
       >
+        {/* Left border */}
+        <div className="absolute top-0 left-0 w-[4px] h-full bg-[#F9F9FD] z-20" />
+        {/* Right border */}
+        <div className="absolute top-0 right-0 w-[4px] h-full bg-[#F9F9FD] z-20" />
+        {/* Top border */}
+        <div className="absolute top-0 left-0 right-0 h-[4px] bg-[#F9F9FD] z-20" />
         {/* Sky background */}
         <div
-          className="absolute top-0 left-0 right-0 h-[95px] lg:h-[125px]"
+          className="absolute"
           style={{
-            top: 0,
-            background: isDarkMode ? '#1a1a2e' : '#79C7FD'
+            top: '4px',
+            bottom: '0',
+            left: '4px',
+            right: '4px',
+            background: isDarkMode ? '#1a1a2e' : '#79C7FD',
+            borderRadius: '56px 56px 0 0'
           }}
         >
           <div
@@ -116,7 +130,8 @@ export default function HorseRaceProgress() {
               backgroundImage: isDarkMode ? 'url(/nightsky.png)' : 'url(/sky.png)',
               backgroundSize: 'cover',
               backgroundPosition: 'center',
-              opacity: isDarkMode ? 1 : 0.6
+              opacity: isDarkMode ? 1 : 0.6,
+              borderRadius: '56px 56px 0 0'
             }}
           />
 
@@ -193,24 +208,33 @@ export default function HorseRaceProgress() {
 
         {/* Dark green grass layer (bottom) */}
         <div
-          className="absolute bottom-0 left-0 right-0 h-[25px] lg:h-[35px]"
+          className="absolute"
           style={{
-            background: '#103F2A'
+            background: '#103F2A',
+            height: '5px',
+            left: '4px',
+            right: '4px',
+            bottom: '0'
           }}
         />
 
         {/* Lighter green grass layer (top) */}
         <div
-          className="absolute bottom-0 left-0 right-0 h-[20px] lg:h-[30px]"
+          className="absolute"
           style={{
-            background: '#009959'
+            background: '#009959',
+            height: '1px',
+            bottom: '5px',
+            left: '4px',
+            right: '4px'
           }}
         />
 
         {/* Character */}
         <div
-          className="absolute cursor-pointer top-[16px] lg:top-[14px] w-[120px] h-[120px] lg:w-[160px] lg:h-[160px]"
+          className="absolute cursor-pointer w-[104px] h-[104px] lg:w-[130px] lg:h-[130px]"
           style={{
+            bottom: '-22px',
             left: isRunningOff ? '120%' : `calc(${Math.min(progress, 92)}% + 56px)`,
             transform: 'translateX(-50%)',
             transition: isRunningOff ? 'left 2s ease-in' : 'left 500ms ease-out'
@@ -221,25 +245,31 @@ export default function HorseRaceProgress() {
           {isHorseActive ? (
             // Horse sprite animation when task is active
             <div
-              className="animate-horse-sprite w-full h-full"
+              className="animate-horse-sprite"
               style={{
                 backgroundImage: 'url(/gallopinghorse-sprite.png)',
                 backgroundSize: '400% 400%', // 4x4 grid
                 backgroundPosition: '0px 0px',
                 backgroundRepeat: 'no-repeat',
-                display: 'block'
+                display: 'block',
+                width: '203px',
+                height: '203px',
+                transform: 'translate(-46px, -38px)'
               }}
             />
           ) : isBikerActive ? (
             // Biker sprite animation when task is active
             <div
-              className="animate-bike-sprite w-full h-full"
+              className="animate-bike-sprite"
               style={{
                 backgroundImage: 'url(/bike-sprite.png)',
                 backgroundSize: '400% 400%', // 4x4 grid
                 backgroundPosition: '0px 0px',
                 backgroundRepeat: 'no-repeat',
-                display: 'block'
+                display: 'block',
+                width: '203px',
+                height: '203px',
+                transform: 'translate(-38px, -42px)'
               }}
             />
           ) : (
@@ -272,21 +302,21 @@ export default function HorseRaceProgress() {
 
         @keyframes bike-sprite {
           0% { background-position: 0px 0px; }
-          6.25% { background-position: -160px 0px; }
-          12.5% { background-position: -320px 0px; }
-          18.75% { background-position: -480px 0px; }
-          25% { background-position: 0px -160px; }
-          31.25% { background-position: -160px -160px; }
-          37.5% { background-position: -320px -160px; }
-          43.75% { background-position: -480px -160px; }
-          50% { background-position: 0px -320px; }
-          56.25% { background-position: -160px -320px; }
-          62.5% { background-position: -320px -320px; }
-          68.75% { background-position: -480px -320px; }
-          75% { background-position: 0px -480px; }
-          81.25% { background-position: -160px -480px; }
-          87.5% { background-position: -320px -480px; }
-          93.75% { background-position: -480px -480px; }
+          6.25% { background-position: -203px 0px; }
+          12.5% { background-position: -406px 0px; }
+          18.75% { background-position: -609px 0px; }
+          25% { background-position: 0px -203px; }
+          31.25% { background-position: -203px -203px; }
+          37.5% { background-position: -406px -203px; }
+          43.75% { background-position: -609px -203px; }
+          50% { background-position: 0px -406px; }
+          56.25% { background-position: -203px -406px; }
+          62.5% { background-position: -406px -406px; }
+          68.75% { background-position: -609px -406px; }
+          75% { background-position: 0px -609px; }
+          81.25% { background-position: -203px -609px; }
+          87.5% { background-position: -406px -609px; }
+          93.75% { background-position: -609px -609px; }
           100% { background-position: 0px 0px; }
         }
 
