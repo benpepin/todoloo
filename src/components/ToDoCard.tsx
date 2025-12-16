@@ -386,12 +386,10 @@ function ToDoCardContent() {
     <motion.div
       className="w-full max-w-[520px] rounded-[20px] shadow-[2px_2px_4px_rgba(0,0,0,0.15)] p-6"
       style={{ backgroundColor: 'var(--color-todoloo-task)' }}
-      initial={{ opacity: 1 }}
-      animate={{
-        opacity: 1
-      }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.15 }}
+      initial={{ opacity: 0, scale: 0.95, y: 10 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.95, y: -10 }}
+      transition={{ duration: 0.2, ease: "easeInOut" }}
     >
       <form
         onSubmit={handleSubmit}

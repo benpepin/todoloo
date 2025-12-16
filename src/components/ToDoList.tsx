@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import { DndContext, closestCenter, MouseSensor, TouchSensor, useSensor, useSensors, DragEndEvent, DragStartEvent, DragOverlay, DragOverEvent, CollisionDetection, rectIntersection } from '@dnd-kit/core'
 import { arrayMove, SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
+import { AnimatePresence } from 'framer-motion'
 import { useToDoStore } from '@/store/toDoStore'
 import SortableTaskItem from './SortableTaskItem'
 import ToDoCard from './ToDoCard'
@@ -185,14 +186,16 @@ function ToDoListContent() {
           )}
 
           {/* Task Creation Card */}
-          {showCreateTask && <ToDoCard />}
+          <AnimatePresence mode="wait">
+            {showCreateTask && <ToDoCard key="todo-card-empty" />}
+          </AnimatePresence>
 
           {/* Enhanced Empty state when no tasks - vertically centered */}
           {!showCreateTask && (
             <div className="w-full h-[calc(100vh-200px)] flex items-center justify-center">
               <div className="w-full max-w-[520px] relative">
                 {/* Bunny Ears - top left corner of card with pop-up animation */}
-                <div className="absolute -top-12 left-0 z-0 animate-[slideUp_0.4s_ease-out_0.2s_both]">
+                <div className="absolute left-0 z-0 animate-[slideUp_0.4s_ease-out_0.2s_both]" style={{ top: '-56px' }}>
                   <Image src="/bunnyearsfingers.png" alt="" width={80} height={80} className="object-contain" />
                 </div>
 
@@ -272,7 +275,9 @@ function ToDoListContent() {
           </div>
 
           {/* Task Creation Card */}
-          {showCreateTask && <ToDoCard />}
+          <AnimatePresence mode="wait">
+            {showCreateTask && <ToDoCard key="todo-card" />}
+          </AnimatePresence>
 
           <div className="w-full flex flex-col justify-start items-start">
             <SortableContext items={todoTasks.map(task => task.id)} strategy={verticalListSortingStrategy}>

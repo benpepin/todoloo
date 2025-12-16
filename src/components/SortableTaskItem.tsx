@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import Image from 'next/image'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
+import { motion } from 'framer-motion'
 import { Check, GripVertical, Play, Pause, Music, Timer, ListChecks } from 'lucide-react'
 import { Task } from '@/types'
 import { useToDoStore } from '@/store/toDoStore'
@@ -379,7 +380,16 @@ export default function SortableTaskItem({
 
   return (
     <AnimatedBorder>
-      <div className="relative w-full group max-w-[520px]">
+      <motion.div
+        className="relative w-full group max-w-[520px]"
+        initial={{ opacity: 0, y: -10, scale: 0.98 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{
+          duration: 0.3,
+          delay: 0.1,
+          ease: [0.4, 0, 0.2, 1]
+        }}
+      >
         {/* Drag Handle - Positioned absolutely to not affect card width, hidden on mobile */}
         <button
           className="hidden lg:block absolute -left-10 top-1/2 -translate-y-1/2 p-2 rounded-lg transition-all duration-200 cursor-grab active:cursor-grabbing opacity-0 group-hover:opacity-100 z-10 hover:bg-[var(--muted)]"
@@ -391,7 +401,7 @@ export default function SortableTaskItem({
         >
           <GripVertical className="w-4 h-4" />
         </button>
-        
+
         {/* Task Card */}
         <div
           ref={(node) => {
@@ -833,7 +843,7 @@ export default function SortableTaskItem({
           )}
 
         </div>
-      </div>
+      </motion.div>
     </AnimatedBorder>
   )
 }
