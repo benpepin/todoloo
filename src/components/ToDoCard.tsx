@@ -93,7 +93,7 @@ function ToDoCardContent() {
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [setShowCreateTask])
 
-  // Close immediately
+  // Close with animation - AnimatePresence will handle the exit animation
   const closeWithAnimation = () => {
     setShowCreateTask(false)
   }
@@ -264,9 +264,6 @@ function ToDoCardContent() {
         }
       }
 
-      // Close the create card first
-      closeWithAnimation()
-
       // Clear any ongoing group when creating a standalone task
       delete (window as Window & { __currentGroupId?: string }).__currentGroupId
       setDescription('')
@@ -317,6 +314,9 @@ function ToDoCardContent() {
           }
         }
       }
+
+      // Close the create card AFTER task is added
+      closeWithAnimation()
     }
   }
 
@@ -386,10 +386,13 @@ function ToDoCardContent() {
     <motion.div
       className="w-full max-w-[520px] rounded-[20px] shadow-[2px_2px_4px_rgba(0,0,0,0.15)] p-6"
       style={{ backgroundColor: 'var(--color-todoloo-task)' }}
-      initial={{ opacity: 0, scale: 0.95, y: 10 }}
+      initial={{ opacity: 0, scale: 0.98, y: 10 }}
       animate={{ opacity: 1, scale: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.95, y: -10 }}
-      transition={{ duration: 0.2, ease: "easeInOut" }}
+      exit={{ opacity: 0, scale: 0.98, y: 10 }}
+      transition={{
+        duration: 0.25,
+        ease: [0.4, 0, 0.2, 1]
+      }}
     >
       <form
         onSubmit={handleSubmit}

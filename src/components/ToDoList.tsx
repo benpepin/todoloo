@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import Image from 'next/image'
 import { DndContext, closestCenter, MouseSensor, TouchSensor, useSensor, useSensors, DragEndEvent, DragStartEvent, DragOverlay, DragOverEvent, CollisionDetection, rectIntersection } from '@dnd-kit/core'
 import { arrayMove, SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
@@ -17,6 +17,24 @@ function ToDoListContent() {
   const [activeId, setActiveId] = useState<string | null>(null)
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [overId, setOverId] = useState<string | null>(null)
+  const [newlyCreatedTaskId, setNewlyCreatedTaskId] = useState<string | null>(null)
+
+  // Track when creation card closes and first task appears
+  const prevTasksLengthRef = useRef(tasks.length)
+
+  useEffect(() => {
+    // Detect when a new task is added (task count increased)
+    if (tasks.length > prevTasksLengthRef.current) {
+      const incompleteTasks = tasks.filter(t => !t.isCompleted).sort((a, b) => a.order - b.order)
+      const firstTask = incompleteTasks[0]
+      if (firstTask) {
+        setNewlyCreatedTaskId(firstTask.id)
+        // Clear after animation completes
+        setTimeout(() => setNewlyCreatedTaskId(null), 400)
+      }
+    }
+    prevTasksLengthRef.current = tasks.length
+  }, [tasks.length])
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -295,14 +313,15 @@ function ToDoListContent() {
           </div>
 
           {/* Task Creation Card */}
-          <AnimatePresence mode="wait">
+          <AnimatePresence>
             {showCreateTask && <ToDoCard key="todo-card" />}
           </AnimatePresence>
 
           <div className="w-full flex flex-col justify-start items-start">
             <SortableContext items={todoTasks.map(task => task.id)} strategy={verticalListSortingStrategy}>
-              <div className="w-full flex flex-col">
-                {todoTasks.map((task, index) => {
+              <AnimatePresence mode="popLayout">
+                <div className="w-full flex flex-col">
+                  {todoTasks.map((task, index) => {
                   // Determine group position
                   let groupPosition: 'single' | 'first' | 'middle' | 'last' = 'single'
 
@@ -332,11 +351,13 @@ function ToDoListContent() {
                         onDelete={deleteTask}
                         onToggleCompletion={toggleTaskCompletion}
                         groupPosition={groupPosition}
+                        isNewlyCreated={task.id === newlyCreatedTaskId}
                       />
                     </div>
                   )
                 })}
-              </div>
+                </div>
+              </AnimatePresence>
             </SortableContext>
           </div>
         </div>
@@ -350,8 +371,9 @@ function ToDoListContent() {
             </div>
             <div className="w-full flex flex-col justify-start items-start">
               <SortableContext items={doneTasks.map(task => task.id)} strategy={verticalListSortingStrategy}>
-                <div className="w-full flex flex-col">
-                  {doneTasks.map((task, index) => {
+                <AnimatePresence mode="popLayout">
+                  <div className="w-full flex flex-col">
+                    {doneTasks.map((task, index) => {
                     // Determine group position
                     let groupPosition: 'single' | 'first' | 'middle' | 'last' = 'single'
 
@@ -383,8 +405,9 @@ function ToDoListContent() {
                         />
                       </div>
                     )
-                  })}
-                </div>
+                    })}
+                  </div>
+                </AnimatePresence>
               </SortableContext>
             </div>
           </div>

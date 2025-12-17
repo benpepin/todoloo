@@ -23,6 +23,7 @@ interface SortableTaskItemProps {
   onDelete: (id: string) => void
   onToggleCompletion: (id: string) => void
   groupPosition?: 'single' | 'first' | 'middle' | 'last'
+  isNewlyCreated?: boolean
 }
 
 export default function SortableTaskItem({
@@ -30,7 +31,8 @@ export default function SortableTaskItem({
   taskIndex,
   onDelete,
   onToggleCompletion,
-  groupPosition = 'single'
+  groupPosition = 'single',
+  isNewlyCreated = false
 }: SortableTaskItemProps) {
   const [editDescription, setEditDescription] = useState(task.description)
   const [editEstimatedMinutes, setEditEstimatedMinutes] = useState(task.estimatedMinutes)
@@ -382,12 +384,16 @@ export default function SortableTaskItem({
     <AnimatedBorder>
       <motion.div
         className="relative w-full group max-w-[520px]"
-        initial={{ opacity: 0, y: -10, scale: 0.98 }}
+        layout
+        layoutId={`task-${task.id}`}
+        initial={isNewlyCreated ? { opacity: 0, y: 20, scale: 0.98 } : { opacity: 0, y: -10, scale: 0.98 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.95 }}
         transition={{
-          duration: 0.3,
-          delay: 0.1,
-          ease: [0.4, 0, 0.2, 1]
+          layout: { duration: 0.3, ease: [0.4, 0, 0.2, 1] },
+          opacity: { duration: 0.25 },
+          y: { duration: 0.3, ease: [0.4, 0, 0.2, 1] },
+          scale: { duration: 0.25 }
         }}
       >
         {/* Drag Handle - Positioned absolutely to not affect card width, hidden on mobile */}
