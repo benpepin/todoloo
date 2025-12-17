@@ -384,7 +384,7 @@ export default function SortableTaskItem({
     <AnimatedBorder>
       <motion.div
         className="relative w-full group max-w-[520px]"
-        layout={isEditing || showChecklist}
+        layout={(isEditing || showChecklist) && !isDragging}
         layoutId={`task-${task.id}`}
         initial={isNewlyCreated ? { opacity: 0, y: 20, scale: 0.98 } : false}
         animate={{ opacity: 1, y: 0, scale: 1 }}
