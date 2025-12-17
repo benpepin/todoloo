@@ -100,63 +100,119 @@ export default function CompletionState({ tasks }: CompletionStateProps) {
 
         {/* Completed Tasks List */}
         {todaysTasks.length > 0 ? (
-          <motion.div
-            className="w-full flex flex-col gap-4"
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
-          >
-            {todaysTasks.map((task, index) => (
-              <motion.div
-                key={task.id}
-                variants={cardVariants}
-                className="w-full rounded-[20px] shadow-[2px_2px_4px_rgba(0,0,0,0.15)] p-6"
-                style={{ backgroundColor: 'var(--color-todoloo-task)' }}
-              >
-                <div className="flex items-center gap-6">
-                  {/* Number */}
-                  <div className="flex items-center justify-center w-[32px]">
-                    <span
-                      className="font-normal"
-                      style={{
-                        color: 'var(--color-todoloo-text-muted)',
-                        fontSize: 28,
-                        fontFamily: 'Outfit'
-                      }}
-                    >
-                      {index + 1}
-                    </span>
-                  </div>
+          hasSeenAnimation ? (
+            // Show static cards without animation
+            <div className="w-full flex flex-col gap-4">
+              {todaysTasks.map((task, index) => (
+                <div
+                  key={task.id}
+                  className="w-full rounded-[20px] shadow-[2px_2px_4px_rgba(0,0,0,0.15)] p-6"
+                  style={{ backgroundColor: 'var(--color-todoloo-task)' }}
+                >
+                  <div className="flex items-center gap-6">
+                    {/* Number */}
+                    <div className="flex items-center justify-center w-[32px]">
+                      <span
+                        className="font-normal"
+                        style={{
+                          color: 'var(--color-todoloo-text-muted)',
+                          fontSize: 28,
+                          fontFamily: 'Outfit'
+                        }}
+                      >
+                        {index + 1}
+                      </span>
+                    </div>
 
-                  {/* Task Info */}
-                  <div className="flex-1">
-                    <p
-                      className="text-base font-medium mb-1"
-                      style={{
-                        color: 'var(--color-todoloo-text-primary)',
-                        fontFamily: 'Outfit'
-                      }}
-                    >
-                      {task.description}
-                    </p>
-                    <p
-                      className="text-sm"
-                      style={{
-                        color: 'var(--color-todoloo-text-secondary)',
-                        fontFamily: 'Outfit',
-                        fontWeight: 400
-                      }}
-                    >
-                      {task.actualMinutes
-                        ? formatEstimatedTime(task.actualMinutes)
-                        : formatEstimatedTime(task.estimatedMinutes)
-                      }
-                    </p>
+                    {/* Task Info */}
+                    <div className="flex-1">
+                      <p
+                        className="text-base font-medium mb-1"
+                        style={{
+                          color: 'var(--color-todoloo-text-primary)',
+                          fontFamily: 'Outfit'
+                        }}
+                      >
+                        {task.description}
+                      </p>
+                      <p
+                        className="text-sm"
+                        style={{
+                          color: 'var(--color-todoloo-text-secondary)',
+                          fontFamily: 'Outfit',
+                          fontWeight: 400
+                        }}
+                      >
+                        {task.actualMinutes
+                          ? formatEstimatedTime(task.actualMinutes)
+                          : formatEstimatedTime(task.estimatedMinutes)
+                        }
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </motion.div>
-            ))}
-          </motion.div>
+              ))}
+            </div>
+          ) : (
+            // Show animated cards
+            <motion.div
+              className="w-full flex flex-col gap-4"
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+            >
+              {todaysTasks.map((task, index) => (
+                <motion.div
+                  key={task.id}
+                  variants={cardVariants}
+                  className="w-full rounded-[20px] shadow-[2px_2px_4px_rgba(0,0,0,0.15)] p-6"
+                  style={{ backgroundColor: 'var(--color-todoloo-task)' }}
+                >
+                  <div className="flex items-center gap-6">
+                    {/* Number */}
+                    <div className="flex items-center justify-center w-[32px]">
+                      <span
+                        className="font-normal"
+                        style={{
+                          color: 'var(--color-todoloo-text-muted)',
+                          fontSize: 28,
+                          fontFamily: 'Outfit'
+                        }}
+                      >
+                        {index + 1}
+                      </span>
+                    </div>
+
+                    {/* Task Info */}
+                    <div className="flex-1">
+                      <p
+                        className="text-base font-medium mb-1"
+                        style={{
+                          color: 'var(--color-todoloo-text-primary)',
+                          fontFamily: 'Outfit'
+                        }}
+                      >
+                        {task.description}
+                      </p>
+                      <p
+                        className="text-sm"
+                        style={{
+                          color: 'var(--color-todoloo-text-secondary)',
+                          fontFamily: 'Outfit',
+                          fontWeight: 400
+                        }}
+                      >
+                        {task.actualMinutes
+                          ? formatEstimatedTime(task.actualMinutes)
+                          : formatEstimatedTime(task.estimatedMinutes)
+                        }
+                      </p>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </motion.div>
+          )
         ) : (
           <motion.p
             className="text-lg text-center"
