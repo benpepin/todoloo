@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from 'react'
 import Image from 'next/image'
 import { DndContext, closestCenter, MouseSensor, TouchSensor, useSensor, useSensors, DragEndEvent, DragStartEvent, DragOverlay, DragOverEvent, CollisionDetection, rectIntersection } from '@dnd-kit/core'
 import { arrayMove, SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
-import { AnimatePresence } from 'framer-motion'
+import { AnimatePresence, motion } from 'framer-motion'
 import { useToDoStore } from '@/store/toDoStore'
 import SortableTaskItem from './SortableTaskItem'
 import ToDoCard from './ToDoCard'
@@ -364,8 +364,12 @@ function ToDoListContent() {
 
         {/* Done Section */}
         {doneTasks.length > 0 && (
-          <div className="w-full flex flex-col justify-start items-start gap-4">
-            {/* Done header - outside AnimatePresence but moves with section */}
+          <motion.div
+            className="w-full flex flex-col justify-start items-start gap-4"
+            layout
+            transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+          >
+            {/* Done header - moves with layout animation */}
             <div className="w-full inline-flex justify-start items-center gap-1.5">
               <div className="text-base font-normal font-['Outfit']" style={{ color: 'var(--color-todoloo-text-secondary)' }}>Done</div>
               <div className="flex-1 h-px transform translate-y-0.5" style={{ backgroundColor: 'var(--color-todoloo-text-secondary)' }} />
@@ -411,7 +415,7 @@ function ToDoListContent() {
                 </AnimatePresence>
               </SortableContext>
             </div>
-          </div>
+          </motion.div>
         )}
       </div>
       <DragOverlay>
