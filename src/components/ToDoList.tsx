@@ -352,6 +352,7 @@ function ToDoListContent() {
                         onToggleCompletion={toggleTaskCompletion}
                         groupPosition={groupPosition}
                         isNewlyCreated={task.id === newlyCreatedTaskId}
+                        isDraggingAny={!!activeId}
                       />
                     </div>
                   )
@@ -407,6 +408,7 @@ function ToDoListContent() {
                           onDelete={deleteTask}
                           onToggleCompletion={toggleTaskCompletion}
                           groupPosition={groupPosition}
+                          isDraggingAny={!!activeId}
                         />
                       </div>
                     )
