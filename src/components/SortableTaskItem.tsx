@@ -384,16 +384,16 @@ export default function SortableTaskItem({
     <AnimatedBorder>
       <motion.div
         className="relative w-full group max-w-[520px]"
-        layout
+        layout={!isNewlyCreated}
         layoutId={`task-${task.id}`}
-        initial={isNewlyCreated ? { opacity: 0, y: 20, scale: 0.98 } : { opacity: 0, y: -10, scale: 0.98 }}
+        initial={isNewlyCreated ? { opacity: 0, y: 20, scale: 0.98 } : false}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         exit={{ opacity: 0, scale: 0.95 }}
         transition={{
           layout: { duration: 0.3, ease: [0.4, 0, 0.2, 1] },
-          opacity: { duration: 0.25 },
-          y: { duration: 0.3, ease: [0.4, 0, 0.2, 1] },
-          scale: { duration: 0.25 }
+          opacity: { duration: 0.3 },
+          y: { duration: 0.4, ease: [0.4, 0, 0.2, 1] },
+          scale: { duration: 0.3 }
         }}
       >
         {/* Drag Handle - Positioned absolutely to not affect card width, hidden on mobile */}
