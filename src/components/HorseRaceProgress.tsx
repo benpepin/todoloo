@@ -14,6 +14,7 @@ const CHARACTERS = [
 export default function HorseRaceProgress() {
   const tasks = useToDoStore((state) => state.tasks)
   const activeTaskId = useToDoStore((state) => state.activeTaskId)
+  const currentListId = useToDoStore((state) => state.currentListId)
   const [prevProgress, setPrevProgress] = useState(0)
   const [isGalloping, setIsGalloping] = useState(false)
   const [isDarkMode, setIsDarkMode] = useState(false)
@@ -82,14 +83,26 @@ export default function HorseRaceProgress() {
   // Trigger run-off animation when all tasks complete
   useEffect(() => {
     if (progress === 100 && tasks.length > 0 && prevProgress < 100) {
-      // Only trigger animation when transitioning from incomplete to complete
-      setIsRunningOff(true)
-      setShowCompletionAnimation(true)
+      // Check if user has already seen the completion animation for this list
+      if (currentListId) {
+        const seenKey = `completion-animation-seen-${currentListId}`
+        const hasSeenAnimation = localStorage.getItem(seenKey) === 'true'
+
+        if (!hasSeenAnimation) {
+          // Only trigger animation if not seen before
+          setIsRunningOff(true)
+          setShowCompletionAnimation(true)
+        } else {
+          // Skip animation, just show static rainbow
+          setIsRunningOff(false)
+          setShowCompletionAnimation(false)
+        }
+      }
     } else if (progress < 100) {
       setIsRunningOff(false)
       setShowCompletionAnimation(false)
     }
-  }, [progress, tasks.length, prevProgress])
+  }, [progress, tasks.length, prevProgress, currentListId])
 
   // Don't show if no tasks
   if (totalTasks === 0) {
