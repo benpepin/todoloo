@@ -555,6 +555,18 @@ export async function getUserLists(userId: string): Promise<List[]> {
 
 // Create a new list
 export async function createList(userId: string, name: string): Promise<List> {
+  // Check if a list with this name already exists for this user
+  const { data: duplicateCheck } = await supabase
+    .from('lists')
+    .select('id')
+    .eq('user_id', userId)
+    .eq('name', name)
+    .single()
+
+  if (duplicateCheck) {
+    throw new Error(`You already have a list named "${name}". Please choose a different name.`)
+  }
+
   // Get the current max order for this user
   const { data: existingLists } = await supabase
     .from('lists')

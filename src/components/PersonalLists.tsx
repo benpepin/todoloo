@@ -175,9 +175,15 @@ export default function PersonalLists({ disableDragAndDrop = false, onListClick 
 
   const handleCreateList = async () => {
     if (newListName.trim()) {
-      await createList(newListName.trim())
-      setNewListName('')
-      setIsAddingList(false)
+      try {
+        await createList(newListName.trim())
+        setNewListName('')
+        setIsAddingList(false)
+      } catch (error) {
+        // Keep input open and focused on error so user can try again
+        // Error is displayed via store error state
+        console.error('Failed to create list:', error)
+      }
     }
   }
 
