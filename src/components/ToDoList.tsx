@@ -365,14 +365,17 @@ function ToDoListContent() {
         {/* Done Section */}
         {doneTasks.length > 0 && (
           <div className="w-full flex flex-col justify-start items-start gap-4">
-            <div className="w-full inline-flex justify-start items-center gap-1.5">
-              <div className="text-base font-normal font-['Outfit']" style={{ color: 'var(--color-todoloo-text-secondary)' }}>Done</div>
-              <div className="flex-1 h-px transform translate-y-0.5" style={{ backgroundColor: 'var(--color-todoloo-text-secondary)' }} />
-            </div>
             <div className="w-full flex flex-col justify-start items-start">
               <SortableContext items={doneTasks.map(task => task.id)} strategy={verticalListSortingStrategy}>
                 <AnimatePresence mode="popLayout">
                   <div className="w-full flex flex-col">
+                    {/* Done header inside AnimatePresence so it moves with the first card */}
+                    {doneTasks.length > 0 && (
+                      <div className="w-full inline-flex justify-start items-center gap-1.5 mb-4">
+                        <div className="text-base font-normal font-['Outfit']" style={{ color: 'var(--color-todoloo-text-secondary)' }}>Done</div>
+                        <div className="flex-1 h-px transform translate-y-0.5" style={{ backgroundColor: 'var(--color-todoloo-text-secondary)' }} />
+                      </div>
+                    )}
                     {doneTasks.map((task, index) => {
                     // Determine group position
                     let groupPosition: 'single' | 'first' | 'middle' | 'last' = 'single'
