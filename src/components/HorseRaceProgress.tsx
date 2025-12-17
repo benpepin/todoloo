@@ -235,18 +235,19 @@ export default function HorseRaceProgress() {
           }}
         />
 
-        {/* Character */}
-        <div
-          className="absolute cursor-pointer w-[104px] h-[104px] lg:w-[130px] lg:h-[130px]"
-          style={{
-            bottom: '-22px',
-            left: isRunningOff ? '120%' : `calc(${Math.min(progress, 92)}% + 56px)`,
-            transform: 'translateX(-50%)',
-            transition: isRunningOff ? 'left 2s ease-in' : 'left 500ms ease-out'
-          }}
-          onClick={handleCharacterClick}
-          title="Click to change character"
-        >
+        {/* Character - hide if completion animation already seen */}
+        {!(allTasksComplete && !showCompletionAnimation) && (
+          <div
+            className="absolute cursor-pointer w-[104px] h-[104px] lg:w-[130px] lg:h-[130px]"
+            style={{
+              bottom: '-22px',
+              left: isRunningOff ? '120%' : `calc(${Math.min(progress, 92)}% + 56px)`,
+              transform: 'translateX(-50%)',
+              transition: isRunningOff ? 'left 2s ease-in' : 'left 500ms ease-out'
+            }}
+            onClick={handleCharacterClick}
+            title="Click to change character"
+          >
           {isHorseActive ? (
             // Horse sprite animation when task is active
             <div
@@ -289,6 +290,7 @@ export default function HorseRaceProgress() {
             />
           )}
         </div>
+        )}
 
       </div>
 
