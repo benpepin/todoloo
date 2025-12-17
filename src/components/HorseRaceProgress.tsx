@@ -204,8 +204,8 @@ export default function HorseRaceProgress() {
           style={{
             background: '#103F2A',
             height: '5px',
-            left: '0',
-            right: '0',
+            left: '4px',
+            right: '4px',
             bottom: '0'
           }}
         />
@@ -217,8 +217,8 @@ export default function HorseRaceProgress() {
             background: '#009959',
             height: '1px',
             bottom: '5px',
-            left: '0',
-            right: '0'
+            left: '4px',
+            right: '4px'
           }}
         />
 
