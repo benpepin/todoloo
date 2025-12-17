@@ -1036,11 +1036,8 @@ export const useToDoStore = create<ToDoStore>()((set, get) => ({
         lists: [...state.lists, newList]
       }))
 
-      // If this is the first list, automatically switch to it
-      const { lists } = get()
-      if (lists.length === 1) {
-        await get().switchToPersonalList(newList.id)
-      }
+      // Always automatically switch to the newly created list
+      await get().switchToPersonalList(newList.id)
     } catch (error) {
       console.error('Error creating list:', error)
       set({
