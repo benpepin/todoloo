@@ -98,30 +98,22 @@ export default function HorseRaceProgress() {
 
   return (
     <div className="w-full">
-      {/* Track Container */}
+      {/* Track Container with border wrapper */}
       <div
         className="relative w-full h-[120px] lg:h-[160px]"
         style={{
-          overflow: 'hidden',
-          borderRadius: '60px 60px 0 0'
+          backgroundColor: 'var(--color-todoloo-card)',
+          borderRadius: '60px 60px 0 0',
+          padding: '4px 4px 0 4px'
         }}
       >
-        {/* Left border */}
-        <div className="absolute top-0 left-0 w-[4px] h-full bg-[#F9F9FD] z-20" />
-        {/* Right border */}
-        <div className="absolute top-0 right-0 w-[4px] h-full bg-[#F9F9FD] z-20" />
-        {/* Top border */}
-        <div className="absolute top-0 left-0 right-0 h-[4px] bg-[#F9F9FD] z-20" />
         {/* Sky background */}
         <div
-          className="absolute"
+          className="relative w-full h-full"
           style={{
-            top: '4px',
-            bottom: '0',
-            left: '4px',
-            right: '4px',
             background: isDarkMode ? '#1a1a2e' : '#79C7FD',
-            borderRadius: '56px 56px 0 0'
+            borderRadius: '56px 56px 0 0',
+            overflow: 'hidden'
           }}
         >
           <div
@@ -212,8 +204,8 @@ export default function HorseRaceProgress() {
           style={{
             background: '#103F2A',
             height: '5px',
-            left: '4px',
-            right: '4px',
+            left: '0',
+            right: '0',
             bottom: '0'
           }}
         />
@@ -225,8 +217,8 @@ export default function HorseRaceProgress() {
             background: '#009959',
             height: '1px',
             bottom: '5px',
-            left: '4px',
-            right: '4px'
+            left: '0',
+            right: '0'
           }}
         />
 
