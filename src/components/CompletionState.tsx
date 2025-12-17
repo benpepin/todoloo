@@ -2,9 +2,11 @@
 
 import { motion } from 'framer-motion'
 import Image from 'next/image'
+import { useEffect, useState } from 'react'
 import { Task } from '@/types'
 import { useTheme } from '@/contexts/ThemeContext'
 import { formatEstimatedTime } from '@/utils/timeFormatting'
+import { useToDoStore } from '@/store/toDoStore'
 
 interface CompletionStateProps {
   tasks: Task[]
@@ -12,6 +14,25 @@ interface CompletionStateProps {
 
 export default function CompletionState({ tasks }: CompletionStateProps) {
   const { theme } = useTheme()
+  const currentListId = useToDoStore((state) => state.currentListId)
+  const [hasSeenAnimation, setHasSeenAnimation] = useState(false)
+
+  // Check if user has seen the completion animation for this list
+  useEffect(() => {
+    if (currentListId) {
+      const seenKey = `completion-animation-seen-${currentListId}`
+      const seen = localStorage.getItem(seenKey)
+      setHasSeenAnimation(seen === 'true')
+
+      // Mark as seen after component mounts (animation will have played)
+      if (!seen) {
+        // Wait for animation to complete before marking as seen
+        setTimeout(() => {
+          localStorage.setItem(seenKey, 'true')
+        }, 4000) // After all animations complete
+      }
+    }
+  }, [currentListId])
 
   // Filter to only today's completed tasks
   const todayStart = new Date()
@@ -28,23 +49,23 @@ export default function CompletionState({ tasks }: CompletionStateProps) {
     )
 
   const containerVariants = {
-    hidden: { opacity: 0 },
+    hidden: { opacity: hasSeenAnimation ? 1 : 0 },
     visible: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.1,
-        delayChildren: 3.2
+        staggerChildren: hasSeenAnimation ? 0 : 0.1,
+        delayChildren: hasSeenAnimation ? 0 : 3.2
       }
     }
   }
 
   const cardVariants = {
-    hidden: { opacity: 0, y: 10 },
+    hidden: { opacity: hasSeenAnimation ? 1 : 0, y: hasSeenAnimation ? 0 : 10 },
     visible: {
       opacity: 1,
       y: 0,
       transition: {
-        duration: 0.3
+        duration: hasSeenAnimation ? 0 : 0.3
       }
     }
   }
@@ -52,17 +73,17 @@ export default function CompletionState({ tasks }: CompletionStateProps) {
   return (
     <motion.div
       className="w-full flex flex-col items-center"
-      initial={{ opacity: 0 }}
+      initial={{ opacity: hasSeenAnimation ? 1 : 0 }}
       animate={{ opacity: 1 }}
-      transition={{ duration: 0.8, delay: 2 }}
+      transition={{ duration: hasSeenAnimation ? 0 : 0.8, delay: hasSeenAnimation ? 0 : 2 }}
     >
       {/* White section with subtitle and tasks */}
       <motion.div
         className="w-full max-w-[520px] rounded-b-[40px] px-8 py-8"
         style={{ backgroundColor: 'var(--color-todoloo-card)' }}
-        initial={{ opacity: 0 }}
+        initial={{ opacity: hasSeenAnimation ? 1 : 0 }}
         animate={{ opacity: 1 }}
-        transition={{ duration: 0.5, delay: 2.8 }}
+        transition={{ duration: hasSeenAnimation ? 0 : 0.5, delay: hasSeenAnimation ? 0 : 2.8 }}
       >
         <motion.p
           className="text-lg text-center mb-8"
@@ -70,9 +91,9 @@ export default function CompletionState({ tasks }: CompletionStateProps) {
             fontFamily: 'Outfit',
             color: 'var(--color-todoloo-text-primary)'
           }}
-          initial={{ opacity: 0 }}
+          initial={{ opacity: hasSeenAnimation ? 1 : 0 }}
           animate={{ opacity: 1 }}
-          transition={{ duration: 0.5, delay: 3 }}
+          transition={{ duration: hasSeenAnimation ? 0 : 0.5, delay: hasSeenAnimation ? 0 : 3 }}
         >
           You did {todaysTasks.length} thing{todaysTasks.length !== 1 ? 's' : ''} today
         </motion.p>
