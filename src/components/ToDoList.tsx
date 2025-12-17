@@ -319,7 +319,7 @@ function ToDoListContent() {
 
           <div className="w-full flex flex-col justify-start items-start">
             <SortableContext items={todoTasks.map(task => task.id)} strategy={verticalListSortingStrategy}>
-              <AnimatePresence mode="popLayout">
+              <AnimatePresence>
                 <div className="w-full flex flex-col">
                   {todoTasks.map((task, index) => {
                   // Determine group position
@@ -376,7 +376,7 @@ function ToDoListContent() {
             </div>
             <div className="w-full flex flex-col justify-start items-start">
               <SortableContext items={doneTasks.map(task => task.id)} strategy={verticalListSortingStrategy}>
-                <AnimatePresence mode="popLayout">
+                <AnimatePresence>
                   <div className="w-full flex flex-col">
                     {doneTasks.map((task, index) => {
                     // Determine group position
