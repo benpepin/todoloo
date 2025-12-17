@@ -9,10 +9,11 @@ import { useToDoStore } from '@/store/toDoStore'
 import SortableTaskItem from './SortableTaskItem'
 import ToDoCard from './ToDoCard'
 import CompletionState from './CompletionState'
+import SkeletonLoader from './SkeletonLoader'
 import { Check } from 'lucide-react'
 
 function ToDoListContent() {
-  const { tasks, deleteTask, toggleTaskCompletion, updateTaskOrder, showCreateTask, toggleCreateTask, moveTaskToList } = useToDoStore()
+  const { tasks, deleteTask, toggleTaskCompletion, updateTaskOrder, showCreateTask, toggleCreateTask, moveTaskToList, isLoading, isInitialized } = useToDoStore()
   const [activeId, setActiveId] = useState<string | null>(null)
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [overId, setOverId] = useState<string | null>(null)
@@ -171,6 +172,25 @@ function ToDoListContent() {
 
   // Check if all tasks are completed
   const allTasksComplete = tasks.length > 0 && tasks.every(task => task.isCompleted)
+
+  // Show skeleton during initial load
+  if (isLoading && !isInitialized) {
+    return (
+      <div className="w-full flex flex-col justify-start items-start gap-8">
+        {/* Todo Section */}
+        <div className="w-full flex flex-col justify-start items-start gap-0 lg:gap-4">
+          {/* Section header */}
+          <div className="hidden lg:flex w-full justify-start items-center gap-1.5">
+            <div className="text-base font-normal font-['Outfit']" style={{ color: 'var(--color-todoloo-text-secondary)' }}>Todos</div>
+            <div className="flex-1 h-px transform translate-y-0.5" style={{ backgroundColor: 'var(--color-todoloo-text-secondary)' }} />
+          </div>
+
+          {/* Skeleton Cards */}
+          <SkeletonLoader count={3} />
+        </div>
+      </div>
+    )
+  }
 
   if (tasks.length === 0) {
     return (
