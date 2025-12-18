@@ -83,26 +83,13 @@ export default function HorseRaceProgress() {
   // Trigger run-off animation when all tasks complete
   useEffect(() => {
     if (progress === 100 && tasks.length > 0 && prevProgress < 100) {
-      // Check if user has already seen the completion animation for this list
-      if (currentListId) {
-        const seenKey = `completion-animation-seen-${currentListId}`
-        const hasSeenAnimation = localStorage.getItem(seenKey) === 'true'
-
-        if (!hasSeenAnimation) {
-          // Only trigger animation if not seen before
-          setIsRunningOff(true)
-          setShowCompletionAnimation(true)
-        } else {
-          // Skip animation, just show static rainbow
-          setIsRunningOff(false)
-          setShowCompletionAnimation(false)
-        }
-      }
+      setIsRunningOff(true)
+      setShowCompletionAnimation(true)
     } else if (progress < 100) {
       setIsRunningOff(false)
       setShowCompletionAnimation(false)
     }
-  }, [progress, tasks.length, prevProgress, currentListId])
+  }, [progress, tasks.length, prevProgress])
 
   // Don't show if no tasks
   if (totalTasks === 0) {
@@ -235,19 +222,18 @@ export default function HorseRaceProgress() {
           }}
         />
 
-        {/* Character - hide if completion animation already seen */}
-        {!(allTasksComplete && !showCompletionAnimation) && (
-          <div
-            className="absolute cursor-pointer w-[104px] h-[104px] lg:w-[130px] lg:h-[130px]"
-            style={{
-              bottom: '-22px',
-              left: isRunningOff ? '120%' : `calc(${Math.min(progress, 92)}% + 56px)`,
-              transform: 'translateX(-50%)',
-              transition: isRunningOff ? 'left 2s ease-in' : 'left 500ms ease-out'
-            }}
-            onClick={handleCharacterClick}
-            title="Click to change character"
-          >
+        {/* Character */}
+        <div
+          className="absolute cursor-pointer w-[104px] h-[104px] lg:w-[130px] lg:h-[130px]"
+          style={{
+            bottom: '-22px',
+            left: isRunningOff ? '120%' : `calc(${Math.min(progress, 92)}% + 56px)`,
+            transform: 'translateX(-50%)',
+            transition: isRunningOff ? 'left 2s ease-in' : 'left 500ms ease-out'
+          }}
+          onClick={handleCharacterClick}
+          title="Click to change character"
+        >
           {isHorseActive ? (
             // Horse sprite animation when task is active
             <div
@@ -290,7 +276,6 @@ export default function HorseRaceProgress() {
             />
           )}
         </div>
-        )}
 
       </div>
 
