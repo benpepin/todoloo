@@ -665,11 +665,70 @@ export default function SortableTaskItem({
                   </span>
                 )}
               </div>
-                
+
+              {/* Mobile play/pause controls - visible on mobile, hidden on desktop */}
+              <div className="lg:hidden flex items-center justify-center w-[32px] mr-3">
+                {isRunning && hasStarted ? (
+                  // Active task: show pause button
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handlePauseTask()
+                    }}
+                    className="w-8 h-8 p-2 rounded-lg transition-all duration-200 cursor-pointer flex items-center justify-center active:scale-95"
+                    style={{
+                      backgroundColor: '#fef3c7',
+                      color: '#d97706'
+                    }}
+                    title="Pause"
+                  >
+                    <Pause className="w-4 h-4" />
+                  </button>
+                ) : !task.isCompleted && hasStarted ? (
+                  // Timer started but not active: show play button
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleStartTask()
+                    }}
+                    className="w-8 h-8 p-2 rounded-lg transition-all duration-200 cursor-pointer flex items-center justify-center active:scale-95"
+                    style={{
+                      backgroundColor: '#dcfce7',
+                      color: '#16a34a'
+                    }}
+                  >
+                    <Play className="w-4 h-4" />
+                  </button>
+                ) : !task.isCompleted ? (
+                  // Inactive task: show play button
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleStartTask()
+                    }}
+                    className="w-8 h-8 p-2 rounded-lg transition-all duration-200 cursor-pointer flex items-center justify-center active:scale-95"
+                    style={{
+                      backgroundColor: '#dcfce7',
+                      color: '#16a34a'
+                    }}
+                  >
+                    <Play className="w-4 h-4" />
+                  </button>
+                ) : null}
+              </div>
+
               <div className="flex-1">
                 <div
                   className="cursor-text"
-                  onClick={handleEdit}
+                  onClick={(e) => {
+                    // Prevent edit on mobile if clicking play button area
+                    const target = e.target as HTMLElement
+                    if (target.closest('button')) {
+                      e.stopPropagation()
+                      return
+                    }
+                    handleEdit()
+                  }}
                 >
                   <div className="flex flex-col gap-1">
                     <p className={`text-sm md:text-base font-medium ${
