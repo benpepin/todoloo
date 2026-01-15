@@ -47,6 +47,7 @@ export default function SortableTaskItem({
   const [showStrikethrough, setShowStrikethrough] = useState(false)
   const [showCheckmarkAnimation, setShowCheckmarkAnimation] = useState(false)
   const [showChecklist, setShowChecklist] = useState(false)
+  const [isHovered, setIsHovered] = useState(false)
 
   const descriptionInputRef = useRef<HTMLTextAreaElement>(null)
   const taskCardRef = useRef<HTMLDivElement>(null)
@@ -415,7 +416,7 @@ export default function SortableTaskItem({
             setNodeRef(node)
             taskCardRef.current = node
           }}
-          className={`w-full shadow-[2px_2px_4px_rgba(0,0,0,0.15)] group ${isEditing ? 'overflow-visible' : 'overflow-hidden'} ${isActive ? 'ring-2' : ''} ${
+          className={`w-full group ${isEditing ? 'overflow-visible' : 'overflow-hidden'} ${isActive ? 'ring-2' : ''} ${
             isEditing
               ? 'p-5 max-[400px]:p-5 md:p-6'
               : task.createdByName && task.createdByUserId && task.userId !== task.createdByUserId
@@ -426,13 +427,22 @@ export default function SortableTaskItem({
             groupPosition === 'first' ? 'rounded-t-[20px]' :
             groupPosition === 'last' ? 'rounded-b-[20px]' :
             ''
-          } ${!isEditing && !task.isCompleted ? 'lg:cursor-default touch-manipulation hover:shadow-[4px_4px_8px_rgba(0,0,0,0.2)] transition-shadow duration-200' : ''}`}
+          } ${!isEditing && !task.isCompleted ? 'lg:cursor-default touch-manipulation' : ''}`}
           style={{
             ...style,
-            backgroundColor: 'var(--color-todoloo-task)'
+            backgroundColor: 'var(--color-todoloo-task)',
+            boxShadow: isHovered && !isEditing && !task.isCompleted ? '4px 4px 8px rgba(0,0,0,0.2)' : '2px 2px 4px rgba(0,0,0,0.15)',
+            transform: isHovered && !isEditing && !task.isCompleted ? `${style.transform || ''} translateY(-1px)`.trim() : style.transform,
+            transition: 'box-shadow 200ms ease-out, transform 200ms ease-out'
           }}
-          onMouseEnter={() => setShowEditButtons(true)}
-          onMouseLeave={() => !isEditing && setShowEditButtons(false)}
+          onMouseEnter={() => {
+            setShowEditButtons(true)
+            setIsHovered(true)
+          }}
+          onMouseLeave={() => {
+            if (!isEditing) setShowEditButtons(false)
+            setIsHovered(false)
+          }}
           {...(!isEditing && !task.isCompleted ? { ...attributes, ...listeners } : {})}
         >
           {isEditing ? (
